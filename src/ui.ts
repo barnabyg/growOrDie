@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { createNewGame, resolveTurn } from "./simulation.js";
-import type { GameState, TurnResult } from "./types.js";
+import type { GameState, PlayerPlan, TurnResult } from "./types.js";
 
 // Thin adapter around the deterministic simulation core: DOM rendering + localStorage persistence.
 const SAVE_KEY = "growOrDie.save.v1";
@@ -58,12 +58,22 @@ function renderPlan(state: GameState): void {
   el<HTMLElement>("plan-year").textContent = String(state.year);
   const maxHectares = state.preparedLandHectares;
   el<HTMLElement>("plan-max").textContent = fmt(maxHectares);
+  el<HTMLElement>("plan-fert-price").textContent = fmt(CONFIG.fertilizerCostPerHectare);
+  const maxPrep = state.arableLandHectares - state.preparedLandHectares;
+  el<HTMLElement>("plan-prep-max").textContent = fmt(maxPrep);
+  el<HTMLElement>("plan-prep-price").textContent = fmt(CONFIG.landPrepCostPerHectare);
 
   const input = el<HTMLInputElement>("plan-hectares");
   input.max = String(maxHectares);
   input.value = String(maxHectares);
+  const fertilizerInput = el<HTMLInputElement>("plan-fertilizer");
+  fertilizerInput.max = String(maxHectares);
+  fertilizerInput.value = "0";
+  const prepInput = el<HTMLInputElement>("plan-prep");
+  prepInput.max = String(maxPrep);
+  prepInput.value = "0";
 
-  updatePlanPreview(state, input);
+  updatePlanPreview(state);
 }
 
 function clampedHectares(state: GameState, raw: number): number {
@@ -72,13 +82,40 @@ function clampedHectares(state: GameState, raw: number): number {
   return Math.max(0, Math.min(Math.floor(raw), max));
 }
 
-function updatePlanPreview(state: GameState, input: HTMLInputElement): void {
-  const hectares = clampedHectares(state, Number(input.value));
-  const seedCost = hectares * CONFIG.seedCostPerHectare;
+function readPlanInputs(state: GameState): PlayerPlan {
+  const cultivatedHectares = clampedHectares(state, Number(el<HTMLInputElement>("plan-hectares").value));
+  const rawFertilizer = Number(el<HTMLInputElement>("plan-fertilizer").value);
+  const fertilizedHectares = !Number.isFinite(rawFertilizer)
+    ? 0
+    : Math.max(0, Math.min(Math.floor(rawFertilizer), cultivatedHectares));
+  const maxPrep = state.arableLandHectares - state.preparedLandHectares;
+  const rawPrep = Number(el<HTMLInputElement>("plan-prep").value);
+  const preparedHectares = !Number.isFinite(rawPrep)
+    ? 0
+    : Math.max(0, Math.min(Math.floor(rawPrep), maxPrep));
+  return { cultivatedHectares, fertilizedHectares, preparedHectares };
+}
+
+function updatePlanPreview(state: GameState): void {
+  const plan = readPlanInputs(state);
+
+  // Keep each input's max in sync with the others (fertilizer <= cultivated).
+  el<HTMLInputElement>("plan-fertilizer").max = String(plan.cultivatedHectares);
+
+  const seedCost = plan.cultivatedHectares * CONFIG.seedCostPerHectare;
+  const fertilizerCost = plan.fertilizedHectares * CONFIG.fertilizerCostPerHectare;
+  const prepCost = plan.preparedHectares * CONFIG.landPrepCostPerHectare;
+  const totalCost = seedCost + fertilizerCost + prepCost;
   el<HTMLElement>("plan-seed-cost").textContent = fmt(seedCost);
-  const affordable = seedCost <= state.budgetCoins;
-  el<HTMLElement>("plan-remaining").textContent = `${fmt(state.budgetCoins - seedCost)} coins`;
-  el<HTMLButtonElement>("confirm-btn").disabled = !affordable;
+  el<HTMLElement>("plan-fert-cost").textContent = fmt(fertilizerCost);
+  el<HTMLElement>("plan-prep-cost").textContent = fmt(prepCost);
+  el<HTMLElement>("plan-total-cost").textContent = fmt(totalCost);
+
+  const remaining = state.budgetCoins - totalCost;
+  const remainingEl = el<HTMLElement>("plan-remaining");
+  remainingEl.textContent = `${fmt(remaining)} coins`;
+  remainingEl.classList.toggle("overspend", remaining < 0);
+  el<HTMLButtonElement>("confirm-btn").disabled = remaining < 0;
 }
 
 function renderReport(previous: GameState, result: TurnResult): void {
@@ -99,6 +136,8 @@ function renderReport(previous: GameState, result: TurnResult): void {
   el<HTMLElement>("report-pop-change").textContent = `${fmt(report.populationStart)} → ${fmt(report.populationEnd)} (${delta >= 0 ? "+" : ""}${fmt(delta)})`;
 
   el<HTMLElement>("report-seeds").textContent = `-${fmt(report.seedCostCoins)}`;
+  el<HTMLElement>("report-fertilizer").textContent = `-${fmt(report.fertilizerCostCoins)}`;
+  el<HTMLElement>("report-prep").textContent = `-${fmt(report.landPrepCostCoins)}`;
   el<HTMLElement>("report-upkeep").textContent = `-${fmt(report.storageUpkeepCoins)}`;
   el<HTMLElement>("report-carryover").textContent = `${fmt(report.budgetCarryOverCoins)}`;
   el<HTMLElement>("report-tax").textContent = `+${fmt(report.budgetRevenueCoins)}`;
@@ -111,10 +150,9 @@ function render(): void {
 }
 
 function confirmPlan(): void {
-  const input = el<HTMLInputElement>("plan-hectares");
-  const hectares = clampedHectares(save.state, Number(input.value));
+  const plan = readPlanInputs(save.state);
   const previous = save.state;
-  const result = resolveTurn(previous, { cultivatedHectares: hectares }, turnSeed(save.runSeed, previous.year), CONFIG);
+  const result = resolveTurn(previous, plan, turnSeed(save.runSeed, previous.year), CONFIG);
   save.state = result.state;
   persist(save);
   renderReport(previous, result);
@@ -130,8 +168,9 @@ function restart(): void {
 }
 
 function init(): void {
-  const input = el<HTMLInputElement>("plan-hectares");
-  input.addEventListener("input", () => updatePlanPreview(save.state, input));
+  for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep"]) {
+    el<HTMLInputElement>(id).addEventListener("input", () => updatePlanPreview(save.state));
+  }
   el<HTMLButtonElement>("confirm-btn").addEventListener("click", confirmPlan);
   el<HTMLButtonElement>("restart-btn").addEventListener("click", restart);
   render();

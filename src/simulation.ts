@@ -29,8 +29,23 @@ export function resolveTurn(
     Math.min(Math.floor(plan.cultivatedHectares), state.preparedLandHectares),
   );
 
-  // Harvest at base Yield (fertilizer and events land in later tickets).
-  const harvestTons = cultivatedHectares * config.baseYieldPerHectare;
+  const fertilizedHectares = Math.max(
+    0,
+    Math.min(Math.floor(plan.fertilizedHectares), cultivatedHectares),
+  );
+
+  // New land prepared this Turn is cultivable from the next Turn: this Turn's
+  // cultivation was already clamped to the previously prepared hectares.
+  const preparedHectares = Math.max(
+    0,
+    Math.min(Math.floor(plan.preparedHectares), state.arableLandHectares - state.preparedLandHectares),
+  );
+
+  // Fertilizer boosts Yield on the fertilized hectares only (events land in a later ticket).
+  const baseYieldTons = (cultivatedHectares - fertilizedHectares) * config.baseYieldPerHectare;
+  const boostedYieldTons =
+    fertilizedHectares * config.baseYieldPerHectare * config.fertilizerYieldMultiplier;
+  const harvestTons = baseYieldTons + boostedYieldTons;
   const consumptionTons = state.population * config.consumptionPerPerson;
   const availableFoodTons = harvestTons + state.storageTons;
 
@@ -52,8 +67,10 @@ export function resolveTurn(
   const storageTons = famine === "none" ? availableFoodTons - consumptionTons : 0;
 
   const seedCostCoins = cultivatedHectares * config.seedCostPerHectare;
+  const fertilizerCostCoins = fertilizedHectares * config.fertilizerCostPerHectare;
+  const landPrepCostCoins = preparedHectares * config.landPrepCostPerHectare;
   const storageUpkeepCoins = storageTons * config.storageUpkeepPerTonPerYear;
-  const budgetSpentCoins = seedCostCoins + storageUpkeepCoins;
+  const budgetSpentCoins = seedCostCoins + fertilizerCostCoins + landPrepCostCoins + storageUpkeepCoins;
   const taxRevenueCoins = populationEnd * config.taxPerPerson;
   const carryOverCoins = state.budgetCoins - budgetSpentCoins;
 
@@ -66,6 +83,8 @@ export function resolveTurn(
     populationStart: state.population,
     populationEnd,
     seedCostCoins,
+    fertilizerCostCoins,
+    landPrepCostCoins,
     storageUpkeepCoins,
     budgetSpentCoins,
     budgetRevenueCoins: taxRevenueCoins,
@@ -76,7 +95,7 @@ export function resolveTurn(
     year: state.year + 1,
     population: populationEnd,
     arableLandHectares: state.arableLandHectares,
-    preparedLandHectares: state.preparedLandHectares,
+    preparedLandHectares: state.preparedLandHectares + preparedHectares,
     storageTons,
     budgetCoins: taxRevenueCoins + carryOverCoins,
     worldPrice: config.worldPriceBase, // fixed placeholder until the trade ticket lands

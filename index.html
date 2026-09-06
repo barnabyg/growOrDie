@@ -73,6 +73,7 @@
       button:disabled { opacity: 0.45; cursor: not-allowed; }
       button.secondary { background: var(--border); color: var(--text); }
       .preview { margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .overspend { color: var(--danger); font-weight: bold; }
       table.report { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
       table.report td { padding: 0.25rem 0; border-bottom: 1px solid var(--border); }
       table.report td:last-child { text-align: right; }
@@ -105,10 +106,20 @@
         <div class="plan-row">
           <label for="plan-hectares">Cultivate (of <span id="plan-max"></span> ha prepared)</label>
           <input type="number" id="plan-hectares" min="0" step="1" />
+        </div>
+        <div class="plan-row">
+          <label for="plan-fertilizer">Fertilize (of cultivated · <span id="plan-fert-price"></span> coins/ha, doubles Yield)</label>
+          <input type="number" id="plan-fertilizer" min="0" step="1" />
+        </div>
+        <div class="plan-row">
+          <label for="plan-prep">Prepare new land (of <span id="plan-prep-max"></span> ha arable left · <span id="plan-prep-price"></span> coins/ha one-off)</label>
+          <input type="number" id="plan-prep" min="0" step="1" />
+        </div>
+        <div class="plan-row">
           <button id="confirm-btn">Resolve the year</button>
         </div>
         <p class="preview">
-          Seeds: <span id="plan-seed-cost"></span> coins · Budget after seeds: <span id="plan-remaining"></span>
+          Seeds: <span id="plan-seed-cost"></span> · Fertilizer: <span id="plan-fert-cost"></span> · Land prep: <span id="plan-prep-cost"></span> · Total: <span id="plan-total-cost"></span> coins · Budget after plan: <span id="plan-remaining"></span>
         </p>
       </section>
       <section id="report" hidden>
@@ -119,6 +130,8 @@
           <tr><td>Available food (harvest + opening storage)</td><td id="report-available"></td></tr>
           <tr><td>Population</td><td id="report-pop-change"></td></tr>
           <tr><td>Budget: seeds</td><td id="report-seeds"></td></tr>
+          <tr><td>Budget: fertilizer</td><td id="report-fertilizer"></td></tr>
+          <tr><td>Budget: land preparation</td><td id="report-prep"></td></tr>
           <tr><td>Budget: storage upkeep</td><td id="report-upkeep"></td></tr>
           <tr><td>Budget: carry-over (unspent)</td><td id="report-carryover"></td></tr>
           <tr><td>Budget: tax revenue</td><td id="report-tax"></td></tr>

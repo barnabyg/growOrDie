@@ -10,6 +10,8 @@ export interface GameState {
 
 export interface PlayerPlan {
   cultivatedHectares: number; // 0..preparedLandHectares
+  fertilizedHectares: number; // 0..cultivatedHectares; those hectares get the boosted Yield
+  preparedHectares: number; // new land prepared this turn; cultivable from the next Turn
 }
 
 export type FamineSeverity = "none" | "partial" | "total";
@@ -23,8 +25,10 @@ export interface YearReport {
   populationStart: number;
   populationEnd: number;
   seedCostCoins: number;
+  fertilizerCostCoins: number;
+  landPrepCostCoins: number;
   storageUpkeepCoins: number;
-  budgetSpentCoins: number; // everything deducted from this Turn's Budget (seeds + storage upkeep)
+  budgetSpentCoins: number; // everything deducted from this Turn's Budget (seeds + fertilizer + land prep + storage upkeep)
   budgetRevenueCoins: number; // tax collected next Turn's Budget
   budgetCarryOverCoins: number; // unspent balance carried into next Turn
 }
