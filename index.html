@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grow or Die</title>
+    <style>
+      :root {
+        --bg: #14100c;
+        --panel: #211a13;
+        --border: #3a2f22;
+        --text: #ece3d4;
+        --muted: #a89a85;
+        --accent: #7fb069;
+        --danger: #d96c47;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 0.75rem 1.25rem;
+        background: var(--panel);
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+      }
+      header h1 { font-size: 1.1rem; margin: 0; letter-spacing: 0.05em; }
+      .stats { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-left: auto; }
+      .stat { text-align: center; }
+      .stat .label { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+      .stat .value { font-size: 1rem; font-variant-numeric: tabular-nums; }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 1.5rem 1.25rem 3rem;
+        display: grid;
+        gap: 1.25rem;
+      }
+      section {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+      }
+      h2 { margin: 0 0 0.75rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+      .plan-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+      label { font-size: 0.9rem; }
+      input[type="number"] {
+        width: 6rem;
+        padding: 0.4rem 0.5rem;
+        font-size: 1rem;
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+      }
+      button {
+        padding: 0.45rem 1.1rem;
+        font-size: 0.95rem;
+        font-family: inherit;
+        background: var(--accent);
+        color: #14230e;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      button.secondary { background: var(--border); color: var(--text); }
+      .preview { margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+      table.report { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+      table.report td { padding: 0.25rem 0; border-bottom: 1px solid var(--border); }
+      table.report td:last-child { text-align: right; }
+      .famine-banner {
+        display: inline-block;
+        margin-top: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        background: #2a1d18;
+        color: var(--muted);
+      }
+      .famine-banner.famine { background: #3d1f14; color: var(--danger); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Grow or Die</h1>
+      <div class="stats">
+        <div class="stat"><span class="label">Year</span><span class="value" id="stat-year"></span></div>
+        <div class="stat"><span class="label">Population</span><span class="value" id="stat-population"></span></div>
+        <div class="stat"><span class="label">Storage</span><span class="value" id="stat-storage"></span></div>
+        <div class="stat"><span class="label">Budget</span><span class="value" id="stat-budget"></span></div>
+        <div class="stat"><span class="label">World price</span><span class="value" id="stat-price"></span></div>
+      </div>
+    </header>
+    <main>
+      <section>
+        <h2>Plan — Year <span id="plan-year"></span></h2>
+        <div class="plan-row">
+          <label for="plan-hectares">Cultivate (of <span id="plan-max"></span> ha prepared)</label>
+          <input type="number" id="plan-hectares" min="0" step="1" />
+          <button id="confirm-btn">Resolve the year</button>
+        </div>
+        <p class="preview">
+          Seeds: <span id="plan-seed-cost"></span> coins · Budget after seeds: <span id="plan-remaining"></span>
+        </p>
+      </section>
+      <section id="report" hidden>
+        <h2>Year report — Year <span id="report-year"></span></h2>
+        <table class="report">
+          <tr><td>Harvest</td><td id="report-harvest"></td></tr>
+          <tr><td>Consumption</td><td id="report-consumption"></td></tr>
+          <tr><td>Available food (harvest + opening storage)</td><td id="report-available"></td></tr>
+          <tr><td>Population</td><td id="report-pop-change"></td></tr>
+          <tr><td>Budget: seeds</td><td id="report-seeds"></td></tr>
+          <tr><td>Budget: storage upkeep</td><td id="report-upkeep"></td></tr>
+          <tr><td>Budget: carry-over (unspent)</td><td id="report-carryover"></td></tr>
+          <tr><td>Budget: tax revenue</td><td id="report-tax"></td></tr>
+          <tr><td>Next-turn Budget</td><td id="report-new-budget"></td></tr>
+        </table>
+        <span class="famine-banner" id="report-famine"></span>
+      </section>
+      <section>
+        <h2>Run</h2>
+        <button class="secondary" id="restart-btn">Restart run</button>
+      </section>
+    </main>
+    <script type="module" src="./dist/ui.js"></script>
+  </body>
+</html>
