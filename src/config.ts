@@ -13,7 +13,10 @@ export interface GameConfig {
   taxPerPerson: number; // coins per person per year
   populationGrowthRate: number; // fraction, applied each year Consumption is met
   storageUpkeepPerTonPerYear: number; // coins per stored ton per year
-  worldPriceBase: number; // fixed World price placeholder until the trade ticket lands
+  worldPriceBase: number; // starting World price before the first walk
+  worldPriceWalkStep: number; // max coins/ton the World price moves per year
+  worldPriceMin: number; // hard floor for the World price
+  worldPriceMax: number; // hard ceiling for the World price
 }
 
 export const CONFIG: GameConfig = {
@@ -30,4 +33,7 @@ export const CONFIG: GameConfig = {
   populationGrowthRate: 0.05,
   storageUpkeepPerTonPerYear: 1,
   worldPriceBase: 10,
+  worldPriceWalkStep: 1.5,
+  worldPriceMin: 7,
+  worldPriceMax: 14,
 };

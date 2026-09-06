@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { createNewGame, resolveTurn } from "./simulation.js";
+import { createNewGame, estimateHarvestTons, resolveTurn } from "./simulation.js";
 import type { GameState, PlayerPlan, TurnResult } from "./types.js";
 
 // Thin adapter around the deterministic simulation core: DOM rendering + localStorage persistence.
@@ -51,7 +51,7 @@ function renderStats(state: GameState): void {
   el<HTMLSpanElement>("stat-population").textContent = fmt(state.population);
   el<HTMLSpanElement>("stat-storage").textContent = `${fmt(state.storageTons)} t`;
   el<HTMLSpanElement>("stat-budget").textContent = `${fmt(state.budgetCoins)} coins`;
-  el<HTMLSpanElement>("stat-price").textContent = `${state.worldPrice} /t`;
+  el<HTMLSpanElement>("stat-price").textContent = `${state.worldPrice.toFixed(2)} /t`;
 }
 
 function renderPlan(state: GameState): void {
@@ -62,6 +62,7 @@ function renderPlan(state: GameState): void {
   const maxPrep = state.arableLandHectares - state.preparedLandHectares;
   el<HTMLElement>("plan-prep-max").textContent = fmt(maxPrep);
   el<HTMLElement>("plan-prep-price").textContent = fmt(CONFIG.landPrepCostPerHectare);
+  el<HTMLElement>("plan-upkeep-price").textContent = fmt(CONFIG.storageUpkeepPerTonPerYear);
 
   const input = el<HTMLInputElement>("plan-hectares");
   input.max = String(maxHectares);
@@ -73,6 +74,14 @@ function renderPlan(state: GameState): void {
   prepInput.max = String(maxPrep);
   prepInput.value = "0";
 
+  const estSurplus = estimateSurplusTons(state, maxHectares, 0);
+  const minStore = minReStoreTons(state);
+  const storeInput = el<HTMLInputElement>("plan-store");
+  storeInput.min = String(minStore);
+  storeInput.max = String(estSurplus);
+  // Default to keeping the whole Surplus; lowering it auto-exports the difference.
+  storeInput.value = String(estSurplus);
+
   updatePlanPreview(state);
 }
 
@@ -80,6 +89,19 @@ function clampedHectares(state: GameState, raw: number): number {
   const max = state.preparedLandHectares;
   if (!Number.isFinite(raw)) return 0;
   return Math.max(0, Math.min(Math.floor(raw), max));
+}
+
+// Deterministic pre-event estimate of this Turn's Surplus for the plan preview.
+function estimateSurplusTons(state: GameState, cultivatedHectares: number, fertilizedHectares: number): number {
+  const harvestTons = estimateHarvestTons(CONFIG, cultivatedHectares, fertilizedHectares);
+  const consumptionTons = state.population * CONFIG.consumptionPerPerson;
+  return Math.max(0, harvestTons + state.storageTons - consumptionTons);
+}
+
+// Stored food can never be exported: if opening Storage alone covers Consumption,
+// at least (storage - consumption) must be re-stored this Turn.
+function minReStoreTons(state: GameState): number {
+  return Math.max(0, state.storageTons - state.population * CONFIG.consumptionPerPerson);
 }
 
 function readPlanInputs(state: GameState): PlayerPlan {
@@ -93,7 +115,10 @@ function readPlanInputs(state: GameState): PlayerPlan {
   const preparedHectares = !Number.isFinite(rawPrep)
     ? 0
     : Math.max(0, Math.min(Math.floor(rawPrep), maxPrep));
-  return { cultivatedHectares, fertilizedHectares, preparedHectares };
+  const estSurplus = estimateSurplusTons(state, cultivatedHectares, fertilizedHectares);
+  const rawStore = Number(el<HTMLInputElement>("plan-store").value);
+  const storeTons = !Number.isFinite(rawStore) ? 0 : Math.max(0, Math.min(rawStore, estSurplus));
+  return { cultivatedHectares, fertilizedHectares, preparedHectares, storeTons };
 }
 
 function updatePlanPreview(state: GameState): void {
@@ -101,6 +126,17 @@ function updatePlanPreview(state: GameState): void {
 
   // Keep each input's max in sync with the others (fertilizer <= cultivated).
   el<HTMLInputElement>("plan-fertilizer").max = String(plan.cultivatedHectares);
+
+  const storeInput = el<HTMLInputElement>("plan-store");
+  const estSurplus = estimateSurplusTons(state, plan.cultivatedHectares, plan.fertilizedHectares);
+  storeInput.max = String(estSurplus);
+  if (estSurplus <= 0) {
+    // Famine expected: nothing to store or export.
+    storeInput.disabled = true;
+    storeInput.value = "0";
+  } else {
+    storeInput.disabled = false;
+  }
 
   const seedCost = plan.cultivatedHectares * CONFIG.seedCostPerHectare;
   const fertilizerCost = plan.fertilizedHectares * CONFIG.fertilizerCostPerHectare;
@@ -116,6 +152,16 @@ function updatePlanPreview(state: GameState): void {
   remainingEl.textContent = `${fmt(remaining)} coins`;
   remainingEl.classList.toggle("overspend", remaining < 0);
   el<HTMLButtonElement>("confirm-btn").disabled = remaining < 0;
+
+  const minStore = minReStoreTons(state);
+  const effectiveStore = estSurplus > 0 ? Math.max(minStore, plan.storeTons) : 0;
+  const estExport = estSurplus - effectiveStore;
+  el<HTMLElement>("plan-store-range").textContent = estSurplus > 0 ? `${fmt(minStore)}-${fmt(estSurplus)} t` : "—";
+  el<HTMLElement>("plan-upkeep-cost").textContent = fmt(effectiveStore * CONFIG.storageUpkeepPerTonPerYear);
+  el<HTMLElement>("plan-export-est").textContent =
+    estSurplus > 0
+      ? `${fmt(estExport)} t × ${state.worldPrice.toFixed(2)} coins/t = +${fmt(estExport * state.worldPrice)} coins`
+      : "—";
 }
 
 function renderReport(previous: GameState, result: TurnResult): void {
@@ -139,6 +185,7 @@ function renderReport(previous: GameState, result: TurnResult): void {
   el<HTMLElement>("report-fertilizer").textContent = `-${fmt(report.fertilizerCostCoins)}`;
   el<HTMLElement>("report-prep").textContent = `-${fmt(report.landPrepCostCoins)}`;
   el<HTMLElement>("report-upkeep").textContent = `-${fmt(report.storageUpkeepCoins)}`;
+  el<HTMLElement>("report-export").textContent = `${fmt(report.exportTons)} t for +${fmt(report.exportIncomeCoins)} coins`;
   el<HTMLElement>("report-carryover").textContent = `${fmt(report.budgetCarryOverCoins)}`;
   el<HTMLElement>("report-tax").textContent = `+${fmt(report.budgetRevenueCoins)}`;
   el<HTMLElement>("report-new-budget").textContent = fmt(state.budgetCoins);
@@ -168,7 +215,7 @@ function restart(): void {
 }
 
 function init(): void {
-  for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep"]) {
+  for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep", "plan-store"]) {
     el<HTMLInputElement>(id).addEventListener("input", () => updatePlanPreview(save.state));
   }
   el<HTMLButtonElement>("confirm-btn").addEventListener("click", confirmPlan);

@@ -116,10 +116,17 @@
           <input type="number" id="plan-prep" min="0" step="1" />
         </div>
         <div class="plan-row">
+          <label for="plan-store">Store surplus in Storage (<span id="plan-upkeep-price"></span> coins/t upkeep)</label>
+          <input type="number" id="plan-store" min="0" step="1" />
+        </div>
+        <div class="plan-row">
           <button id="confirm-btn">Resolve the year</button>
         </div>
         <p class="preview">
           Seeds: <span id="plan-seed-cost"></span> · Fertilizer: <span id="plan-fert-cost"></span> · Land prep: <span id="plan-prep-cost"></span> · Total: <span id="plan-total-cost"></span> coins · Budget after plan: <span id="plan-remaining"></span>
+        </p>
+        <p class="preview">
+          Storage: <span id="plan-store-range"></span> · upkeep <span id="plan-upkeep-cost"></span> coins · est. export: <span id="plan-export-est"></span>
         </p>
       </section>
       <section id="report" hidden>
@@ -133,8 +140,9 @@
           <tr><td>Budget: fertilizer</td><td id="report-fertilizer"></td></tr>
           <tr><td>Budget: land preparation</td><td id="report-prep"></td></tr>
           <tr><td>Budget: storage upkeep</td><td id="report-upkeep"></td></tr>
+          <tr><td>Exported (auto, at World price)</td><td id="report-export"></td></tr>
           <tr><td>Budget: carry-over (unspent)</td><td id="report-carryover"></td></tr>
-          <tr><td>Budget: tax revenue</td><td id="report-tax"></td></tr>
+          <tr><td>Budget: revenue (tax + exports)</td><td id="report-tax"></td></tr>
           <tr><td>Next-turn Budget</td><td id="report-new-budget"></td></tr>
         </table>
         <span class="famine-banner" id="report-famine"></span>
