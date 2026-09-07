@@ -51,6 +51,12 @@
       h2 { margin: 0 0 0.75rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
       .plan-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
       label { font-size: 0.9rem; }
+      .tech-row { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.2rem 0; font-size: 0.9rem; }
+      .tech-row input { margin: 0; }
+      .tech-name { min-width: 9.5rem; }
+      .tech-cost { color: var(--muted); white-space: nowrap; }
+      .tech-effect { color: var(--muted); font-size: 0.8rem; }
+      .tech-owned { color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; margin-left: auto; }
       input[type="number"] {
         width: 6rem;
         padding: 0.4rem 0.5rem;
@@ -126,11 +132,56 @@
           <button id="confirm-btn">Resolve the year</button>
         </div>
         <p class="preview">
-          Seeds: <span id="plan-seed-cost"></span> · Fertilizer: <span id="plan-fert-cost"></span> · Land prep: <span id="plan-prep-cost"></span> · Total: <span id="plan-total-cost"></span> coins · Budget after plan: <span id="plan-remaining"></span>
+          Seeds: <span id="plan-seed-cost"></span> · Fertilizer: <span id="plan-fert-cost"></span> · Land prep: <span id="plan-prep-cost"></span> · Technologies: <span id="plan-tech-cost"></span> · Total: <span id="plan-total-cost"></span> coins · Budget after plan: <span id="plan-remaining"></span>
         </p>
         <p class="preview">
           Storage: <span id="plan-store-range"></span> · upkeep <span id="plan-upkeep-cost"></span> coins · est. export: <span id="plan-export-est"></span>
         </p>
+      </section>
+      <section>
+        <h2>Technologies — one-off, effects from the next Turn</h2>
+        <div class="tech-row">
+          <input type="checkbox" id="tech-irrigation" />
+          <label for="tech-irrigation" class="tech-name">Irrigation</label>
+          <span class="tech-cost">2,000 coins</span>
+          <span class="tech-effect">Drought Yield loss halved</span>
+          <span class="tech-owned" id="tech-irrigation-owned" hidden>Owned</span>
+        </div>
+        <div class="tech-row">
+          <input type="checkbox" id="tech-highYieldSeeds" />
+          <label for="tech-highYieldSeeds" class="tech-name">High-yield seeds</label>
+          <span class="tech-cost">3,000 coins</span>
+          <span class="tech-effect">Base Yield +50%</span>
+          <span class="tech-owned" id="tech-highYieldSeeds-owned" hidden>Owned</span>
+        </div>
+        <div class="tech-row">
+          <input type="checkbox" id="tech-granary" />
+          <label for="tech-granary" class="tech-name">Granary</label>
+          <span class="tech-cost">2,500 coins</span>
+          <span class="tech-effect">Storage upkeep halved</span>
+          <span class="tech-owned" id="tech-granary-owned" hidden>Owned</span>
+        </div>
+        <div class="tech-row">
+          <input type="checkbox" id="tech-tradeRoutes" />
+          <label for="tech-tradeRoutes" class="tech-name">Trade routes</label>
+          <span class="tech-cost">3,000 coins</span>
+          <span class="tech-effect">Export price +20%</span>
+          <span class="tech-owned" id="tech-tradeRoutes-owned" hidden>Owned</span>
+        </div>
+        <div class="tech-row">
+          <input type="checkbox" id="tech-landSurvey" />
+          <label for="tech-landSurvey" class="tech-name">Land survey</label>
+          <span class="tech-cost">2,000 coins</span>
+          <span class="tech-effect">Land prep cost halved</span>
+          <span class="tech-owned" id="tech-landSurvey-owned" hidden>Owned</span>
+        </div>
+        <div class="tech-row">
+          <input type="checkbox" id="tech-fertilizerWorks" />
+          <label for="tech-fertilizerWorks" class="tech-name">Fertilizer works</label>
+          <span class="tech-cost">2,500 coins</span>
+          <span class="tech-effect">Fertilizer cost halved</span>
+          <span class="tech-owned" id="tech-fertilizerWorks-owned" hidden>Owned</span>
+        </div>
       </section>
       <section id="report" hidden>
         <h2>Year report — Year <span id="report-year"></span></h2>
@@ -144,6 +195,7 @@
           <tr><td>Budget: fertilizer</td><td id="report-fertilizer"></td></tr>
           <tr><td>Budget: land preparation</td><td id="report-prep"></td></tr>
           <tr><td>Budget: storage upkeep</td><td id="report-upkeep"></td></tr>
+          <tr><td>Budget: technologies</td><td id="report-technologies"></td></tr>
           <tr><td>Exported (auto, at World price)</td><td id="report-export"></td></tr>
           <tr><td>Budget: carry-over (unspent)</td><td id="report-carryover"></td></tr>
           <tr><td>Budget: revenue (tax + exports)</td><td id="report-tax"></td></tr>

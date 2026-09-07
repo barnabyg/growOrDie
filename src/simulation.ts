@@ -11,6 +11,7 @@ export function createNewGame(config: GameConfig): GameState {
     storageTons: 0,
     budgetCoins: config.taxPerPerson * config.startingPopulation,
     worldPrice: config.worldPriceBase,
+    ownedTechnologies: [],
   };
 }
 
@@ -20,10 +21,12 @@ export function estimateHarvestTons(
   config: GameConfig,
   cultivatedHectares: number,
   fertilizedHectares: number,
+  highYieldSeedsOwned: boolean,
 ): number {
   const baseYieldTons = (cultivatedHectares - fertilizedHectares) * config.baseYieldPerHectare;
   const boostedYieldTons = fertilizedHectares * config.baseYieldPerHectare * config.fertilizerYieldMultiplier;
-  return baseYieldTons + boostedYieldTons;
+  const yieldTons = baseYieldTons + boostedYieldTons;
+  return highYieldSeedsOwned ? yieldTons * config.highYieldSeedsYieldMultiplier : yieldTons;
 }
 
 // The single test seam: current state + player plan + seed in, next-turn state + year report out.
@@ -71,10 +74,21 @@ export function resolveTurn(
     Math.min(Math.floor(plan.preparedHectares), state.arableLandHectares - state.preparedLandHectares),
   );
 
+  // Technologies are one-off purchases: the cost hits this Turn's Budget, but every
+  // effect applies from the following Turn — all effects below read the previously
+  // owned set. Already-owned (or duplicated) entries are ignored and never re-charged.
+  const ownedTechnologies = new Set(state.ownedTechnologies);
+  const purchasedTechnologies = [...new Set((plan.purchaseTechnologies ?? []).filter((id) => !ownedTechnologies.has(id)))];
+
   // Base Harvest, then the rolled Event scales it (drought/flood) before Consumption.
-  const baseHarvestTons = estimateHarvestTons(config, cultivatedHectares, fertilizedHectares);
+  const baseHarvestTons = estimateHarvestTons(config, cultivatedHectares, fertilizedHectares, ownedTechnologies.has("highYieldSeeds"));
+  // Irrigation halves the Drought Yield loss: it shrinks the lost fraction instead of
+  // halving the surviving multiplier (which would double the loss).
+  const droughtMultiplier = ownedTechnologies.has("irrigation")
+    ? 1 - (1 - config.droughtYieldMultiplier) * config.irrigationDroughtLossMultiplier
+    : config.droughtYieldMultiplier;
   const harvestTons =
-    event === "drought" ? baseHarvestTons * config.droughtYieldMultiplier
+    event === "drought" ? baseHarvestTons * droughtMultiplier
     : event === "flood" ? baseHarvestTons * config.floodYieldMultiplier
     : baseHarvestTons;
   const consumptionTons = state.population * config.consumptionPerPerson;
@@ -115,7 +129,7 @@ export function resolveTurn(
   // the player allocated). A price shock scales only this Turn's export price by a
   // coin flip, clamped to the World price bounds; next Turn walks from the pre-shock
   // price. No manual sales step.
-  const exportPriceCoins =
+  const baseExportPriceCoins =
     event === "priceShock"
       ? Math.max(
           config.worldPriceMin,
@@ -126,6 +140,9 @@ export function resolveTurn(
           ),
         )
       : state.worldPrice;
+  // Trade routes multiply this Turn's final export price only — after any shock and
+  // clamp, so it may sit above the World price ceiling. The World price walk is untouched.
+  const exportPriceCoins = ownedTechnologies.has("tradeRoutes") ? baseExportPriceCoins * config.tradeRoutesPriceMultiplier : baseExportPriceCoins;
   const exportIncomeCoins = exportTons * exportPriceCoins;
 
   // World price random walk for next Turn: ±step, clamped to [min, max].
@@ -135,10 +152,11 @@ export function resolveTurn(
   );
 
   const seedCostCoins = cultivatedHectares * config.seedCostPerHectare;
-  const fertilizerCostCoins = fertilizedHectares * config.fertilizerCostPerHectare;
-  const landPrepCostCoins = preparedHectares * config.landPrepCostPerHectare;
-  const storageUpkeepCoins = storageTons * config.storageUpkeepPerTonPerYear;
-  const budgetSpentCoins = seedCostCoins + fertilizerCostCoins + landPrepCostCoins + storageUpkeepCoins;
+  const fertilizerCostCoins = fertilizedHectares * config.fertilizerCostPerHectare * (ownedTechnologies.has("fertilizerWorks") ? config.fertilizerWorksCostMultiplier : 1);
+  const landPrepCostCoins = preparedHectares * config.landPrepCostPerHectare * (ownedTechnologies.has("landSurvey") ? config.landSurveyCostMultiplier : 1);
+  const storageUpkeepCoins = storageTons * config.storageUpkeepPerTonPerYear * (ownedTechnologies.has("granary") ? config.granaryUpkeepMultiplier : 1);
+  const technologyCostCoins = purchasedTechnologies.reduce((sum, id) => sum + config.technologyCosts[id], 0);
+  const budgetSpentCoins = seedCostCoins + fertilizerCostCoins + landPrepCostCoins + storageUpkeepCoins + technologyCostCoins;
   const taxRevenueCoins = populationEnd * config.taxPerPerson;
   const carryOverCoins = state.budgetCoins - budgetSpentCoins;
   const revenueCoins = taxRevenueCoins + exportIncomeCoins;
@@ -155,6 +173,8 @@ export function resolveTurn(
     fertilizerCostCoins,
     landPrepCostCoins,
     storageUpkeepCoins,
+    technologiesPurchased: purchasedTechnologies,
+    technologyCostCoins,
     event,
     storageDestroyedTons,
     exportTons,
@@ -173,6 +193,7 @@ export function resolveTurn(
     storageTons,
     budgetCoins: revenueCoins + carryOverCoins,
     worldPrice: nextWorldPrice,
+    ownedTechnologies: [...state.ownedTechnologies, ...purchasedTechnologies],
   };
 
   return { state: next, report };

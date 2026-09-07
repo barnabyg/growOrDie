@@ -1,5 +1,7 @@
 // All balance numbers for Grow or Die live in this single block.
 // Tuning a value here changes simulation behaviour without touching sim logic.
+import type { TechnologyId } from "./types.js";
+
 export interface GameConfig {
   startingPopulation: number; // people
   startingArableLandHectares: number;
@@ -26,6 +28,13 @@ export interface GameConfig {
   floodStorageLossFraction: number; // fraction of opening Storage destroyed by a Flood
   priceShockUpMultiplier: number; // export price multiplier on an upward shock
   priceShockDownMultiplier: number; // export price multiplier on a downward shock
+  technologyCosts: Record<TechnologyId, number>; // one-off coins to buy each Technology
+  irrigationDroughtLossMultiplier: number; // fraction of the Drought Yield loss that remains with Irrigation owned
+  highYieldSeedsYieldMultiplier: number; // Harvest multiplier on every hectare with High-yield seeds owned
+  granaryUpkeepMultiplier: number; // Storage upkeep multiplier with Granary owned
+  tradeRoutesPriceMultiplier: number; // this Turn's export price multiplier with Trade routes owned
+  landSurveyCostMultiplier: number; // land preparation cost multiplier with Land survey owned
+  fertilizerWorksCostMultiplier: number; // fertilizer cost multiplier with Fertilizer works owned
 }
 
 export const CONFIG: GameConfig = {
@@ -54,4 +63,18 @@ export const CONFIG: GameConfig = {
   floodStorageLossFraction: 0.25,
   priceShockUpMultiplier: 2,
   priceShockDownMultiplier: 0.5,
+  technologyCosts: {
+    irrigation: 2_000,
+    highYieldSeeds: 3_000,
+    granary: 2_500,
+    tradeRoutes: 3_000,
+    landSurvey: 2_000,
+    fertilizerWorks: 2_500,
+  },
+  irrigationDroughtLossMultiplier: 0.5,
+  highYieldSeedsYieldMultiplier: 1.5,
+  granaryUpkeepMultiplier: 0.5,
+  tradeRoutesPriceMultiplier: 1.2,
+  landSurveyCostMultiplier: 0.5,
+  fertilizerWorksCostMultiplier: 0.5,
 };

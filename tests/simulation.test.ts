@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createNewGame, eventSummary, resolveTurn } from "../src/simulation.js";
 import { CONFIG } from "../src/config.js";
-import type { GameState } from "../src/types.js";
+import type { GameState, PlayerPlan } from "../src/types.js";
 
 function baselineState(overrides: Partial<GameState> = {}): GameState {
   return {
@@ -12,6 +12,7 @@ function baselineState(overrides: Partial<GameState> = {}): GameState {
     storageTons: 0,
     budgetCoins: 4_000,
     worldPrice: 10,
+    ownedTechnologies: [],
     ...overrides,
   };
 }
@@ -27,6 +28,7 @@ describe("createNewGame", () => {
       storageTons: 0,
       budgetCoins: CONFIG.taxPerPerson * CONFIG.startingPopulation,
       worldPrice: CONFIG.worldPriceBase,
+      ownedTechnologies: [],
     });
   });
 });
@@ -540,5 +542,110 @@ describe("resolveTurn — events", () => {
     const first = resolveTurn(baselineState({ storageTons: 400 }), fullPlan, 30, CONFIG);
     const second = resolveTurn(baselineState({ storageTons: 400 }), fullPlan, 30, CONFIG);
     expect(second).toEqual(first);
+  });
+});
+
+describe("resolveTurn — technologies", () => {
+  const fullPlan = { cultivatedHectares: 400, fertilizedHectares: 200, preparedHectares: 0, storeTons: 100 };
+
+  it("reports no Technology purchases when the plan has none", () => {
+    const result = resolveTurn(baselineState(), fullPlan, 0, CONFIG);
+    expect(result.report.technologiesPurchased).toEqual([]);
+    expect(result.report.technologyCostCoins).toBe(0);
+    expect(result.state.ownedTechnologies).toEqual([]);
+  });
+
+  it("Irrigation halves the Drought Yield loss", () => {
+    const without = resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 1, CONFIG);
+    expect(without.report.event).toBe("drought");
+    // 800 t base Harvest x 0.5 Drought multiplier.
+    expect(without.report.harvestTons).toBe(400);
+
+    const withIrrigation = resolveTurn(baselineState({ ownedTechnologies: ["irrigation"] }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 1, CONFIG);
+    expect(withIrrigation.report.event).toBe("drought");
+    // The loss (800 - 400) is halved: 800 x (1 - (1 - 0.5) / 2) = 600 t.
+    expect(withIrrigation.report.harvestTons).toBe(600);
+  });
+
+  it("High-yield seeds boost the base Yield on every cultivated hectare", () => {
+    const without = resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 0, CONFIG);
+    expect(without.report.harvestTons).toBe(800);
+
+    const withSeeds = resolveTurn(baselineState({ ownedTechnologies: ["highYieldSeeds"] }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 0, CONFIG);
+    // 800 t x 1.5.
+    expect(withSeeds.report.harvestTons).toBe(1_200);
+
+    const fertilized = resolveTurn(baselineState({ ownedTechnologies: ["highYieldSeeds"] }), fullPlan, 0, CONFIG);
+    // (200 ha x 2 + 200 ha x 2 x 2) t = 1_200 t base Harvest x 1.5.
+    expect(fertilized.report.harvestTons).toBe(1_800);
+  });
+
+  it("Granary halves the Storage upkeep", () => {
+    const without = resolveTurn(baselineState(), fullPlan, 0, CONFIG);
+    expect(without.state.storageTons).toBe(100);
+    expect(without.report.storageUpkeepCoins).toBe(100 * CONFIG.storageUpkeepPerTonPerYear);
+
+    const withGranary = resolveTurn(baselineState({ ownedTechnologies: ["granary"] }), fullPlan, 0, CONFIG);
+    expect(withGranary.state.storageTons).toBe(100);
+    expect(withGranary.report.storageUpkeepCoins).toBe(50 * CONFIG.storageUpkeepPerTonPerYear);
+  });
+
+  it("Trade routes raise this Turn's export price without moving the World price", () => {
+    const without = resolveTurn(baselineState(), fullPlan, 0, CONFIG);
+    expect(without.report.exportTons).toBe(100);
+    expect(without.report.exportPriceCoins).toBe(10);
+    expect(without.report.exportIncomeCoins).toBe(1_000);
+
+    const withRoutes = resolveTurn(baselineState({ ownedTechnologies: ["tradeRoutes"] }), fullPlan, 0, CONFIG);
+    // 10 x 1.2 = 12 coins/ton for this Turn's exports only.
+    expect(withRoutes.report.exportPriceCoins).toBe(12);
+    expect(withRoutes.report.exportIncomeCoins).toBe(1_200);
+    // The World price walk is unaffected by the Technology.
+    expect(withRoutes.state.worldPrice).toBe(without.state.worldPrice);
+  });
+
+  it("Land survey halves the land preparation cost", () => {
+    const without = resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 10, storeTons: 0 }, 0, CONFIG);
+    expect(without.report.landPrepCostCoins).toBe(600);
+
+    const withSurvey = resolveTurn(baselineState({ ownedTechnologies: ["landSurvey"] }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 10, storeTons: 0 }, 0, CONFIG);
+    expect(withSurvey.report.landPrepCostCoins).toBe(300);
+  });
+
+  it("Fertilizer works halves the fertilizer cost", () => {
+    const without = resolveTurn(baselineState(), fullPlan, 0, CONFIG);
+    expect(without.report.fertilizerCostCoins).toBe(600);
+
+    const withWorks = resolveTurn(baselineState({ ownedTechnologies: ["fertilizerWorks"] }), fullPlan, 0, CONFIG);
+    expect(withWorks.report.fertilizerCostCoins).toBe(300);
+  });
+
+  it("charges the purchase to this Turn's Budget and applies the effect from the following Turn", () => {
+    const plan: PlayerPlan = { ...fullPlan, purchaseTechnologies: ["highYieldSeeds"] };
+    const first = resolveTurn(baselineState(), plan, 0, CONFIG);
+
+    // The cost is itemized in the year report and deducted from this Turn's Budget.
+    expect(first.report.technologiesPurchased).toEqual(["highYieldSeeds"]);
+    expect(first.report.technologyCostCoins).toBe(CONFIG.technologyCosts.highYieldSeeds);
+    const baseSpend = 400 * CONFIG.seedCostPerHectare + 200 * CONFIG.fertilizerCostPerHectare + 100 * CONFIG.storageUpkeepPerTonPerYear; // 800 + 600 + 100
+    expect(first.report.budgetSpentCoins).toBe(baseSpend + CONFIG.technologyCosts.highYieldSeeds);
+
+    // The effect is absent on the purchase Turn...
+    expect(first.report.harvestTons).toBe(1_200);
+
+    const second = resolveTurn(first.state, fullPlan, 0, CONFIG);
+    // ...and present from the following Turn (1_200 t x 1.5).
+    expect(second.state.ownedTechnologies).toEqual(["highYieldSeeds"]);
+    expect(second.report.harvestTons).toBe(1_800);
+  });
+
+  it("ignores already-owned Technologies in the purchase list", () => {
+    const plan: PlayerPlan = { ...fullPlan, purchaseTechnologies: ["granary", "irrigation"] };
+    const result = resolveTurn(baselineState({ ownedTechnologies: ["granary"] }), plan, 0, CONFIG);
+
+    // The already-owned Granary is not charged again or listed twice.
+    expect(result.report.technologiesPurchased).toEqual(["irrigation"]);
+    expect(result.report.technologyCostCoins).toBe(CONFIG.technologyCosts.irrigation);
+    expect(result.state.ownedTechnologies).toEqual(["granary", "irrigation"]);
   });
 });

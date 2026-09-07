@@ -1,9 +1,20 @@
 import { CONFIG } from "./config.js";
 import { createNewGame, estimateHarvestTons, eventSummary, resolveTurn } from "./simulation.js";
-import type { EventType, GameState, PlayerPlan, TurnResult } from "./types.js";
+import type { EventType, GameState, PlayerPlan, TechnologyId, TurnResult } from "./types.js";
 
 // Thin adapter around the deterministic simulation core: DOM rendering + localStorage persistence.
 const SAVE_KEY = "growOrDie.save.v1";
+
+// One-off Technologies in display order (mirrors the Technologies section of index.html).
+const TECHNOLOGY_IDS: TechnologyId[] = ["irrigation", "highYieldSeeds", "granary", "tradeRoutes", "landSurvey", "fertilizerWorks"];
+const TECHNOLOGY_NAMES: Record<TechnologyId, string> = {
+  irrigation: "Irrigation",
+  highYieldSeeds: "High-yield seeds",
+  granary: "Granary",
+  tradeRoutes: "Trade routes",
+  landSurvey: "Land survey",
+  fertilizerWorks: "Fertilizer works",
+};
 
 interface SaveData {
   version: number;
@@ -31,6 +42,8 @@ function loadSave(): SaveData | null {
     }
     // Tolerant of saves written before the event log existed.
     parsed.eventLog = Array.isArray(parsed.eventLog) ? parsed.eventLog : [];
+    // Tolerant of saves written before Technologies existed.
+    parsed.state.ownedTechnologies = Array.isArray(parsed.state.ownedTechnologies) ? parsed.state.ownedTechnologies : [];
     return parsed;
   } catch {
     return null;
@@ -89,6 +102,15 @@ function renderPlan(state: GameState): void {
   // Default to keeping the whole Surplus; lowering it auto-exports the difference.
   storeInput.value = String(estSurplus);
 
+  const owned = new Set(state.ownedTechnologies);
+  for (const id of TECHNOLOGY_IDS) {
+    const checkbox = el<HTMLInputElement>(`tech-${id}`);
+    // Owned Technologies are locked in; unowned ones start unchecked each Turn.
+    checkbox.checked = owned.has(id);
+    checkbox.disabled = owned.has(id);
+    el<HTMLElement>(`tech-${id}-owned`).hidden = !owned.has(id);
+  }
+
   updatePlanPreview(state);
 }
 
@@ -100,7 +122,7 @@ function clampedHectares(state: GameState, raw: number): number {
 
 // Deterministic pre-event estimate of this Turn's Surplus for the plan preview.
 function estimateSurplusTons(state: GameState, cultivatedHectares: number, fertilizedHectares: number): number {
-  const harvestTons = estimateHarvestTons(CONFIG, cultivatedHectares, fertilizedHectares);
+  const harvestTons = estimateHarvestTons(CONFIG, cultivatedHectares, fertilizedHectares, state.ownedTechnologies.includes("highYieldSeeds"));
   const consumptionTons = state.population * CONFIG.consumptionPerPerson;
   return Math.max(0, harvestTons + state.storageTons - consumptionTons);
 }
@@ -125,7 +147,9 @@ function readPlanInputs(state: GameState): PlayerPlan {
   const estSurplus = estimateSurplusTons(state, cultivatedHectares, fertilizedHectares);
   const rawStore = Number(el<HTMLInputElement>("plan-store").value);
   const storeTons = !Number.isFinite(rawStore) ? 0 : Math.max(0, Math.min(rawStore, estSurplus));
-  return { cultivatedHectares, fertilizedHectares, preparedHectares, storeTons };
+  // Only unowned Technologies can be purchased this Turn.
+  const purchaseTechnologies = TECHNOLOGY_IDS.filter((id) => !state.ownedTechnologies.includes(id) && el<HTMLInputElement>(`tech-${id}`).checked);
+  return { cultivatedHectares, fertilizedHectares, preparedHectares, storeTons, purchaseTechnologies };
 }
 
 function updatePlanPreview(state: GameState): void {
@@ -148,10 +172,12 @@ function updatePlanPreview(state: GameState): void {
   const seedCost = plan.cultivatedHectares * CONFIG.seedCostPerHectare;
   const fertilizerCost = plan.fertilizedHectares * CONFIG.fertilizerCostPerHectare;
   const prepCost = plan.preparedHectares * CONFIG.landPrepCostPerHectare;
-  const totalCost = seedCost + fertilizerCost + prepCost;
+  const technologyCost = (plan.purchaseTechnologies ?? []).reduce((sum, id) => sum + CONFIG.technologyCosts[id], 0);
+  const totalCost = seedCost + fertilizerCost + prepCost + technologyCost;
   el<HTMLElement>("plan-seed-cost").textContent = fmt(seedCost);
   el<HTMLElement>("plan-fert-cost").textContent = fmt(fertilizerCost);
   el<HTMLElement>("plan-prep-cost").textContent = fmt(prepCost);
+  el<HTMLElement>("plan-tech-cost").textContent = fmt(technologyCost);
   el<HTMLElement>("plan-total-cost").textContent = fmt(totalCost);
 
   const remaining = state.budgetCoins - totalCost;
@@ -193,6 +219,9 @@ function renderReport(previous: GameState, result: TurnResult): void {
   el<HTMLElement>("report-fertilizer").textContent = `-${fmt(report.fertilizerCostCoins)}`;
   el<HTMLElement>("report-prep").textContent = `-${fmt(report.landPrepCostCoins)}`;
   el<HTMLElement>("report-upkeep").textContent = `-${fmt(report.storageUpkeepCoins)}`;
+  el<HTMLElement>("report-technologies").textContent = report.technologiesPurchased.length > 0
+    ? `-${fmt(report.technologyCostCoins)} coins (${report.technologiesPurchased.map((id) => TECHNOLOGY_NAMES[id]).join(", ")})`
+    : "—";
   el<HTMLElement>("report-export").textContent = `${fmt(report.exportTons)} t for +${fmt(report.exportIncomeCoins)} coins`;
   el<HTMLElement>("report-carryover").textContent = `${fmt(report.budgetCarryOverCoins)}`;
   el<HTMLElement>("report-tax").textContent = `+${fmt(report.budgetRevenueCoins)}`;
@@ -238,6 +267,9 @@ function restart(): void {
 function init(): void {
   for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep", "plan-store"]) {
     el<HTMLInputElement>(id).addEventListener("input", () => updatePlanPreview(save.state));
+  }
+  for (const techId of TECHNOLOGY_IDS) {
+    el<HTMLInputElement>(`tech-${techId}`).addEventListener("change", () => updatePlanPreview(save.state));
   }
   el<HTMLButtonElement>("confirm-btn").addEventListener("click", confirmPlan);
   el<HTMLButtonElement>("restart-btn").addEventListener("click", restart);
