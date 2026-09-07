@@ -17,8 +17,11 @@ export interface PlayerPlan {
 
 export type FamineSeverity = "none" | "partial" | "total";
 
+export type EventType = "none" | "drought" | "flood" | "priceShock";
+
 export interface YearReport {
   year: number;
+  event: EventType; // the Event rolled this Turn (revealed at resolution, never forecast)
   harvestTons: number;
   consumptionTons: number;
   availableFoodTons: number; // harvest + opening storage, before Consumption
@@ -29,7 +32,9 @@ export interface YearReport {
   fertilizerCostCoins: number;
   landPrepCostCoins: number;
   storageUpkeepCoins: number;
+  storageDestroyedTons: number; // Storage destroyed this Turn (flood)
   exportTons: number; // un-stored Surplus, sold automatically at the current World price
+  exportPriceCoins: number; // coins/ton actually paid for this Turn's exports (World price, or the shocked price)
   exportIncomeCoins: number; // exportTons x this Turn's World price
   budgetSpentCoins: number; // everything deducted from this Turn's Budget (seeds + fertilizer + land prep + storage upkeep)
   budgetRevenueCoins: number; // tax + export income refilling next Turn's Budget

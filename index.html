@@ -87,6 +87,9 @@
         color: var(--muted);
       }
       .famine-banner.famine { background: #3d1f14; color: var(--danger); }
+      .event-log { max-height: 12rem; overflow-y: auto; margin: 0; padding-left: 1.1rem; font-size: 0.85rem; color: var(--muted); }
+      .event-log li { margin: 0.15rem 0; }
+      .event-log li.drought, .event-log li.flood, .event-log li.priceShock { color: var(--text); font-weight: bold; }
     </style>
   </head>
   <body>
@@ -135,6 +138,7 @@
           <tr><td>Harvest</td><td id="report-harvest"></td></tr>
           <tr><td>Consumption</td><td id="report-consumption"></td></tr>
           <tr><td>Available food (harvest + opening storage)</td><td id="report-available"></td></tr>
+          <tr><td>Event</td><td id="report-event"></td></tr>
           <tr><td>Population</td><td id="report-pop-change"></td></tr>
           <tr><td>Budget: seeds</td><td id="report-seeds"></td></tr>
           <tr><td>Budget: fertilizer</td><td id="report-fertilizer"></td></tr>
@@ -146,6 +150,10 @@
           <tr><td>Next-turn Budget</td><td id="report-new-budget"></td></tr>
         </table>
         <span class="famine-banner" id="report-famine"></span>
+      </section>
+      <section>
+        <h2>Event log</h2>
+        <ul id="event-log" class="event-log"></ul>
       </section>
       <section>
         <h2>Run</h2>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createNewGame, resolveTurn } from "../src/simulation.js";
+import { createNewGame, eventSummary, resolveTurn } from "../src/simulation.js";
 import { CONFIG } from "../src/config.js";
 import type { GameState } from "../src/types.js";
 
@@ -65,7 +65,7 @@ describe("resolveTurn", () => {
     const result = resolveTurn(
       baselineState({ storageTons: 200 }),
       { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 },
-      1,
+      6,
       CONFIG,
     );
 
@@ -117,18 +117,18 @@ describe("resolveTurn", () => {
 
   it("shrinks the population by the exact shortfall percentage in a partial Famine", () => {
     // Cultivate 250 ha: harvest 500 t, consumption 1_000 t -> 50% shortfall.
-    const result = resolveTurn(baselineState(), { cultivatedHectares: 250, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 3, CONFIG);
+    const result = resolveTurn(baselineState(), { cultivatedHectares: 250, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 10, CONFIG);
     expect(result.state.population).toBe(500);
   });
 
   it("clamps the plan to the prepared land and floors fractional hectares", () => {
-    const over = resolveTurn(baselineState(), { cultivatedHectares: 9_999, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 1, CONFIG);
+    const over = resolveTurn(baselineState(), { cultivatedHectares: 9_999, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12, CONFIG);
     expect(over.report.harvestTons).toBe(400 * CONFIG.baseYieldPerHectare);
 
-    const negative = resolveTurn(baselineState(), { cultivatedHectares: -50, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 1, CONFIG);
+    const negative = resolveTurn(baselineState(), { cultivatedHectares: -50, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12, CONFIG);
     expect(negative.report.harvestTons).toBe(0);
 
-    const fractional = resolveTurn(baselineState(), { cultivatedHectares: 123.9, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 1, CONFIG);
+    const fractional = resolveTurn(baselineState(), { cultivatedHectares: 123.9, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12, CONFIG);
     expect(fractional.report.harvestTons).toBe(123 * CONFIG.baseYieldPerHectare);
   });
 
@@ -142,7 +142,7 @@ describe("resolveTurn", () => {
   it("obeys the config block: tuning base Yield changes behaviour without touching sim logic", () => {
     const highYield = { ...CONFIG, baseYieldPerHectare: 3 };
     // 400 ha x 3 t/ha = 1_200 t >= 1_000 t consumption -> no Famine.
-    const result = resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 200 }, 5, highYield);
+    const result = resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 200 }, 14, highYield);
     expect(result.report.famine).toBe("none");
     expect(result.state.storageTons).toBe(200);
   });
@@ -176,7 +176,7 @@ describe("resolveTurn — fertilizer", () => {
     const over = resolveTurn(
       baselineState(),
       { cultivatedHectares: 100, fertilizedHectares: 9_999, preparedHectares: 0, storeTons: 0 },
-      2,
+      15,
       CONFIG,
     );
     // All 100 ha doubled.
@@ -186,7 +186,7 @@ describe("resolveTurn — fertilizer", () => {
     const fractional = resolveTurn(
       baselineState(),
       { cultivatedHectares: 50, fertilizedHectares: 12.9, preparedHectares: 0, storeTons: 0 },
-      3,
+      0,
       CONFIG,
     );
     expect(fractional.report.harvestTons).toBe(
@@ -264,7 +264,7 @@ describe("resolveTurn — budget across all spending lines", () => {
     const result = resolveTurn(
       baselineState({ budgetCoins: 10_000 }),
       { cultivatedHectares: 400, fertilizedHectares: 200, preparedHectares: 50, storeTons: 200 },
-      31,
+      18,
       CONFIG,
     );
 
@@ -346,7 +346,7 @@ describe("resolveTurn — storage & trade", () => {
     const over = resolveTurn(
       baselineState({ storageTons: 400 }),
       { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 9_999 },
-      1,
+      0,
       CONFIG,
     );
     expect(over.state.storageTons).toBe(200);
@@ -355,7 +355,7 @@ describe("resolveTurn — storage & trade", () => {
     const negative = resolveTurn(
       baselineState({ storageTons: 400 }),
       { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: -50 },
-      1,
+      0,
       CONFIG,
     );
     expect(negative.state.storageTons).toBe(0);
@@ -365,7 +365,7 @@ describe("resolveTurn — storage & trade", () => {
     const minStore = resolveTurn(
       baselineState({ storageTons: 1_200 }),
       { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 },
-      1,
+      0,
       CONFIG,
     );
     expect(minStore.state.storageTons).toBe(200);
@@ -398,7 +398,7 @@ describe("resolveTurn — storage & trade", () => {
     const storeHalf = resolveTurn(
       baselineState({ storageTons: 400 }),
       { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 100 },
-      17,
+      6,
       CONFIG,
     );
     expect(storeHalf.state.storageTons).toBe(100);
@@ -407,7 +407,7 @@ describe("resolveTurn — storage & trade", () => {
     const storeAll = resolveTurn(
       baselineState({ storageTons: 400 }),
       { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 200 },
-      17,
+      6,
       CONFIG,
     );
     expect(storeAll.state.storageTons).toBe(200);
@@ -425,5 +425,120 @@ describe("resolveTurn — storage & trade", () => {
     expect(result.state.storageTons).toBe(0);
     expect(result.report.exportTons).toBe(0);
     expect(result.report.exportIncomeCoins).toBe(0);
+  });
+});
+
+describe("resolveTurn — events", () => {
+  // Fertilized plan: Harvest 1_200 t covers Consumption, so every Event's effect is observable.
+  const fullPlan = { cultivatedHectares: 400, fertilizedHectares: 200, preparedHectares: 0, storeTons: 100 };
+
+  it("rolls the Event as the first draw of the Turn and reports none when the roll misses every band", () => {
+    const result = resolveTurn(baselineState(), fullPlan, 0, CONFIG);
+    expect(result.report.event).toBe("none");
+  });
+
+  it("rolls a deterministic Event for each seed under the seeded RNG", () => {
+    // First draw per seed: none below 0.6, drought in [0.6, 0.8), flood in [0.8, 0.9), shock at 0.9+.
+    expect(resolveTurn(baselineState(), fullPlan, 0, CONFIG).report.event).toBe("none");
+    expect(resolveTurn(baselineState(), fullPlan, 1, CONFIG).report.event).toBe("drought");
+    expect(resolveTurn(baselineState(), fullPlan, 30, CONFIG).report.event).toBe("flood");
+    expect(resolveTurn(baselineState(), fullPlan, 4, CONFIG).report.event).toBe("priceShock");
+    expect(resolveTurn(baselineState(), fullPlan, 36, CONFIG).report.event).toBe("priceShock");
+  });
+
+  it("matches the configured Event probabilities over many seeds", () => {
+    const turns = 2_000;
+    const counts = { none: 0, drought: 0, flood: 0, priceShock: 0 };
+    for (let seed = 0; seed < turns; seed++) {
+      counts[resolveTurn(baselineState(), fullPlan, seed, CONFIG).report.event]++;
+    }
+    // Tolerant bands around the configured probabilities (60% / 20% / 10% / 10%).
+    expect(counts.none / turns).toBeGreaterThan(0.55);
+    expect(counts.none / turns).toBeLessThan(0.65);
+    expect(counts.drought / turns).toBeGreaterThan(0.15);
+    expect(counts.drought / turns).toBeLessThan(0.25);
+    expect(counts.flood / turns).toBeGreaterThan(0.05);
+    expect(counts.flood / turns).toBeLessThan(0.15);
+    expect(counts.priceShock / turns).toBeGreaterThan(0.05);
+    expect(counts.priceShock / turns).toBeLessThan(0.15);
+  });
+
+  it("Drought halves the Harvest via the configured multiplier", () => {
+    const baseline = resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 1, CONFIG);
+    expect(baseline.report.event).toBe("drought");
+    // 400 ha x 2 t/ha = 800 t base Harvest, halved to 400 t.
+    expect(baseline.report.harvestTons).toBe(400);
+
+    const fertilized = resolveTurn(baselineState(), fullPlan, 1, CONFIG);
+    expect(fertilized.report.event).toBe("drought");
+    // Fertilized plan: 1_200 t base Harvest halved to 600 t.
+    expect(fertilized.report.harvestTons).toBe(600);
+  });
+
+  it("Flood scales the Harvest and destroys a fraction of opening Storage", () => {
+    const result = resolveTurn(baselineState({ storageTons: 400 }), fullPlan, 30, CONFIG);
+    expect(result.report.event).toBe("flood");
+    // 1_200 t base Harvest x 0.6 flood multiplier.
+    expect(result.report.harvestTons).toBe(720);
+    // 25% of the 400 t opening Storage is destroyed before food is pooled.
+    expect(result.report.storageDestroyedTons).toBe(100);
+    expect(result.report.availableFoodTons).toBe(720 + 300);
+    // The destroyed tons are gone from next Turn's Storage as well.
+    expect(result.state.storageTons).toBe(20);
+  });
+
+  it("price shock up sells exports at the clamped doubled price", () => {
+    const result = resolveTurn(baselineState(), fullPlan, 4, CONFIG);
+    expect(result.report.event).toBe("priceShock");
+    // 100 t Surplus exported (storeTons 100 of a 200 t Surplus).
+    expect(result.report.exportTons).toBe(100);
+    // 10 x 2 = 20, clamped to the world price ceiling of 14.
+    expect(result.report.exportPriceCoins).toBe(14);
+    expect(result.report.exportIncomeCoins).toBe(1_400);
+    // Next Turn walks from the pre-shock price of 10 (shock is this Turn only).
+    expect(result.state.worldPrice).toBeGreaterThanOrEqual(10 - CONFIG.worldPriceWalkStep);
+    expect(result.state.worldPrice).toBeLessThanOrEqual(10 + CONFIG.worldPriceWalkStep);
+  });
+
+  it("price shock down sells exports at the clamped halved price", () => {
+    const result = resolveTurn(baselineState(), fullPlan, 36, CONFIG);
+    expect(result.report.event).toBe("priceShock");
+    expect(result.report.exportTons).toBe(100);
+    // 10 x 0.5 = 5, clamped to the world price floor of 7.
+    expect(result.report.exportPriceCoins).toBe(7);
+    expect(result.report.exportIncomeCoins).toBe(700);
+    expect(result.state.worldPrice).toBeGreaterThanOrEqual(10 - CONFIG.worldPriceWalkStep);
+    expect(result.state.worldPrice).toBeLessThanOrEqual(10 + CONFIG.worldPriceWalkStep);
+  });
+
+  it("eventSummary names the Event and its concrete effect", () => {
+    const none = resolveTurn(baselineState(), fullPlan, 0, CONFIG);
+    expect(eventSummary(none.report)).toBe("No event");
+
+    const drought = resolveTurn(baselineState(), fullPlan, 1, CONFIG);
+    expect(eventSummary(drought.report)).toBe("Drought: Yield halved, Harvest 600 t");
+
+    const flood = resolveTurn(baselineState({ storageTons: 400 }), fullPlan, 30, CONFIG);
+    expect(eventSummary(flood.report)).toBe("Flood: Yield hit and 100 t of Storage destroyed, Harvest 720 t");
+
+    const shockUp = resolveTurn(baselineState(), fullPlan, 4, CONFIG);
+    expect(eventSummary(shockUp.report)).toBe("Export price shock: exports sold at 14 coins/ton");
+  });
+
+  it("obeys tuned Event config values", () => {
+    const forcedDrought = { ...CONFIG, eventNothingProbability: 0, eventDroughtProbability: 1, eventFloodProbability: 0, eventPriceShockProbability: 0 };
+    for (const seed of [0, 5, 42]) {
+      expect(resolveTurn(baselineState(), fullPlan, seed, forcedDrought).report.event).toBe("drought");
+    }
+
+    const quarterYield = { ...forcedDrought, droughtYieldMultiplier: 0.25 };
+    // 800 t base Harvest x 0.25.
+    expect(resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 5, quarterYield).report.harvestTons).toBe(200);
+  });
+
+  it("is deterministic: the same seed resolves to the same Event and numbers", () => {
+    const first = resolveTurn(baselineState({ storageTons: 400 }), fullPlan, 30, CONFIG);
+    const second = resolveTurn(baselineState({ storageTons: 400 }), fullPlan, 30, CONFIG);
+    expect(second).toEqual(first);
   });
 });

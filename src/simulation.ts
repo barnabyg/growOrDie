@@ -1,6 +1,6 @@
 import { createRng } from "./rng.js";
 import { type GameConfig } from "./config.js";
-import { type FamineSeverity, type GameState, type PlayerPlan, type TurnResult, type YearReport } from "./types.js";
+import { type EventType, type FamineSeverity, type GameState, type PlayerPlan, type TurnResult, type YearReport } from "./types.js";
 
 export function createNewGame(config: GameConfig): GameState {
   return {
@@ -14,8 +14,8 @@ export function createNewGame(config: GameConfig): GameState {
   };
 }
 
-// Harvest for a given allocation at the current Yield rules; shared with the UI's
-// pre-event Surplus estimate so the plan preview never drifts from resolution.
+// Harvest for a given allocation at the base Yield rules (no Events); shared with
+// the UI's pre-event Surplus estimate so the plan preview never drifts from resolution.
 export function estimateHarvestTons(
   config: GameConfig,
   cultivatedHectares: number,
@@ -33,10 +33,26 @@ export function resolveTurn(
   seed: number,
   config: GameConfig,
 ): TurnResult {
-  // `seed` is part of the seam contract: the World price walk (and event rolls in a
-  // later ticket) draw a deterministic sequence from it via createRng.
+  // `seed` is part of the seam contract: every random effect draws a deterministic
+  // sequence from it via createRng, in resolution order (ADR-0001): the Event roll
+  // first, then the World price walk last.
 
   const rng = createRng(seed);
+
+  // The Event is rolled once per Turn before anything else happens: no warnings or
+  // forecasts, revealed only when the Turn resolves.
+  const eventRoll = rng();
+  let event: EventType = "none";
+  if (eventRoll < config.eventNothingProbability) {
+    event = "none";
+  } else if (eventRoll < config.eventNothingProbability + config.eventDroughtProbability) {
+    event = "drought";
+  } else if (eventRoll < config.eventNothingProbability + config.eventDroughtProbability + config.eventFloodProbability) {
+    event = "flood";
+  } else {
+    // The shock direction is the next draw: up on [0, 0.5), down on [0.5, 1).
+    event = "priceShock";
+  }
 
   const cultivatedHectares = Math.max(
     0,
@@ -55,10 +71,17 @@ export function resolveTurn(
     Math.min(Math.floor(plan.preparedHectares), state.arableLandHectares - state.preparedLandHectares),
   );
 
-  // Fertilizer boosts Yield on the fertilized hectares only (events land in a later ticket).
-  const harvestTons = estimateHarvestTons(config, cultivatedHectares, fertilizedHectares);
+  // Base Harvest, then the rolled Event scales it (drought/flood) before Consumption.
+  const baseHarvestTons = estimateHarvestTons(config, cultivatedHectares, fertilizedHectares);
+  const harvestTons =
+    event === "drought" ? baseHarvestTons * config.droughtYieldMultiplier
+    : event === "flood" ? baseHarvestTons * config.floodYieldMultiplier
+    : baseHarvestTons;
   const consumptionTons = state.population * config.consumptionPerPerson;
-  const availableFoodTons = harvestTons + state.storageTons;
+
+  // A Flood destroys a fraction of the opening Storage before food is pooled.
+  const storageDestroyedTons = event === "flood" ? state.storageTons * config.floodStorageLossFraction : 0;
+  const availableFoodTons = harvestTons + (state.storageTons - storageDestroyedTons);
 
   let famine: FamineSeverity;
   let populationEnd: number;
@@ -89,8 +112,21 @@ export function resolveTurn(
   }
 
   // Un-stored Surplus auto-exports at this Turn's World price (the one shown before
-  // the player allocated); no manual sales step.
-  const exportIncomeCoins = exportTons * state.worldPrice;
+  // the player allocated). A price shock scales only this Turn's export price by a
+  // coin flip, clamped to the World price bounds; next Turn walks from the pre-shock
+  // price. No manual sales step.
+  const exportPriceCoins =
+    event === "priceShock"
+      ? Math.max(
+          config.worldPriceMin,
+          Math.min(
+            config.worldPriceMax,
+            // The shock direction is the next draw: up on [0, 0.5), down on [0.5, 1).
+            state.worldPrice * (rng() < 0.5 ? config.priceShockUpMultiplier : config.priceShockDownMultiplier),
+          ),
+        )
+      : state.worldPrice;
+  const exportIncomeCoins = exportTons * exportPriceCoins;
 
   // World price random walk for next Turn: ±step, clamped to [min, max].
   const nextWorldPrice = Math.max(
@@ -119,7 +155,10 @@ export function resolveTurn(
     fertilizerCostCoins,
     landPrepCostCoins,
     storageUpkeepCoins,
+    event,
+    storageDestroyedTons,
     exportTons,
+    exportPriceCoins,
     exportIncomeCoins,
     budgetSpentCoins,
     budgetRevenueCoins: revenueCoins,
@@ -137,4 +176,19 @@ export function resolveTurn(
   };
 
   return { state: next, report };
+}
+
+// One-line description of the rolled Event and its concrete effect, for the year
+// report and the running event log.
+export function eventSummary(report: YearReport): string {
+  switch (report.event) {
+    case "drought":
+      return `Drought: Yield halved, Harvest ${Math.round(report.harvestTons)} t`;
+    case "flood":
+      return `Flood: Yield hit and ${Math.round(report.storageDestroyedTons)} t of Storage destroyed, Harvest ${Math.round(report.harvestTons)} t`;
+    case "priceShock":
+      return `Export price shock: exports sold at ${Math.round(report.exportPriceCoins)} coins/ton`;
+    default:
+      return "No event";
+  }
 }

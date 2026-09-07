@@ -17,6 +17,15 @@ export interface GameConfig {
   worldPriceWalkStep: number; // max coins/ton the World price moves per year
   worldPriceMin: number; // hard floor for the World price
   worldPriceMax: number; // hard ceiling for the World price
+  eventNothingProbability: number; // chance of no Event this Turn
+  eventDroughtProbability: number; // chance of a Drought (Yield hit)
+  eventFloodProbability: number; // chance of a Flood (Yield hit + Storage loss)
+  eventPriceShockProbability: number; // chance of an export price shock
+  droughtYieldMultiplier: number; // Harvest multiplier under a Drought
+  floodYieldMultiplier: number; // Harvest multiplier under a Flood
+  floodStorageLossFraction: number; // fraction of opening Storage destroyed by a Flood
+  priceShockUpMultiplier: number; // export price multiplier on an upward shock
+  priceShockDownMultiplier: number; // export price multiplier on a downward shock
 }
 
 export const CONFIG: GameConfig = {
@@ -36,4 +45,13 @@ export const CONFIG: GameConfig = {
   worldPriceWalkStep: 1.5,
   worldPriceMin: 7,
   worldPriceMax: 14,
+  eventNothingProbability: 0.6,
+  eventDroughtProbability: 0.2,
+  eventFloodProbability: 0.1,
+  eventPriceShockProbability: 0.1,
+  droughtYieldMultiplier: 0.5,
+  floodYieldMultiplier: 0.6,
+  floodStorageLossFraction: 0.25,
+  priceShockUpMultiplier: 2,
+  priceShockDownMultiplier: 0.5,
 };

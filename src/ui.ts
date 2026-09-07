@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
-import { createNewGame, estimateHarvestTons, resolveTurn } from "./simulation.js";
-import type { GameState, PlayerPlan, TurnResult } from "./types.js";
+import { createNewGame, estimateHarvestTons, eventSummary, resolveTurn } from "./simulation.js";
+import type { EventType, GameState, PlayerPlan, TurnResult } from "./types.js";
 
 // Thin adapter around the deterministic simulation core: DOM rendering + localStorage persistence.
 const SAVE_KEY = "growOrDie.save.v1";
@@ -9,6 +9,8 @@ interface SaveData {
   version: number;
   runSeed: number;
   state: GameState;
+  // One entry per confirmed Turn (including "none" years); rebuilt into the log on load.
+  eventLog: { year: number; event: EventType; summary: string }[];
 }
 
 function el<T extends HTMLElement>(id: string): T {
@@ -24,7 +26,11 @@ function loadSave(): SaveData | null {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as SaveData;
-    if (parsed.version !== 1 || !parsed.state || typeof parsed.runSeed !== "number") return null;
+    if (parsed.version !== 1 || !parsed.state || typeof parsed.runSeed !== "number") {
+      return null;
+    }
+    // Tolerant of saves written before the event log existed.
+    parsed.eventLog = Array.isArray(parsed.eventLog) ? parsed.eventLog : [];
     return parsed;
   } catch {
     return null;
@@ -44,6 +50,7 @@ let save: SaveData = loadSave() ?? {
   version: 1,
   runSeed: (Math.random() * 0x7fffffff) | 0,
   state: createNewGame(CONFIG),
+  eventLog: [],
 };
 
 function renderStats(state: GameState): void {
@@ -170,6 +177,7 @@ function renderReport(previous: GameState, result: TurnResult): void {
   section.hidden = false;
 
   el<HTMLElement>("report-year").textContent = String(report.year);
+  el<HTMLElement>("report-event").textContent = eventSummary(report);
   el<HTMLElement>("report-harvest").textContent = `${fmt(report.harvestTons)} t`;
   el<HTMLElement>("report-consumption").textContent = `${fmt(report.consumptionTons)} t`;
   el<HTMLElement>("report-available").textContent = `${fmt(report.availableFoodTons)} t`;
@@ -194,6 +202,18 @@ function renderReport(previous: GameState, result: TurnResult): void {
 function render(): void {
   renderStats(save.state);
   renderPlan(save.state);
+  renderEventLog();
+}
+
+function renderEventLog(): void {
+  const list = el<HTMLElement>("event-log");
+  list.textContent = "";
+  for (const entry of save.eventLog) {
+    const item = document.createElement("li");
+    item.className = entry.event;
+    item.textContent = `Year ${entry.year}: ${entry.summary}`;
+    list.appendChild(item);
+  }
 }
 
 function confirmPlan(): void {
@@ -201,6 +221,7 @@ function confirmPlan(): void {
   const previous = save.state;
   const result = resolveTurn(previous, plan, turnSeed(save.runSeed, previous.year), CONFIG);
   save.state = result.state;
+  save.eventLog.push({ year: result.report.year, event: result.report.event, summary: eventSummary(result.report) });
   persist(save);
   renderReport(previous, result);
   render();
@@ -208,7 +229,7 @@ function confirmPlan(): void {
 
 function restart(): void {
   if (!window.confirm("Restart from the beginning? Your current run will be lost.")) return;
-  save = { version: 1, runSeed: (Math.random() * 0x7fffffff) | 0, state: createNewGame(CONFIG) };
+  save = { version: 1, runSeed: (Math.random() * 0x7fffffff) | 0, state: createNewGame(CONFIG), eventLog: [] };
   persist(save);
   el<HTMLElement>("report").hidden = true;
   render();
