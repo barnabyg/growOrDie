@@ -36,12 +36,16 @@
       .stat .label { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
       .stat .value { font-size: 1rem; font-variant-numeric: tabular-nums; }
       main {
-        max-width: 720px;
+        max-width: 1060px;
         margin: 0 auto;
         padding: 1.5rem 1.25rem 3rem;
         display: grid;
+        grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
         gap: 1.25rem;
+        align-items: start;
       }
+      .country { position: sticky; top: 1rem; }
+      .content { display: grid; gap: 1.25rem; align-content: start; }
       section {
         background: var(--panel);
         border: 1px solid var(--border);
@@ -96,6 +100,15 @@
       .event-log { max-height: 12rem; overflow-y: auto; margin: 0; padding-left: 1.1rem; font-size: 0.85rem; color: var(--muted); }
       .event-log li { margin: 0.15rem 0; }
       .event-log li.drought, .event-log li.flood, .event-log li.priceShock { color: var(--text); font-weight: bold; }
+      #country-svg { display: block; width: 100%; height: auto; }
+      #country-green { fill: var(--accent); transition: y 0.6s ease, height 0.6s ease, fill 0.4s ease; }
+      #country-green.drought { fill: #a97142; }
+      #country-green.flood { fill: #5b8ec4; }
+      .country-caption { margin: 0.75rem 0 0; font-size: 0.85rem; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+      @media (max-width: 760px) {
+        main { grid-template-columns: 1fr; }
+        .country { position: static; }
+      }
     </style>
   </head>
   <body>
@@ -110,6 +123,24 @@
       </div>
     </header>
     <main>
+      <section class="country">
+        <h2>Country</h2>
+        <svg id="country-svg" viewBox="0 0 300 340" role="img" aria-label="Country silhouette; the green area is the share of Arable land prepared">
+          <defs>
+            <path id="country-shape" d="M 148 26 C 176 20, 211 40, 232 58 C 253 76, 268 104, 272 132 C 276 160, 275 193, 258 224 C 241 255, 199 305, 170 316 C 141 327, 107 308, 84 288 C 61 268, 37 228, 34 196 C 31 164, 45 124, 64 96 C 83 68, 120 32, 148 26 Z" />
+            <clipPath id="country-clip">
+              <use href="#country-shape" />
+            </clipPath>
+          </defs>
+          <g clip-path="url(#country-clip)">
+            <rect x="0" y="0" width="300" height="340" fill="#57432e" />
+            <rect id="country-green" x="0" y="272" width="300" height="68" />
+          </g>
+          <use href="#country-shape" fill="none" stroke="#8a7a5f" stroke-width="3" />
+        </svg>
+        <p class="country-caption" id="country-caption"></p>
+      </section>
+      <div class="content">
       <section>
         <h2>Plan — Year <span id="plan-year"></span></h2>
         <div class="plan-row">
@@ -211,6 +242,7 @@
         <h2>Run</h2>
         <button class="secondary" id="restart-btn">Restart run</button>
       </section>
+      </div>
     </main>
     <script type="module" src="./dist/ui.js"></script>
   </body>

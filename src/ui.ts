@@ -4,6 +4,8 @@ import type { EventType, GameState, PlayerPlan, TechnologyId, TurnResult } from 
 
 // Thin adapter around the deterministic simulation core: DOM rendering + localStorage persistence.
 const SAVE_KEY = "growOrDie.save.v1";
+// Matches the #country-svg viewBox height in index.html; the green area fills from the bottom.
+const COUNTRY_VIEWBOX_HEIGHT = 340;
 
 // One-off Technologies in display order (mirrors the Technologies section of index.html).
 const TECHNOLOGY_IDS: TechnologyId[] = ["irrigation", "highYieldSeeds", "granary", "tradeRoutes", "landSurvey", "fertilizerWorks"];
@@ -24,10 +26,10 @@ interface SaveData {
   eventLog: { year: number; event: EventType; summary: string }[];
 }
 
-function el<T extends HTMLElement>(id: string): T {
+function el<T extends Element>(id: string): T {
   const node = document.getElementById(id);
   if (!node) throw new Error(`Missing element #${id}`);
-  return node as T;
+  return node as unknown as T;
 }
 
 const fmt = (n: number): string => Math.round(n).toLocaleString("en-US");
@@ -230,8 +232,26 @@ function renderReport(previous: GameState, result: TurnResult): void {
 
 function render(): void {
   renderStats(save.state);
+  renderCountry(save.state);
   renderPlan(save.state);
   renderEventLog();
+}
+
+function renderCountry(state: GameState): void {
+  const green = el<SVGRectElement>("country-green");
+  const fraction = state.arableLandHectares > 0 ? Math.min(1, state.preparedLandHectares / state.arableLandHectares) : 0;
+  const height = fraction * COUNTRY_VIEWBOX_HEIGHT;
+  green.setAttribute("y", String(COUNTRY_VIEWBOX_HEIGHT - height));
+  green.setAttribute("height", String(height));
+
+  // Tint by the last resolved Event: Drought browns its own year, Flood stays blue until another Event.
+  const last = save.eventLog.at(-1);
+  const tintedFlood = last?.event === "flood";
+  const tintedDrought = last?.event === "drought" && last.year === state.year;
+  green.classList.toggle("flood", tintedFlood);
+  green.classList.toggle("drought", tintedDrought);
+
+  el<HTMLElement>("country-caption").textContent = `${fmt(state.preparedLandHectares)} of ${fmt(state.arableLandHectares)} ha prepared (${Math.round(fraction * 100)}%)`;
 }
 
 function renderEventLog(): void {
