@@ -1,35 +1,53 @@
-// Minimal static file server so the game can be played locally: `npm start` after `npm run build`.
+// Local development server: only browser entry points and compiled game modules.
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
-import { extname, join, normalize } from "node:path";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
-const port = Number(process.env.PORT ?? 8000);
 
-const MIME = {
-  ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".svg": "image/svg+xml",
-  ".json": "application/json; charset=utf-8",
-};
-
-createServer(async (req, res) => {
-  try {
-    const urlPath = decodeURIComponent(new URL(req.url ?? "/", `http://${req.headers.host}`).pathname);
-    const relative = urlPath === "/" ? "index.html" : urlPath.replace(/^\/+/, "");
-    const filePath = normalize(join(root, relative));
-    if (!filePath.startsWith(root)) {
-      res.writeHead(403).end("Forbidden");
+export function createGameServer() {
+  return createServer(async (request, response) => {
+    let pathname;
+    try {
+      pathname = decodeURIComponent((request.url ?? "/").split("?")[0]);
+    } catch {
+      response.writeHead(400).end("Bad request");
       return;
     }
-    const body = await readFile(filePath);
-    res.writeHead(200, { "content-type": MIME[extname(filePath)] ?? "application/octet-stream" });
-    res.end(body);
-  } catch {
-    res.writeHead(404).end("Not found");
-  }
-}).listen(port, () => {
-  console.log(`Grow or Die running at http://localhost:${port}`);
-});
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      response.writeHead(405, { Allow: "GET, HEAD" }).end("Method not allowed");
+      return;
+    }
+    const entry = pathname === "/" || pathname === "/index.html";
+    if (!entry && !/^\/dist\/[a-z][a-z0-9-]*\.js$/.test(pathname)) {
+      response.writeHead(404).end("Not found");
+      return;
+    }
+    try {
+      const body = await readFile(resolve(root, entry ? "index.html" : pathname.slice(1)));
+      response.writeHead(200, {
+        "content-type": entry ? "text/html; charset=utf-8" : "text/javascript; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "cache-control": "no-store",
+      });
+      response.end(request.method === "HEAD" ? undefined : body);
+    } catch {
+      response.writeHead(404).end("Not found");
+    }
+  });
+}
+
+export async function startGameServer({ port = 8000 } = {}) {
+  const server = createGameServer();
+  await new Promise((accept, reject) => {
+    server.once("error", reject);
+    server.listen(port, "127.0.0.1", accept);
+  });
+  return server;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const server = await startGameServer({ port: Number(process.env.PORT ?? 8000) });
+  console.log(`Grow or Die running at http://127.0.0.1:${server.address().port}`);
+}
