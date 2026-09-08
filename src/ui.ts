@@ -1,9 +1,10 @@
 import { CONFIG } from "./config.js";
-import { createNewGame, estimateHarvestTons, eventSummary, resolveTurn } from "./simulation.js";
-import type { EventType, GameState, PlayerPlan, TechnologyId, TurnResult } from "./types.js";
+import { estimateHarvestTons, eventSummary, resolveTurn } from "./simulation.js";
+import type { GameState, PlayerPlan, TechnologyId, TurnResult } from "./types.js";
+import { loadSave, newSave, persist } from "./persistence.js";
+import type { SaveData } from "./persistence.js";
 
-// Thin adapter around the deterministic simulation core: DOM rendering + localStorage persistence.
-const SAVE_KEY = "growOrDie.save.v1";
+// Thin adapter around the deterministic simulation core and persistence module: DOM rendering only.
 // Matches the #country-svg viewBox height in index.html; the green area fills from the bottom.
 const COUNTRY_VIEWBOX_HEIGHT = 340;
 
@@ -18,14 +19,6 @@ const TECHNOLOGY_NAMES: Record<TechnologyId, string> = {
   fertilizerWorks: "Fertilizer works",
 };
 
-interface SaveData {
-  version: number;
-  runSeed: number;
-  state: GameState;
-  // One entry per confirmed Turn (including "none" years); rebuilt into the log on load.
-  eventLog: { year: number; event: EventType; summary: string }[];
-}
-
 function el<T extends Element>(id: string): T {
   const node = document.getElementById(id);
   if (!node) throw new Error(`Missing element #${id}`);
@@ -34,46 +27,12 @@ function el<T extends Element>(id: string): T {
 
 const fmt = (n: number): string => Math.round(n).toLocaleString("en-US");
 
-function loadSave(): SaveData | null {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as SaveData;
-    if (parsed.version !== 1 || !parsed.state || typeof parsed.runSeed !== "number") {
-      return null;
-    }
-    // Tolerant of saves written before the event log existed.
-    parsed.eventLog = Array.isArray(parsed.eventLog) ? parsed.eventLog : [];
-    // Tolerant of saves written before Technologies existed.
-    parsed.state.ownedTechnologies = Array.isArray(parsed.state.ownedTechnologies) ? parsed.state.ownedTechnologies : [];
-    // Tolerant of saves written before Score and Collapse tracking existed.
-    if (typeof parsed.state.highestPopulation !== "number") {
-      parsed.state.highestPopulation = CONFIG.startingPopulation;
-    }
-    parsed.state.collapsed = parsed.state.collapsed === true;
-    parsed.state.collapseCause =
-      parsed.state.collapseCause === "totalFamine" || parsed.state.collapseCause === "belowHalf" ? parsed.state.collapseCause : null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function persist(save: SaveData): void {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-}
-
 // Per-turn seed derived from the run seed so a given run is reproducible.
 function turnSeed(runSeed: number, year: number): number {
   return (runSeed + year) >>> 0;
 }
 
-let save: SaveData = loadSave() ?? {
-  version: 1,
-  runSeed: (Math.random() * 0x7fffffff) | 0,
-  state: createNewGame(CONFIG),
-  eventLog: [],
-};
+let save: SaveData = loadSave() ?? newSave();
 
 function renderStats(state: GameState): void {
   el<HTMLSpanElement>("stat-year").textContent = String(state.year);
@@ -313,7 +272,7 @@ function confirmPlan(): void {
 
 function restart(): void {
   if (!window.confirm("Restart from the beginning? Your current run will be lost.")) return;
-  save = { version: 1, runSeed: (Math.random() * 0x7fffffff) | 0, state: createNewGame(CONFIG), eventLog: [] };
+  save = newSave();
   persist(save);
   el<HTMLElement>("report").hidden = true;
   render();
