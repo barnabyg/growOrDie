@@ -13,6 +13,9 @@ function baselineState(overrides: Partial<GameState> = {}): GameState {
     budgetCoins: 4_000,
     worldPrice: 10,
     ownedTechnologies: [],
+    highestPopulation: 1_000,
+    collapsed: false,
+    collapseCause: null,
     ...overrides,
   };
 }
@@ -29,6 +32,9 @@ describe("createNewGame", () => {
       budgetCoins: CONFIG.taxPerPerson * CONFIG.startingPopulation,
       worldPrice: CONFIG.worldPriceBase,
       ownedTechnologies: [],
+      highestPopulation: CONFIG.startingPopulation,
+      collapsed: false,
+      collapseCause: null,
     });
   });
 });
@@ -647,5 +653,115 @@ describe("resolveTurn — technologies", () => {
     expect(result.report.technologiesPurchased).toEqual(["irrigation"]);
     expect(result.report.technologyCostCoins).toBe(CONFIG.technologyCosts.irrigation);
     expect(result.state.ownedTechnologies).toEqual(["granary", "irrigation"]);
+  });
+});
+
+describe("resolveTurn — score", () => {
+  it("tracks the highest population reached during the run", () => {
+    const first = resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    // Year 1 ends at 960 (partial famine) — below the starting population.
+    expect(first.state.highestPopulation).toBe(1_000);
+
+    const second = resolveTurn(first.state, { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(second.state.highestPopulation).toBe(1_000);
+  });
+
+  it("raises the Score when a Turn ends above every previous population", () => {
+    // Storage covers Consumption so the full 5% growth applies: 1_999 -> 2_099.
+    const result = resolveTurn(baselineState({ population: 1_999, storageTons: 1_200 }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.populationEnd).toBe(2_099);
+    expect(result.state.highestPopulation).toBe(2_099);
+  });
+
+  it("keeps the previous Score when a Turn ends below it", () => {
+    // 2_100 grows to 2_205 (Storage covers Consumption), then the harvest no longer does.
+    const grown = resolveTurn(baselineState({ population: 2_100, storageTons: 1_500 }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(grown.state.highestPopulation).toBe(2_205);
+
+    const dropped = resolveTurn(grown.state, { cultivatedHectares: 100, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(dropped.report.populationEnd).toBeLessThan(2_205);
+    expect(dropped.state.highestPopulation).toBe(2_205);
+  });
+});
+
+describe("resolveTurn — milestones", () => {
+  it("celebrates the Milestone when the population crosses double the starting value", () => {
+    // Storage covers Consumption so the full 5% growth applies: 1_999 -> 2_099, crossing 2_000.
+    const result = resolveTurn(baselineState({ population: 1_999, storageTons: 1_200 }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.populationEnd).toBe(2_099);
+    expect(result.report.milestoneLevel).toBe(1);
+  });
+
+  it("celebrates the Milestone when the population lands exactly on a doubling", () => {
+    // round(1_905 x 1.05) = 2_000: landing exactly on the threshold still crosses it.
+    const result = resolveTurn(baselineState({ population: 1_905, storageTons: 1_200 }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.populationEnd).toBe(2_000);
+    expect(result.report.milestoneLevel).toBe(1);
+  });
+
+  it("does not re-fire a Milestone already passed", () => {
+    // Population starts above 2_000 and ends at 2_205: no new doubling crossed.
+    const result = resolveTurn(baselineState({ population: 2_100, storageTons: 1_300 }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.populationEnd).toBe(2_205);
+    expect(result.report.milestoneLevel).toBeNull();
+  });
+
+  it("celebrates the higher Milestone when a Turn crosses several doublings", () => {
+    // A fast-growth config takes 1_000 -> 5_000 in one Turn, crossing both 2_000 and 4_000.
+    const fast = { ...CONFIG, populationGrowthRate: 4 };
+    const result = resolveTurn(baselineState({ storageTons: 700 }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, fast);
+    expect(result.report.populationEnd).toBe(5_000);
+    expect(result.report.milestoneLevel).toBe(2);
+  });
+
+  it("celebrates the quadruple Milestone at four times the starting value", () => {
+    // Storage covers Consumption: 3_900 -> 4_095, crossing 4_000 (but not re-crossing 2_000).
+    const result = resolveTurn(baselineState({ population: 3_900, storageTons: 3_200 }), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.populationEnd).toBe(4_095);
+    expect(result.report.milestoneLevel).toBe(2);
+  });
+
+  it("reports no Milestone on a famine Turn", () => {
+    const result = resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.famine).toBe("partial");
+    expect(result.report.milestoneLevel).toBeNull();
+  });
+});
+
+describe("resolveTurn — collapse", () => {
+  it("ends the run when the population falls below half of the starting value", () => {
+    // Harvest 400 t against Consumption 600 t: partial famine drops 600 -> 400, below 500.
+    const result = resolveTurn(baselineState({ population: 600 }), { cultivatedHectares: 200, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.famine).toBe("partial");
+    expect(result.report.populationEnd).toBe(400);
+    expect(result.state.collapsed).toBe(true);
+    expect(result.state.collapseCause).toBe("belowHalf");
+    // The Score still records the highest population reached, even on a Collapse Turn.
+    expect(result.state.highestPopulation).toBe(1_000);
+  });
+
+  it("does not collapse when the population lands exactly on half of the starting value", () => {
+    // Harvest 500 t against Consumption 600 t: partial famine drops 600 -> exactly 500.
+    const result = resolveTurn(baselineState({ population: 600 }), { cultivatedHectares: 250, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.populationEnd).toBe(500);
+    expect(result.state.collapsed).toBe(false);
+    expect(result.state.collapseCause).toBeNull();
+  });
+
+  it("ends the run with a total Famine when the population reaches zero", () => {
+    // No cultivation, no Storage: nothing to eat, the population is wiped out.
+    const result = resolveTurn(baselineState(), { cultivatedHectares: 0, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.famine).toBe("total");
+    expect(result.report.populationEnd).toBe(0);
+    expect(result.state.collapsed).toBe(true);
+    // Zero takes priority over the below-half condition.
+    expect(result.state.collapseCause).toBe("totalFamine");
+  });
+
+  it("does not collapse while the population stays at or above half of the starting value", () => {
+    const result = resolveTurn(baselineState(), { cultivatedHectares: 400, fertilizedHectares: 0, preparedHectares: 0, storeTons: 0 }, 12345, CONFIG);
+    expect(result.report.populationEnd).toBe(800);
+    expect(result.state.collapsed).toBe(false);
+    expect(result.state.collapseCause).toBeNull();
   });
 });

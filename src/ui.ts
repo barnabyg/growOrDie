@@ -46,6 +46,13 @@ function loadSave(): SaveData | null {
     parsed.eventLog = Array.isArray(parsed.eventLog) ? parsed.eventLog : [];
     // Tolerant of saves written before Technologies existed.
     parsed.state.ownedTechnologies = Array.isArray(parsed.state.ownedTechnologies) ? parsed.state.ownedTechnologies : [];
+    // Tolerant of saves written before Score and Collapse tracking existed.
+    if (typeof parsed.state.highestPopulation !== "number") {
+      parsed.state.highestPopulation = CONFIG.startingPopulation;
+    }
+    parsed.state.collapsed = parsed.state.collapsed === true;
+    parsed.state.collapseCause =
+      parsed.state.collapseCause === "totalFamine" || parsed.state.collapseCause === "belowHalf" ? parsed.state.collapseCause : null;
     return parsed;
   } catch {
     return null;
@@ -71,6 +78,7 @@ let save: SaveData = loadSave() ?? {
 function renderStats(state: GameState): void {
   el<HTMLSpanElement>("stat-year").textContent = String(state.year);
   el<HTMLSpanElement>("stat-population").textContent = fmt(state.population);
+  el<HTMLSpanElement>("stat-score").textContent = fmt(state.highestPopulation);
   el<HTMLSpanElement>("stat-storage").textContent = `${fmt(state.storageTons)} t`;
   el<HTMLSpanElement>("stat-budget").textContent = `${fmt(state.budgetCoins)} coins`;
   el<HTMLSpanElement>("stat-price").textContent = `${state.worldPrice.toFixed(2)} /t`;
@@ -186,7 +194,7 @@ function updatePlanPreview(state: GameState): void {
   const remainingEl = el<HTMLElement>("plan-remaining");
   remainingEl.textContent = `${fmt(remaining)} coins`;
   remainingEl.classList.toggle("overspend", remaining < 0);
-  el<HTMLButtonElement>("confirm-btn").disabled = remaining < 0;
+  el<HTMLButtonElement>("confirm-btn").disabled = remaining < 0 || state.collapsed;
 
   const minStore = minReStoreTons(state);
   const effectiveStore = estSurplus > 0 ? Math.max(minStore, plan.storeTons) : 0;
@@ -214,6 +222,16 @@ function renderReport(previous: GameState, result: TurnResult): void {
   famineEl.textContent = report.famine === "none" ? "No Famine" : `Famine (${report.famine})`;
   famineEl.classList.toggle("famine", report.famine !== "none");
 
+  const milestoneLevel = report.milestoneLevel;
+  const milestoneEl = el<HTMLElement>("milestone-banner");
+  if (milestoneLevel !== null) {
+    const threshold = CONFIG.startingPopulation * 2 ** milestoneLevel;
+    milestoneEl.textContent = `Milestone — population reached ×${2 ** milestoneLevel} of the starting value: ${fmt(threshold)} people`;
+    milestoneEl.hidden = false;
+  } else {
+    milestoneEl.hidden = true;
+  }
+
   const delta = report.populationEnd - report.populationStart;
   el<HTMLElement>("report-pop-change").textContent = `${fmt(report.populationStart)} → ${fmt(report.populationEnd)} (${delta >= 0 ? "+" : ""}${fmt(delta)})`;
 
@@ -230,10 +248,26 @@ function renderReport(previous: GameState, result: TurnResult): void {
   el<HTMLElement>("report-new-budget").textContent = fmt(state.budgetCoins);
 }
 
+function renderCollapse(state: GameState): void {
+  const section = el<HTMLElement>("collapse-summary");
+  if (!state.collapsed) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  const turns = state.year - 1;
+  el<HTMLElement>("collapse-length").textContent = `${turns} ${turns === 1 ? "Turn" : "Turns"}`;
+  el<HTMLElement>("collapse-score").textContent = fmt(state.highestPopulation);
+  el<HTMLElement>("collapse-cause").textContent = state.collapseCause === "totalFamine"
+    ? "Total Famine: no food at all, the population reached zero."
+    : `The population fell below half of the starting ${fmt(CONFIG.startingPopulation)}.`;
+}
+
 function render(): void {
   renderStats(save.state);
   renderCountry(save.state);
   renderPlan(save.state);
+  renderCollapse(save.state);
   renderEventLog();
 }
 
@@ -266,6 +300,7 @@ function renderEventLog(): void {
 }
 
 function confirmPlan(): void {
+  if (save.state.collapsed) return;
   const plan = readPlanInputs(save.state);
   const previous = save.state;
   const result = resolveTurn(previous, plan, turnSeed(save.runSeed, previous.year), CONFIG);

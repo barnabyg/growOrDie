@@ -1,6 +1,9 @@
 export interface GameState {
   year: number; // current Turn, displayed as "Year N"
   population: number;
+  highestPopulation: number; // Score: the highest population reached during this run
+  collapsed: boolean; // true once the run has Collapsed; no further Turns are playable
+  collapseCause: CollapseCause | null; // what led to the Collapse, for the end-of-run summary
   arableLandHectares: number;
   preparedLandHectares: number;
   storageTons: number;
@@ -21,6 +24,8 @@ export type TechnologyId = "irrigation" | "highYieldSeeds" | "granary" | "tradeR
 
 export type FamineSeverity = "none" | "partial" | "total";
 
+export type CollapseCause = "totalFamine" | "belowHalf";
+
 export type EventType = "none" | "drought" | "flood" | "priceShock";
 
 export interface YearReport {
@@ -32,6 +37,7 @@ export interface YearReport {
   famine: FamineSeverity;
   populationStart: number;
   populationEnd: number;
+  milestoneLevel: number | null; // Milestone crossed this Turn (population reached starting value x 2^level); null when none
   seedCostCoins: number;
   fertilizerCostCoins: number;
   landPrepCostCoins: number;

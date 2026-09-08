@@ -1,11 +1,14 @@
 import { createRng } from "./rng.js";
 import { type GameConfig } from "./config.js";
-import { type EventType, type FamineSeverity, type GameState, type PlayerPlan, type TurnResult, type YearReport } from "./types.js";
+import { type CollapseCause, type EventType, type FamineSeverity, type GameState, type PlayerPlan, type TurnResult, type YearReport } from "./types.js";
 
 export function createNewGame(config: GameConfig): GameState {
   return {
     year: 1,
     population: config.startingPopulation,
+    highestPopulation: config.startingPopulation,
+    collapsed: false,
+    collapseCause: null,
     arableLandHectares: config.startingArableLandHectares,
     preparedLandHectares: config.startingPreparedLandHectares,
     storageTons: 0,
@@ -111,6 +114,26 @@ export function resolveTurn(
     populationEnd = Math.round(state.population * (1 - shortfallFraction));
   }
 
+  // A Milestone fires when the Turn ends at or beyond a doubling of the starting
+  // population (x2, x4, x8...) that it started below. If one Turn crosses several
+  // doublings, only the highest newly reached level is celebrated.
+  let milestoneLevel: number | null = null;
+  for (let level = 1; ; level++) {
+    const threshold = config.startingPopulation * 2 ** level;
+    if (threshold > populationEnd) break;
+    if (state.population < threshold) milestoneLevel = level;
+  }
+
+  // Collapse ends the run: a total Famine (population zero) takes priority,
+  // otherwise falling strictly below half of the starting population. Landing
+  // exactly on half still leaves the run alive.
+  let collapseCause: CollapseCause | null = null;
+  if (populationEnd === 0) {
+    collapseCause = "totalFamine";
+  } else if (populationEnd < config.startingPopulation / 2) {
+    collapseCause = "belowHalf";
+  }
+
   // Storage allocation: the player chooses how much of the Surplus to keep. Stored
   // food can never be exported, so only new harvest may leave — if opening Storage
   // alone covers Consumption, at least (storage - consumption) must be re-stored.
@@ -169,6 +192,7 @@ export function resolveTurn(
     famine,
     populationStart: state.population,
     populationEnd,
+    milestoneLevel,
     seedCostCoins,
     fertilizerCostCoins,
     landPrepCostCoins,
@@ -188,6 +212,9 @@ export function resolveTurn(
   const next: GameState = {
     year: state.year + 1,
     population: populationEnd,
+    highestPopulation: Math.max(state.highestPopulation, populationEnd),
+    collapsed: collapseCause !== null,
+    collapseCause,
     arableLandHectares: state.arableLandHectares,
     preparedLandHectares: state.preparedLandHectares + preparedHectares,
     storageTons,

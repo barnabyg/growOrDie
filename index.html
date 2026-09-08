@@ -97,6 +97,17 @@
         color: var(--muted);
       }
       .famine-banner.famine { background: #3d1f14; color: var(--danger); }
+      .milestone-banner {
+        display: block;
+        margin-top: 0.5rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        background: #2e2410;
+        border: 1px solid #d4a94e;
+        color: #d4a94e;
+      }
+      #collapse-summary h2 { color: var(--danger); }
       .event-log { max-height: 12rem; overflow-y: auto; margin: 0; padding-left: 1.1rem; font-size: 0.85rem; color: var(--muted); }
       .event-log li { margin: 0.15rem 0; }
       .event-log li.drought, .event-log li.flood, .event-log li.priceShock { color: var(--text); font-weight: bold; }
@@ -117,6 +128,7 @@
       <div class="stats">
         <div class="stat"><span class="label">Year</span><span class="value" id="stat-year"></span></div>
         <div class="stat"><span class="label">Population</span><span class="value" id="stat-population"></span></div>
+        <div class="stat"><span class="label">Score</span><span class="value" id="stat-score"></span></div>
         <div class="stat"><span class="label">Storage</span><span class="value" id="stat-storage"></span></div>
         <div class="stat"><span class="label">Budget</span><span class="value" id="stat-budget"></span></div>
         <div class="stat"><span class="label">World price</span><span class="value" id="stat-price"></span></div>
@@ -232,7 +244,16 @@
           <tr><td>Budget: revenue (tax + exports)</td><td id="report-tax"></td></tr>
           <tr><td>Next-turn Budget</td><td id="report-new-budget"></td></tr>
         </table>
+        <div class="milestone-banner" id="milestone-banner" hidden></div>
         <span class="famine-banner" id="report-famine"></span>
+      </section>
+      <section id="collapse-summary" hidden>
+        <h2>Collapse</h2>
+        <table class="report">
+          <tr><td>Run length</td><td id="collapse-length"></td></tr>
+          <tr><td>Final Score</td><td id="collapse-score"></td></tr>
+          <tr><td>What led to the Collapse</td><td id="collapse-cause"></td></tr>
+        </table>
       </section>
       <section>
         <h2>Event log</h2>
