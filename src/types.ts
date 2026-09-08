@@ -58,3 +58,13 @@ export interface TurnResult {
   state: GameState; // state of the next Turn
   report: YearReport;
 }
+
+/** A committed harvest awaiting the player's storage decision. No random work
+ * remains: reloading this snapshot cannot reroll weather or prices. */
+export interface PendingTurn {
+  plan: PlayerPlan;
+  result: TurnResult;
+  storageUpkeepPerTon: number; // frozen at production commitment
+  minStoreTons: number;
+  maxStoreTons: number;
+}

@@ -1,6 +1,7 @@
-import { economyRates, isAffordable, planCosts } from "./economy.js";
+import { beginTurn, finishTurn, productionCosts } from "./turn.js";
+import { economyRates } from "./economy.js";
 import { CONFIG } from "./config.js";
-import { estimateHarvestTons, eventSummary, resolveTurn } from "./simulation.js";
+import { eventSummary } from "./simulation.js";
 import type { GameState, PlayerPlan, TechnologyId, TurnResult } from "./types.js";
 import { loadSave, newSave, persist } from "./persistence.js";
 import type { SaveData } from "./persistence.js";
@@ -64,13 +65,6 @@ function renderPlan(state: GameState): void {
   prepInput.max = String(maxPrep);
   prepInput.value = "0";
 
-  const estSurplus = estimateSurplusTons(state, maxHectares, 0);
-  const minStore = minReStoreTons(state);
-  const storeInput = el<HTMLInputElement>("plan-store");
-  storeInput.min = String(minStore);
-  storeInput.max = String(estSurplus);
-  // Default to keeping the whole Surplus; lowering it auto-exports the difference.
-  storeInput.value = String(estSurplus);
 
   const owned = new Set(state.ownedTechnologies);
   for (const id of TECHNOLOGY_IDS) {
@@ -90,19 +84,6 @@ function clampedHectares(state: GameState, raw: number): number {
   return Math.max(0, Math.min(Math.floor(raw), max));
 }
 
-// Deterministic pre-event estimate of this Turn's Surplus for the plan preview.
-function estimateSurplusTons(state: GameState, cultivatedHectares: number, fertilizedHectares: number): number {
-  const harvestTons = estimateHarvestTons(CONFIG, cultivatedHectares, fertilizedHectares, state.ownedTechnologies.includes("highYieldSeeds"));
-  const consumptionTons = state.population * CONFIG.consumptionPerPerson;
-  return Math.max(0, harvestTons + state.storageTons - consumptionTons);
-}
-
-// Stored food can never be exported: if opening Storage alone covers Consumption,
-// at least (storage - consumption) must be re-stored this Turn.
-function minReStoreTons(state: GameState): number {
-  return Math.max(0, state.storageTons - state.population * CONFIG.consumptionPerPerson);
-}
-
 function readPlanInputs(state: GameState): PlayerPlan {
   const cultivatedHectares = clampedHectares(state, Number(el<HTMLInputElement>("plan-hectares").value));
   const rawFertilizer = Number(el<HTMLInputElement>("plan-fertilizer").value);
@@ -114,12 +95,9 @@ function readPlanInputs(state: GameState): PlayerPlan {
   const preparedHectares = !Number.isFinite(rawPrep)
     ? 0
     : Math.max(0, Math.min(Math.floor(rawPrep), maxPrep));
-  const estSurplus = estimateSurplusTons(state, cultivatedHectares, fertilizedHectares);
-  const rawStore = Number(el<HTMLInputElement>("plan-store").value);
-  const storeTons = !Number.isFinite(rawStore) ? 0 : Math.max(0, Math.min(rawStore, estSurplus));
   // Only unowned Technologies can be purchased this Turn.
   const purchaseTechnologies = TECHNOLOGY_IDS.filter((id) => !state.ownedTechnologies.includes(id) && el<HTMLInputElement>(`tech-${id}`).checked);
-  return { cultivatedHectares, fertilizedHectares, preparedHectares, storeTons, purchaseTechnologies };
+  return { cultivatedHectares, fertilizedHectares, preparedHectares, storeTons: 0, purchaseTechnologies };
 }
 
 function updatePlanPreview(state: GameState): void {
@@ -128,20 +106,7 @@ function updatePlanPreview(state: GameState): void {
   // Keep each input's max in sync with the others (fertilizer <= cultivated).
   el<HTMLInputElement>("plan-fertilizer").max = String(plan.cultivatedHectares);
 
-  const storeInput = el<HTMLInputElement>("plan-store");
-  const estSurplus = estimateSurplusTons(state, plan.cultivatedHectares, plan.fertilizedHectares);
-  storeInput.max = String(estSurplus);
-  if (estSurplus <= 0) {
-    // Famine expected: nothing to store or export.
-    storeInput.disabled = true;
-    storeInput.value = "0";
-  } else {
-    storeInput.disabled = false;
-  }
-
-  const minStore = minReStoreTons(state);
-  const effectiveStore = estSurplus > 0 ? Math.max(minStore, plan.storeTons) : 0;
-  const costs = planCosts(state, plan, effectiveStore, CONFIG);
+  const costs = productionCosts(state, plan, CONFIG);
   const seedCost = costs.seeds;
   const fertilizerCost = costs.fertilizer;
   const prepCost = costs.preparation;
@@ -157,15 +122,45 @@ function updatePlanPreview(state: GameState): void {
   const remainingEl = el<HTMLElement>("plan-remaining");
   remainingEl.textContent = `${fmt(remaining)} coins`;
   remainingEl.classList.toggle("overspend", remaining < 0);
-  el<HTMLButtonElement>("confirm-btn").disabled = !isAffordable(state, costs, minStore, CONFIG) || state.collapsed;
+  el<HTMLButtonElement>("confirm-btn").disabled = !costs.affordable || state.collapsed;
 
-  const estExport = estSurplus - effectiveStore;
-  el<HTMLElement>("plan-store-range").textContent = estSurplus > 0 ? `${fmt(minStore)}-${fmt(estSurplus)} t` : "—";
-  el<HTMLElement>("plan-upkeep-cost").textContent = fmt(effectiveStore * economyRates(state, CONFIG).upkeep);
-  el<HTMLElement>("plan-export-est").textContent =
-    estSurplus > 0
-      ? `${fmt(estExport)} t × ${(state.worldPrice * economyRates(state, CONFIG).trade).toFixed(2)} coins/t = +${fmt(estExport * state.worldPrice * economyRates(state, CONFIG).trade)} coins`
-      : "—";
+  el<HTMLElement>("plan-upkeep-cost").textContent = fmt(costs.upkeep);
+}
+
+function renderAllocation(): void {
+  const pending = save.pendingTurn;
+  el<HTMLElement>("allocation").hidden = !pending;
+  el<HTMLElement>("production").hidden = !!pending;
+  el<HTMLElement>("technologies").hidden = !!pending;
+  if (!pending) return;
+  const { report } = pending.result;
+  el<HTMLElement>("allocation-year").textContent = String(report.year);
+  el<HTMLElement>("allocation-event").textContent = eventSummary(report);
+  el<HTMLElement>("allocation-harvest").textContent = `${fmt(report.harvestTons)} t`;
+  el<HTMLElement>("allocation-consumption").textContent = `${fmt(report.consumptionTons)} t needed · Famine: ${report.famine} · population ${fmt(report.populationEnd)}`;
+  el<HTMLElement>("allocation-surplus").textContent = `${fmt(Math.max(0, report.availableFoodTons - report.consumptionTons))} t`;
+  el<HTMLElement>("allocation-price").textContent = `${report.exportPriceCoins.toFixed(2)} coins/t`;
+  const input = el<HTMLInputElement>("plan-store");
+  input.min = String(pending.minStoreTons);
+  input.max = String(pending.maxStoreTons);
+  input.value = String(pending.maxStoreTons);
+  input.disabled = pending.minStoreTons === pending.maxStoreTons;
+  el<HTMLElement>("plan-store-range").textContent = `${fmt(pending.minStoreTons)}·${fmt(pending.maxStoreTons)} t (affordable range; surviving old food must stay)`;
+  updateAllocationPreview();
+}
+
+function updateAllocationPreview(): void {
+  const pending = save.pendingTurn;
+  if (!pending) return;
+  const value = Number(el<HTMLInputElement>("plan-store").value);
+  const valid = Number.isFinite(value) && value >= pending.minStoreTons && value <= pending.maxStoreTons;
+  el<HTMLButtonElement>("allocate-btn").disabled = !valid;
+  if (!valid) {
+    el<HTMLElement>("allocation-preview").textContent = "Choose storage within the affordable range.";
+    return;
+  }
+  const { report } = finishTurn(pending, value, CONFIG);
+  el<HTMLElement>("allocation-preview").textContent = `Upkeep ${fmt(report.storageUpkeepCoins)} coins · total spending ${fmt(report.budgetSpentCoins)} coins · carry-over ${fmt(report.budgetCarryOverCoins)} coins · export ${fmt(report.exportTons)} t for ${fmt(report.exportIncomeCoins)} coins`;
 }
 
 function renderReport(previous: GameState, result: TurnResult): void {
@@ -228,6 +223,7 @@ function render(): void {
   renderStats(save.state);
   renderCountry(save.state);
   renderPlan(save.state);
+  renderAllocation();
   renderCollapse(save.state);
   renderEventLog();
 }
@@ -261,11 +257,23 @@ function renderEventLog(): void {
 }
 
 function confirmPlan(): void {
-  if (save.state.collapsed) return;
+  if (save.state.collapsed || save.pendingTurn) return;
   const plan = readPlanInputs(save.state);
+  if (!productionCosts(save.state, plan, CONFIG).affordable) return;
+  save.pendingTurn = beginTurn(save.state, plan, turnSeed(save.runSeed, save.state.year), CONFIG);
+  persist(save);
+  render();
+}
+
+function confirmAllocation(): void {
+  const pending = save.pendingTurn;
+  if (!pending) return;
+  const amount = Number(el<HTMLInputElement>("plan-store").value);
+  if (!Number.isFinite(amount) || amount < pending.minStoreTons || amount > pending.maxStoreTons) return;
   const previous = save.state;
-  const result = resolveTurn(previous, plan, turnSeed(save.runSeed, previous.year), CONFIG);
+  const result = finishTurn(pending, amount, CONFIG);
   save.state = result.state;
+  delete save.pendingTurn;
   save.eventLog.push({ year: result.report.year, event: result.report.event, summary: eventSummary(result.report) });
   persist(save);
   renderReport(previous, result);
@@ -281,12 +289,14 @@ function restart(): void {
 }
 
 function init(): void {
-  for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep", "plan-store"]) {
+  for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep"]) {
     el<HTMLInputElement>(id).addEventListener("input", () => updatePlanPreview(save.state));
   }
   for (const techId of TECHNOLOGY_IDS) {
     el<HTMLInputElement>(`tech-${techId}`).addEventListener("change", () => updatePlanPreview(save.state));
   }
+  el<HTMLInputElement>("plan-store").addEventListener("input", updateAllocationPreview);
+  el<HTMLButtonElement>("allocate-btn").addEventListener("click", confirmAllocation);
   el<HTMLButtonElement>("confirm-btn").addEventListener("click", confirmPlan);
   el<HTMLButtonElement>("restart-btn").addEventListener("click", restart);
   render();
