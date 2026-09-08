@@ -187,6 +187,7 @@ export function resolveTurn(
   const report: YearReport = {
     year: state.year,
     harvestTons,
+    droughtYieldLossFraction: event === "drought" ? 1 - droughtMultiplier : 0,
     consumptionTons,
     availableFoodTons,
     famine,
@@ -231,7 +232,7 @@ export function resolveTurn(
 export function eventSummary(report: YearReport): string {
   switch (report.event) {
     case "drought":
-      return `Drought: Yield halved, Harvest ${Math.round(report.harvestTons)} t`;
+      return `Drought: Yield reduced by ${Math.round(report.droughtYieldLossFraction * 100)}%, Harvest ${Math.round(report.harvestTons)} t`;
     case "flood":
       return `Flood: Yield hit and ${Math.round(report.storageDestroyedTons)} t of Storage destroyed, Harvest ${Math.round(report.harvestTons)} t`;
     case "priceShock":

@@ -524,7 +524,7 @@ describe("resolveTurn — events", () => {
     expect(eventSummary(none.report)).toBe("No event");
 
     const drought = resolveTurn(baselineState(), fullPlan, 1, CONFIG);
-    expect(eventSummary(drought.report)).toBe("Drought: Yield halved, Harvest 600 t");
+    expect(eventSummary(drought.report)).toBe("Drought: Yield reduced by 50%, Harvest 600 t");
 
     const flood = resolveTurn(baselineState({ storageTons: 400 }), fullPlan, 30, CONFIG);
     expect(eventSummary(flood.report)).toBe("Flood: Yield hit and 100 t of Storage destroyed, Harvest 720 t");

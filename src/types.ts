@@ -32,6 +32,7 @@ export interface YearReport {
   year: number;
   event: EventType; // the Event rolled this Turn (revealed at resolution, never forecast)
   harvestTons: number;
+  droughtYieldLossFraction: number; // actual lost Yield fraction after Irrigation; zero for other Events
   consumptionTons: number;
   availableFoodTons: number; // harvest + opening storage, before Consumption
   famine: FamineSeverity;
