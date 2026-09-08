@@ -71,6 +71,14 @@ function parseState(value: unknown): GameState | null {
     return null;
   }
 
+  // Validate relationships, not today's tunable balance limits. Negative Budget
+  // is readable legacy debt; rejecting it would discard runs written by v1.
+  if (
+    !Number.isSafeInteger(year) || year < 1 || population < 0 ||
+    arableLandHectares < 0 || preparedLandHectares < 0 ||
+    preparedLandHectares > arableLandHectares || storageTons < 0 || worldPrice < 0
+  ) return null;
+
   let ownedTechnologies: TechnologyId[];
   if (raw.ownedTechnologies === undefined) {
     // Tolerant of saves written before Technologies existed.
@@ -78,19 +86,21 @@ function parseState(value: unknown): GameState | null {
   } else if (!Array.isArray(raw.ownedTechnologies) || !raw.ownedTechnologies.every(isTechnologyId)) {
     return null;
   } else {
-    ownedTechnologies = raw.ownedTechnologies;
+    ownedTechnologies = [...new Set(raw.ownedTechnologies)];
   }
 
-  // Score and Collapse are display-only, so missing or corrupted values coerce to safe defaults.
-  const highestPopulation = isFiniteNumber(raw.highestPopulation) ? raw.highestPopulation : CONFIG.startingPopulation;
+  // Old saves may predate Score/Collapse. Recover at least the known population
+  // peak, and derive Collapse from population rather than trusting stale flags.
+  const highestPopulation = Math.max(CONFIG.startingPopulation, population,
+    isFiniteNumber(raw.highestPopulation) ? raw.highestPopulation : 0);
   const collapseCause: CollapseCause | null =
-    raw.collapseCause === "totalFamine" || raw.collapseCause === "belowHalf" ? raw.collapseCause : null;
+    population === 0 ? "totalFamine" : population < CONFIG.startingPopulation / 2 ? "belowHalf" : null;
 
   return {
     year,
     population,
     highestPopulation,
-    collapsed: raw.collapsed === true,
+    collapsed: collapseCause !== null,
     collapseCause,
     arableLandHectares,
     preparedLandHectares,

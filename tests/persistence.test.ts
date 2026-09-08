@@ -126,7 +126,7 @@ describe("parseSave", () => {
     const loaded = parseSave(JSON.stringify(raw));
     expect(loaded).not.toBeNull();
     expect(loaded?.state.ownedTechnologies).toEqual([]);
-    expect(loaded?.state.highestPopulation).toBe(CONFIG.startingPopulation);
+    expect(loaded?.state.highestPopulation).toBe(midRunSave().state.population);
   });
 
   it("drops malformed event log entries but keeps the run", () => {
@@ -166,6 +166,7 @@ describe("parseSave", () => {
     expect(loaded?.state.collapseCause).toBeNull();
 
     const collapsedRaw = JSON.parse(JSON.stringify(midRunSave()));
+    collapsedRaw.state.population = 0;
     collapsedRaw.state.collapsed = true;
     collapsedRaw.state.collapseCause = "totalFamine";
     const collapsed = parseSave(JSON.stringify(collapsedRaw));
