@@ -1,3 +1,4 @@
+import { economyRates, planCosts } from "./economy.js";
 import { createRng } from "./rng.js";
 import { eventProbabilities, type GameConfig } from "./config.js";
 import { type CollapseCause, type EventType, type FamineSeverity, type GameState, type PlayerPlan, type TurnResult, type YearReport } from "./types.js";
@@ -165,7 +166,7 @@ export function resolveTurn(
       : state.worldPrice;
   // Trade routes multiply this Turn's final export price only — after any shock and
   // clamp, so it may sit above the World price ceiling. The World price walk is untouched.
-  const exportPriceCoins = ownedTechnologies.has("tradeRoutes") ? baseExportPriceCoins * config.tradeRoutesPriceMultiplier : baseExportPriceCoins;
+  const exportPriceCoins = baseExportPriceCoins * economyRates(state, config).trade;
   const exportIncomeCoins = exportTons * exportPriceCoins;
 
   // World price random walk for next Turn: ±step, clamped to [min, max].
@@ -174,12 +175,13 @@ export function resolveTurn(
     Math.min(config.worldPriceMax, state.worldPrice + (rng() * 2 - 1) * config.worldPriceWalkStep),
   );
 
-  const seedCostCoins = cultivatedHectares * config.seedCostPerHectare;
-  const fertilizerCostCoins = fertilizedHectares * config.fertilizerCostPerHectare * (ownedTechnologies.has("fertilizerWorks") ? config.fertilizerWorksCostMultiplier : 1);
-  const landPrepCostCoins = preparedHectares * config.landPrepCostPerHectare * (ownedTechnologies.has("landSurvey") ? config.landSurveyCostMultiplier : 1);
-  const storageUpkeepCoins = storageTons * config.storageUpkeepPerTonPerYear * (ownedTechnologies.has("granary") ? config.granaryUpkeepMultiplier : 1);
-  const technologyCostCoins = purchasedTechnologies.reduce((sum, id) => sum + config.technologyCosts[id], 0);
-  const budgetSpentCoins = seedCostCoins + fertilizerCostCoins + landPrepCostCoins + storageUpkeepCoins + technologyCostCoins;
+  const costs = planCosts(state, { ...plan, cultivatedHectares, fertilizedHectares, preparedHectares }, storageTons, config);
+  const seedCostCoins = costs.seeds;
+  const fertilizerCostCoins = costs.fertilizer;
+  const landPrepCostCoins = costs.preparation;
+  const storageUpkeepCoins = costs.upkeep;
+  const technologyCostCoins = costs.technologies;
+  const budgetSpentCoins = costs.total;
   const taxRevenueCoins = populationEnd * config.taxPerPerson;
   const carryOverCoins = state.budgetCoins - budgetSpentCoins;
   const revenueCoins = taxRevenueCoins + exportIncomeCoins;

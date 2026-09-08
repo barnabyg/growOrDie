@@ -1,3 +1,4 @@
+import { economyRates, planCosts } from "./economy.js";
 import { CONFIG } from "./config.js";
 import { estimateHarvestTons, eventSummary, resolveTurn } from "./simulation.js";
 import type { GameState, PlayerPlan, TechnologyId, TurnResult } from "./types.js";
@@ -47,11 +48,11 @@ function renderPlan(state: GameState): void {
   el<HTMLElement>("plan-year").textContent = String(state.year);
   const maxHectares = state.preparedLandHectares;
   el<HTMLElement>("plan-max").textContent = fmt(maxHectares);
-  el<HTMLElement>("plan-fert-price").textContent = fmt(CONFIG.fertilizerCostPerHectare);
+  el<HTMLElement>("plan-fert-price").textContent = fmt(economyRates(state, CONFIG).fertilizer);
   const maxPrep = state.arableLandHectares - state.preparedLandHectares;
   el<HTMLElement>("plan-prep-max").textContent = fmt(maxPrep);
-  el<HTMLElement>("plan-prep-price").textContent = fmt(CONFIG.landPrepCostPerHectare);
-  el<HTMLElement>("plan-upkeep-price").textContent = fmt(CONFIG.storageUpkeepPerTonPerYear);
+  el<HTMLElement>("plan-prep-price").textContent = fmt(economyRates(state, CONFIG).preparation);
+  el<HTMLElement>("plan-upkeep-price").textContent = fmt(economyRates(state, CONFIG).upkeep);
 
   const input = el<HTMLInputElement>("plan-hectares");
   input.max = String(maxHectares);
@@ -138,11 +139,12 @@ function updatePlanPreview(state: GameState): void {
     storeInput.disabled = false;
   }
 
-  const seedCost = plan.cultivatedHectares * CONFIG.seedCostPerHectare;
-  const fertilizerCost = plan.fertilizedHectares * CONFIG.fertilizerCostPerHectare;
-  const prepCost = plan.preparedHectares * CONFIG.landPrepCostPerHectare;
-  const technologyCost = (plan.purchaseTechnologies ?? []).reduce((sum, id) => sum + CONFIG.technologyCosts[id], 0);
-  const totalCost = seedCost + fertilizerCost + prepCost + technologyCost;
+  const costs = planCosts(state, plan, 0, CONFIG);
+  const seedCost = costs.seeds;
+  const fertilizerCost = costs.fertilizer;
+  const prepCost = costs.preparation;
+  const technologyCost = costs.technologies;
+  const totalCost = costs.production;
   el<HTMLElement>("plan-seed-cost").textContent = fmt(seedCost);
   el<HTMLElement>("plan-fert-cost").textContent = fmt(fertilizerCost);
   el<HTMLElement>("plan-prep-cost").textContent = fmt(prepCost);
@@ -159,10 +161,10 @@ function updatePlanPreview(state: GameState): void {
   const effectiveStore = estSurplus > 0 ? Math.max(minStore, plan.storeTons) : 0;
   const estExport = estSurplus - effectiveStore;
   el<HTMLElement>("plan-store-range").textContent = estSurplus > 0 ? `${fmt(minStore)}-${fmt(estSurplus)} t` : "—";
-  el<HTMLElement>("plan-upkeep-cost").textContent = fmt(effectiveStore * CONFIG.storageUpkeepPerTonPerYear);
+  el<HTMLElement>("plan-upkeep-cost").textContent = fmt(effectiveStore * economyRates(state, CONFIG).upkeep);
   el<HTMLElement>("plan-export-est").textContent =
     estSurplus > 0
-      ? `${fmt(estExport)} t × ${state.worldPrice.toFixed(2)} coins/t = +${fmt(estExport * state.worldPrice)} coins`
+      ? `${fmt(estExport)} t × ${(state.worldPrice * economyRates(state, CONFIG).trade).toFixed(2)} coins/t = +${fmt(estExport * state.worldPrice * economyRates(state, CONFIG).trade)} coins`
       : "—";
 }
 
