@@ -1,5 +1,5 @@
 import { createRng } from "./rng.js";
-import { type GameConfig } from "./config.js";
+import { eventProbabilities, type GameConfig } from "./config.js";
 import { type CollapseCause, type EventType, type FamineSeverity, type GameState, type PlayerPlan, type TurnResult, type YearReport } from "./types.js";
 
 export function createNewGame(config: GameConfig): GameState {
@@ -43,21 +43,21 @@ export function resolveTurn(
   // sequence from it via createRng, in resolution order (ADR-0001): the Event roll
   // first, then the World price walk last.
 
+  const probabilities = eventProbabilities(config);
   const rng = createRng(seed);
 
   // The Event is rolled once per Turn before anything else happens: no warnings or
   // forecasts, revealed only when the Turn resolves.
   const eventRoll = rng();
   let event: EventType = "none";
-  if (eventRoll < config.eventNothingProbability) {
-    event = "none";
-  } else if (eventRoll < config.eventNothingProbability + config.eventDroughtProbability) {
-    event = "drought";
-  } else if (eventRoll < config.eventNothingProbability + config.eventDroughtProbability + config.eventFloodProbability) {
-    event = "flood";
-  } else {
-    // The shock direction is the next draw: up on [0, 0.5), down on [0.5, 1).
-    event = "priceShock";
+  const events: EventType[] = ["none", "drought", "flood", "priceShock"];
+  let cumulativeProbability = 0;
+  for (let index = 0; index < probabilities.length; index++) {
+    cumulativeProbability += probabilities[index]!;
+    if (eventRoll < cumulativeProbability) {
+      event = events[index]!;
+      break;
+    }
   }
 
   const cultivatedHectares = Math.max(
