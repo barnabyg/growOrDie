@@ -136,13 +136,13 @@ export function resolveTurn(
 
   // Storage allocation: the player chooses how much of the Surplus to keep. Stored
   // food can never be exported, so only new harvest may leave — if opening Storage
-  // alone covers Consumption, at least (storage - consumption) must be re-stored.
+  // surviving a Flood alone covers Consumption, its unconsumed remainder must be re-stored.
   // Famine turns store nothing and export nothing.
   const surplusTons = availableFoodTons - consumptionTons;
   let storageTons = 0;
   let exportTons = 0;
   if (famine === "none" && surplusTons > 0) {
-    const minStoreTons = Math.max(0, state.storageTons - consumptionTons);
+    const minStoreTons = Math.max(0, state.storageTons - storageDestroyedTons - consumptionTons);
     const rawStoreTons = Number.isFinite(plan.storeTons) ? plan.storeTons : 0;
     storageTons = Math.max(minStoreTons, Math.min(rawStoreTons, surplusTons));
     exportTons = surplusTons - storageTons;
