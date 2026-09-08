@@ -1,4 +1,4 @@
-import { economyRates, planCosts } from "./economy.js";
+import { economyRates, isAffordable, planCosts } from "./economy.js";
 import { createRng } from "./rng.js";
 import { eventProbabilities, type GameConfig } from "./config.js";
 import { type CollapseCause, type EventType, type FamineSeverity, type GameState, type PlayerPlan, type TurnResult, type YearReport } from "./types.js";
@@ -176,6 +176,8 @@ export function resolveTurn(
   );
 
   const costs = planCosts(state, { ...plan, cultivatedHectares, fertilizedHectares, preparedHectares }, storageTons, config);
+  const mandatoryStorageTons = Math.max(0, state.storageTons - storageDestroyedTons - consumptionTons);
+  if (!isAffordable(state, costs, mandatoryStorageTons, config)) throw new Error("Plan exceeds available budget including storage upkeep");
   const seedCostCoins = costs.seeds;
   const fertilizerCostCoins = costs.fertilizer;
   const landPrepCostCoins = costs.preparation;

@@ -1,4 +1,4 @@
-import { economyRates, planCosts } from "./economy.js";
+import { economyRates, isAffordable, planCosts } from "./economy.js";
 import { CONFIG } from "./config.js";
 import { estimateHarvestTons, eventSummary, resolveTurn } from "./simulation.js";
 import type { GameState, PlayerPlan, TechnologyId, TurnResult } from "./types.js";
@@ -139,12 +139,14 @@ function updatePlanPreview(state: GameState): void {
     storeInput.disabled = false;
   }
 
-  const costs = planCosts(state, plan, 0, CONFIG);
+  const minStore = minReStoreTons(state);
+  const effectiveStore = estSurplus > 0 ? Math.max(minStore, plan.storeTons) : 0;
+  const costs = planCosts(state, plan, effectiveStore, CONFIG);
   const seedCost = costs.seeds;
   const fertilizerCost = costs.fertilizer;
   const prepCost = costs.preparation;
   const technologyCost = costs.technologies;
-  const totalCost = costs.production;
+  const totalCost = costs.total;
   el<HTMLElement>("plan-seed-cost").textContent = fmt(seedCost);
   el<HTMLElement>("plan-fert-cost").textContent = fmt(fertilizerCost);
   el<HTMLElement>("plan-prep-cost").textContent = fmt(prepCost);
@@ -155,10 +157,8 @@ function updatePlanPreview(state: GameState): void {
   const remainingEl = el<HTMLElement>("plan-remaining");
   remainingEl.textContent = `${fmt(remaining)} coins`;
   remainingEl.classList.toggle("overspend", remaining < 0);
-  el<HTMLButtonElement>("confirm-btn").disabled = remaining < 0 || state.collapsed;
+  el<HTMLButtonElement>("confirm-btn").disabled = !isAffordable(state, costs, minStore, CONFIG) || state.collapsed;
 
-  const minStore = minReStoreTons(state);
-  const effectiveStore = estSurplus > 0 ? Math.max(minStore, plan.storeTons) : 0;
   const estExport = estSurplus - effectiveStore;
   el<HTMLElement>("plan-store-range").textContent = estSurplus > 0 ? `${fmt(minStore)}-${fmt(estSurplus)} t` : "—";
   el<HTMLElement>("plan-upkeep-cost").textContent = fmt(effectiveStore * economyRates(state, CONFIG).upkeep);

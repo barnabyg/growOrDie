@@ -22,3 +22,11 @@ export function planCosts(state: GameState, plan: PlayerPlan, storageTons: numbe
   const upkeep = storageTons * rates.upkeep;
   return { seeds, fertilizer, preparation, technologies, upkeep, production: seeds + fertilizer + preparation + technologies, total: seeds + fertilizer + preparation + technologies + upkeep };
 }
+
+/** Old saves may have debt or unavoidable retained-food upkeep. Zero discretionary
+ * spending remains playable; only that mandatory bill may increase existing debt. */
+export function isAffordable(state: GameState, costs: ReturnType<typeof planCosts>, mandatoryStorageTons: number, config: GameConfig): boolean {
+  const mandatoryUpkeep = mandatoryStorageTons * economyRates(state, config).upkeep;
+  return costs.total <= Math.max(state.budgetCoins, mandatoryUpkeep) + 1e-8
+    && costs.production <= Math.max(0, state.budgetCoins - mandatoryUpkeep) + 1e-8;
+}

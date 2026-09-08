@@ -628,7 +628,7 @@ describe("resolveTurn — technologies", () => {
 
   it("charges the purchase to this Turn's Budget and applies the effect from the following Turn", () => {
     const plan: PlayerPlan = { ...fullPlan, purchaseTechnologies: ["highYieldSeeds"] };
-    const first = resolveTurn(baselineState(), plan, 0, CONFIG);
+    const first = resolveTurn(baselineState({ budgetCoins: 5000 }), plan, 0, CONFIG);
 
     // The cost is itemized in the year report and deducted from this Turn's Budget.
     expect(first.report.technologiesPurchased).toEqual(["highYieldSeeds"]);
@@ -765,3 +765,4 @@ describe("resolveTurn — collapse", () => {
     expect(result.state.collapseCause).toBeNull();
   });
 });
+
