@@ -256,6 +256,9 @@ test("owned technology discounts and trade bonus agree between preview and charg
       ],
     },
   });
+  await expect(page.locator("#plan-fert-price")).toHaveText("1.5");
+  await expect(page.locator("#plan-prep-price")).toHaveText("30");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.5");
   await page.locator("#plan-fertilizer").fill("400");
   await page.locator("#plan-prep").fill("5");
   await expect(page.locator("#plan-fert-cost")).toHaveText("600");
@@ -271,6 +274,60 @@ test("owned technology discounts and trade bonus agree between preview and charg
     "600 t for +7,200 coins",
   );
   await expect(page.locator("#report-carryover")).toHaveText("0");
+});
+
+test("Land survey enables 100 ha preparation but blocks spending above Budget", async ({
+  page,
+}) => {
+  await loadFixture(page, { state: { ownedTechnologies: ["landSurvey"] } });
+  await page.locator("#plan-hectares").fill("0");
+  await page.locator("#plan-prep").fill("100");
+  await expect(page.locator("#plan-total-cost")).toHaveText("3,000");
+  await expect(page.locator("#confirm-btn")).toBeEnabled();
+  await page.locator("#plan-prep").fill("134");
+  await expect(page.locator("#plan-total-cost")).toHaveText("4,020");
+  await expect(page.locator("#confirm-btn")).toBeDisabled();
+  await page.locator("#plan-prep").fill("100");
+  await page.locator("#confirm-btn").click();
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#report-prep")).toHaveText("-3,000");
+  await expect(page.locator("#report-carryover")).toHaveText("1,000");
+});
+
+test("purchased economy technologies change rates only in the following year", async ({
+  page,
+}) => {
+  await loadFixture(page, { state: { budgetCoins: 20000 } });
+  for (const id of [
+    "fertilizerWorks",
+    "landSurvey",
+    "granary",
+    "tradeRoutes",
+  ]) {
+    await page.locator(`#tech-${id}`).check();
+  }
+  await expect(page.locator("#plan-fert-price")).toHaveText("3");
+  await expect(page.locator("#plan-prep-price")).toHaveText("60");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("1");
+  await resolveHarvest(page);
+  await expect(page.locator("#allocation-price")).toHaveText("10.00 coins/t");
+  await expect(page.locator("#allocation-preview")).toContainText(
+    "Upkeep 600 coins",
+  );
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#report-fertilizer")).toHaveText("-1,200");
+  await expect(page.locator("#plan-fert-price")).toHaveText("1.5");
+  await expect(page.locator("#plan-prep-price")).toHaveText("30");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.5");
+  await page.reload();
+  await expect(page.locator("#plan-fert-price")).toHaveText("1.5");
+  await expect(page.locator("#plan-prep-price")).toHaveText("30");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.5");
+  await resolveHarvest(page);
+  const price = (await saved(page)).state.worldPrice;
+  await expect(page.locator("#allocation-price")).toHaveText(
+    `${(price * 1.2).toFixed(2)} coins/t`,
+  );
 });
 
 for (const fixture of [

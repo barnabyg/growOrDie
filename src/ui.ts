@@ -41,6 +41,7 @@ function el<T extends Element>(id: string): T {
 }
 
 const fmt = (n: number): string => Math.round(n).toLocaleString("en-US");
+const fmtRate = (n: number): string => n.toLocaleString("en-US");
 
 // Per-turn seed derived from the run seed so a given run is reproducible.
 function turnSeed(runSeed: number, year: number): number {
@@ -65,15 +66,15 @@ function renderPlan(state: GameState): void {
   el<HTMLElement>("plan-year").textContent = String(state.year);
   const maxHectares = state.preparedLandHectares;
   el<HTMLElement>("plan-max").textContent = fmt(maxHectares);
-  el<HTMLElement>("plan-fert-price").textContent = fmt(
+  el<HTMLElement>("plan-fert-price").textContent = fmtRate(
     economyRates(state, CONFIG).fertilizer,
   );
   const maxPrep = state.arableLandHectares - state.preparedLandHectares;
   el<HTMLElement>("plan-prep-max").textContent = fmt(maxPrep);
-  el<HTMLElement>("plan-prep-price").textContent = fmt(
+  el<HTMLElement>("plan-prep-price").textContent = fmtRate(
     economyRates(state, CONFIG).preparation,
   );
-  el<HTMLElement>("plan-upkeep-price").textContent = fmt(
+  el<HTMLElement>("plan-upkeep-price").textContent = fmtRate(
     economyRates(state, CONFIG).upkeep,
   );
 
