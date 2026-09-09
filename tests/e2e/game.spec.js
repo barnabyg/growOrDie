@@ -95,6 +95,27 @@ test("flood losses, consumption, exports and retained food conserve the opening 
   await expect(page.locator("#stat-budget")).toHaveText("14,200 coins");
 });
 
+test("issue #10 zero-harvest flood retains 500 tons without export income", async ({
+  page,
+}) => {
+  await loadFixture(page, { runSeed: 29, state: { storageTons: 2000 } });
+  await resolveHarvest(page, { hectares: 0, fertilizer: 0 });
+  await expect(page.locator("#allocation-surplus")).toHaveText("500 t");
+  await expect(page.locator("#plan-store")).toHaveAttribute("min", "500");
+  await expect(page.locator("#plan-store")).toBeDisabled();
+  await expect(page.locator("#plan-store")).toHaveValue("500");
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#report-available")).toHaveText("1,500 t");
+  await expect(page.locator("#report-consumption")).toHaveText("1,000 t");
+  await expect(page.locator("#report-export")).toHaveText("0 t for +0 coins");
+  await expect(page.locator("#report-upkeep")).toHaveText("-500");
+  await expect(page.locator("#stat-storage")).toHaveText("500 t");
+  await expect(page.locator("#stat-budget")).toHaveText("7,700 coins");
+  await page.reload();
+  await expect(page.locator("#stat-storage")).toHaveText("500 t");
+  await expect(page.locator("#stat-budget")).toHaveText("7,700 coins");
+});
+
 test("granary discounts the selected retention and charges exactly the preview", async ({
   page,
 }) => {
