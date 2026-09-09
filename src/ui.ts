@@ -242,10 +242,10 @@ function renderCountry(state: GameState): void {
   green.setAttribute("y", String(COUNTRY_VIEWBOX_HEIGHT - height));
   green.setAttribute("height", String(height));
 
-  // Tint by the last resolved Event: Drought browns its own year, Flood stays blue until another Event.
-  const last = save.eventLog.at(-1);
+  // The same latest harvest supplies both cultivation and event tint, including pending allocation.
+  const last = save.pendingTurn?.result.report ?? save.eventLog.at(-1);
   const tintedFlood = last?.event === "flood";
-  const tintedDrought = last?.event === "drought" && last.year === state.year;
+  const tintedDrought = last?.event === "drought";
   green.classList.toggle("flood", tintedFlood);
   green.classList.toggle("drought", tintedDrought);
 
