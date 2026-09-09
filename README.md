@@ -12,6 +12,9 @@ npm start       # serves the game at http://localhost:8000
 
 The page starts a new run from the baseline (population 1,000; 2,000 ha arable with 400 ha prepared). Choose how many prepared hectares to cultivate, resolve the year, and read the report. Progress auto-saves to `localStorage`; use **Restart run** to start over.
 
+See [Saved games and recovery](docs/saves.md) for validation, legacy compatibility,
+and what happens when a save is damaged or browser storage is unavailable.
+
 ## Development
 
 Use Node.js 24.13 or later within major version 24. See [Verification](docs/verification.md) for the canonical `npm run verify` command, Chromium setup, ordered quality gates, and live dashboard. On native Windows use `npm.cmd` and `npx.cmd`.
