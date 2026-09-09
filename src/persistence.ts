@@ -10,6 +10,7 @@ export interface EventLogEntry {
   year: number;
   event: EventType;
   summary: string;
+  cultivatedHectares?: number;
 }
 
 export interface SaveData {
@@ -38,7 +39,7 @@ function isFiniteNumber(value: unknown): value is number {
 function isEventEntry(value: unknown): value is EventLogEntry {
   if (typeof value !== "object" || value === null) return false;
   const entry = value as Record<string, unknown>;
-  return isFiniteNumber(entry.year) && EVENT_TYPES.includes(entry.event as EventType) && typeof entry.summary === "string";
+  return isFiniteNumber(entry.year) && EVENT_TYPES.includes(entry.event as EventType) && typeof entry.summary === "string" && (entry.cultivatedHectares === undefined || (isFiniteNumber(entry.cultivatedHectares) && entry.cultivatedHectares >= 0));
 }
 
 function isTechnologyId(value: unknown): value is TechnologyId {

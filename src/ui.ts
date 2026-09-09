@@ -1,3 +1,4 @@
+import { cultivationCut } from "./country.js";
 import { beginTurn, finishTurn, productionCosts } from "./turn.js";
 import { economyRates } from "./economy.js";
 import { CONFIG } from "./config.js";
@@ -230,8 +231,14 @@ function render(): void {
 
 function renderCountry(state: GameState): void {
   const green = el<SVGRectElement>("country-green");
-  const fraction = state.arableLandHectares > 0 ? Math.min(1, state.preparedLandHectares / state.arableLandHectares) : 0;
-  const height = fraction * COUNTRY_VIEWBOX_HEIGHT;
+  const latest = save.eventLog.at(-1);
+  const cultivated = save.pendingTurn?.plan.cultivatedHectares ?? latest?.cultivatedHectares;
+  const year = save.pendingTurn?.result.report.year ?? latest?.year;
+  const fraction = cultivated !== undefined && state.arableLandHectares > 0 ? Math.min(1, cultivated / state.arableLandHectares) : 0;
+  const shape = el<SVGPathElement>("country-shape");
+  const length = shape.getTotalLength();
+  const points = Array.from({ length: 512 }, (_, i) => shape.getPointAtLength(length * i / 512));
+  const height = COUNTRY_VIEWBOX_HEIGHT - cultivationCut(points, fraction);
   green.setAttribute("y", String(COUNTRY_VIEWBOX_HEIGHT - height));
   green.setAttribute("height", String(height));
 
@@ -242,7 +249,10 @@ function renderCountry(state: GameState): void {
   green.classList.toggle("flood", tintedFlood);
   green.classList.toggle("drought", tintedDrought);
 
-  el<HTMLElement>("country-caption").textContent = `${fmt(state.preparedLandHectares)} of ${fmt(state.arableLandHectares)} ha prepared (${Math.round(fraction * 100)}%)`;
+  const caption = cultivated === undefined ? (year === undefined ? "No harvest resolved yet." : `Year ${year}: cultivation was not recorded in this legacy save.`) : `Year ${year}: ${fmt(cultivated)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%). Latest harvest.`;
+  green.style.display = cultivated === undefined || fraction === 0 ? "none" : "";
+  el<HTMLElement>("country-caption").textContent = caption;
+  el<SVGElement>("country-svg").setAttribute("aria-label", caption);
 }
 
 function renderEventLog(): void {
@@ -274,7 +284,7 @@ function confirmAllocation(): void {
   const result = finishTurn(pending, amount, CONFIG);
   save.state = result.state;
   delete save.pendingTurn;
-  save.eventLog.push({ year: result.report.year, event: result.report.event, summary: eventSummary(result.report) });
+  save.eventLog.push({ year: result.report.year, event: result.report.event, summary: eventSummary(result.report), cultivatedHectares: pending.plan.cultivatedHectares });
   persist(save);
   renderReport(previous, result);
   render();
