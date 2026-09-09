@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { CONFIG } from "../src/config.js";
 import { createNewGame } from "../src/simulation.js";
 import {
@@ -28,6 +28,25 @@ class FakeStorage {
     this.entries.delete(key);
   }
 }
+
+it("distinguishes failed reads from missing saves and reports failed writes", () => {
+  const storage = new FakeStorage();
+  persist(newSave(5), storage);
+  const previous = storage.getItem(SAVE_KEY);
+  vi.spyOn(storage, "getItem").mockImplementation(() => {
+    throw new Error("security");
+  });
+  expect(loadSave(storage)).toBeUndefined();
+  vi.restoreAllMocks();
+  vi.spyOn(storage, "setItem").mockImplementation(() => {
+    throw new Error("quota");
+  });
+  expect(persist(newSave(6), storage)).toBe(false);
+  expect(storage.getItem(SAVE_KEY)).toBe(previous);
+  vi.restoreAllMocks();
+  expect(persist(newSave(6), storage)).toBe(true);
+  expect(loadSave(storage)?.runSeed).toBe(6);
+});
 
 // A save mid-run, deliberately far from the baseline, so a round-trip that
 // silently reset to defaults would be obvious.

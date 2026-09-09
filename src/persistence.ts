@@ -369,15 +369,24 @@ export function parseSave(raw: string | null): SaveData | null {
   };
 }
 
-export function loadSave(storage: SaveStorage = localStorage): SaveData | null {
-  return parseSave(storage.getItem(SAVE_KEY));
+// undefined means access failed; null means no readable save. Do not overwrite
+// an unknown existing run after a failed read. Resolve localStorage inside try:
+// the browser's property getter itself can throw a SecurityError.
+export function loadSave(storage?: SaveStorage): SaveData | null | undefined {
+  try {
+    return parseSave((storage ?? localStorage).getItem(SAVE_KEY));
+  } catch {
+    return undefined;
+  }
 }
 
-export function persist(
-  save: SaveData,
-  storage: SaveStorage = localStorage,
-): void {
-  storage.setItem(SAVE_KEY, JSON.stringify(save));
+export function persist(save: SaveData, storage?: SaveStorage): boolean {
+  try {
+    (storage ?? localStorage).setItem(SAVE_KEY, JSON.stringify(save));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function clearSave(storage: SaveStorage = localStorage): void {

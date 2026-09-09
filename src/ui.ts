@@ -48,7 +48,27 @@ function turnSeed(runSeed: number, year: number): number {
   return (runSeed + year) >>> 0;
 }
 
-let save: SaveData = loadSave() ?? newSave();
+const loadedSave = loadSave();
+let save: SaveData = loadedSave ?? newSave();
+let readFailed = loadedSave === undefined;
+let saveFailed = false;
+let restartCandidate: SaveData | undefined;
+
+function persistenceBlocked(): boolean {
+  return readFailed || saveFailed || restartCandidate !== undefined;
+}
+
+function renderSaveStatus(): void {
+  el<HTMLElement>("save-notice").hidden = !persistenceBlocked();
+  el<HTMLElement>("save-status").textContent = readFailed
+    ? "Could not read your saved run. Play is paused to protect it. Retry loading when browser storage is available."
+    : restartCandidate
+      ? "Restart was not saved. Your current run is still displayed and the previous save is unchanged. Retry to complete Restart."
+      : saveFailed
+        ? "Progress is not saved. This result is only in this tab; closing or reloading will lose it. Play is paused. Retry saving to continue."
+        : "";
+  el<HTMLButtonElement>("restart-btn").disabled = persistenceBlocked();
+}
 
 function renderStats(state: GameState): void {
   el<HTMLSpanElement>("stat-year").textContent = String(state.year);
@@ -158,7 +178,7 @@ function updatePlanPreview(state: GameState): void {
   remainingEl.textContent = `${fmt(remaining)} coins`;
   remainingEl.classList.toggle("overspend", remaining < 0);
   el<HTMLButtonElement>("confirm-btn").disabled =
-    !costs.affordable || state.collapsed;
+    !costs.affordable || state.collapsed || persistenceBlocked();
 
   el<HTMLElement>("plan-upkeep-cost").textContent = fmt(costs.upkeep);
 }
@@ -198,7 +218,8 @@ function updateAllocationPreview(): void {
     Number.isFinite(value) &&
     value >= pending.minStoreTons &&
     value <= pending.maxStoreTons;
-  el<HTMLButtonElement>("allocate-btn").disabled = !valid;
+  el<HTMLButtonElement>("allocate-btn").disabled =
+    !valid || persistenceBlocked();
   if (!valid) {
     el<HTMLElement>("allocation-preview").textContent =
       "Choose storage within the affordable range.";
@@ -286,6 +307,7 @@ function render(): void {
   renderAllocation();
   renderCollapse(save.state);
   renderEventLog();
+  renderSaveStatus();
 }
 
 function renderCountry(state: GameState): void {
@@ -338,7 +360,7 @@ function renderEventLog(): void {
 }
 
 function confirmPlan(): void {
-  if (save.state.collapsed || save.pendingTurn) return;
+  if (persistenceBlocked() || save.state.collapsed || save.pendingTurn) return;
   const plan = readPlanInputs(save.state);
   if (!productionCosts(save.state, plan, CONFIG).affordable) return;
   save.pendingTurn = beginTurn(
@@ -347,13 +369,13 @@ function confirmPlan(): void {
     turnSeed(save.runSeed, save.state.year),
     CONFIG,
   );
-  persist(save);
+  saveFailed = !persist(save);
   render();
 }
 
 function confirmAllocation(): void {
   const pending = save.pendingTurn;
-  if (!pending) return;
+  if (!pending || persistenceBlocked()) return;
   const amount = Number(el<HTMLInputElement>("plan-store").value);
   if (
     !Number.isFinite(amount) ||
@@ -370,25 +392,45 @@ function confirmAllocation(): void {
     summary: eventSummary(result.report),
     cultivatedHectares: pending.plan.cultivatedHectares,
   });
-  persist(save);
+  saveFailed = !persist(save);
   renderReport(result);
   render();
 }
 
 function restart(): void {
+  if (persistenceBlocked()) return;
   if (
     !window.confirm(
       "Restart from the beginning? Your current run will be lost.",
     )
   )
     return;
-  save = newSave();
-  persist(save);
-  el<HTMLElement>("report").hidden = true;
+  restartCandidate = newSave();
+  retryPersistence();
+}
+
+function retryPersistence(): void {
+  if (readFailed) {
+    const loaded = loadSave();
+    readFailed = loaded === undefined;
+    if (!readFailed) save = loaded ?? newSave();
+  } else if (restartCandidate) {
+    if (persist(restartCandidate)) {
+      save = restartCandidate;
+      restartCandidate = undefined;
+      el<HTMLElement>("report").hidden = true;
+    }
+  } else {
+    saveFailed = !persist(save);
+  }
   render();
 }
 
 function init(): void {
+  el<HTMLButtonElement>("retry-save-btn").addEventListener(
+    "click",
+    retryPersistence,
+  );
   for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep"]) {
     el<HTMLInputElement>(id).addEventListener("input", () =>
       updatePlanPreview(save.state),
