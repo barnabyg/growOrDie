@@ -20,7 +20,13 @@ export interface PlayerPlan {
   purchaseTechnologies?: TechnologyId[]; // one-off Technologies bought this Turn; their effects start next Turn
 }
 
-export type TechnologyId = "irrigation" | "highYieldSeeds" | "granary" | "tradeRoutes" | "landSurvey" | "fertilizerWorks";
+export type TechnologyId =
+  | "irrigation"
+  | "highYieldSeeds"
+  | "granary"
+  | "tradeRoutes"
+  | "landSurvey"
+  | "fertilizerWorks";
 
 export type FamineSeverity = "none" | "partial" | "total";
 

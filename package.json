@@ -7,10 +7,27 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "start": "node server.js"
+    "start": "node server.js",
+    "verify": "node scripts/verify.js",
+    "format:check": "prettier --check .",
+    "lint": "biome lint --skip=correctness --skip=suspicious --skip=security --skip=performance --skip=a11y --error-on-warnings .",
+    "analyze": "biome lint --skip=style --skip=complexity --error-on-warnings .",
+    "test:all": "node scripts/test.js",
+    "test:e2e": "playwright test",
+    "secrets": "secretlint \"**/*\"",
+    "package:check": "node scripts/package-check.js",
+    "build:check": "node scripts/build-check.js"
   },
   "devDependencies": {
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.0"
+    "@biomejs/biome": "2.5.12",
+    "@playwright/test": "1.63.0",
+    "@secretlint/secretlint-rule-preset-recommend": "13.0.5",
+    "prettier": "3.9.6",
+    "secretlint": "13.0.5",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  },
+  "engines": {
+    "node": ">=24.13.0 <25"
   }
 }

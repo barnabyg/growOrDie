@@ -6,7 +6,9 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 
-export function createGameServer() {
+export function createGameServer({
+  modulesDirectory = resolve(root, "dist"),
+} = {}) {
   return createServer(async (request, response) => {
     let pathname;
     try {
@@ -25,9 +27,15 @@ export function createGameServer() {
       return;
     }
     try {
-      const body = await readFile(resolve(root, entry ? "index.html" : pathname.slice(1)));
+      const body = await readFile(
+        entry
+          ? resolve(root, "index.html")
+          : resolve(modulesDirectory, pathname.slice("/dist/".length)),
+      );
       response.writeHead(200, {
-        "content-type": entry ? "text/html; charset=utf-8" : "text/javascript; charset=utf-8",
+        "content-type": entry
+          ? "text/html; charset=utf-8"
+          : "text/javascript; charset=utf-8",
         "x-content-type-options": "nosniff",
         "cache-control": "no-store",
       });
@@ -38,8 +46,8 @@ export function createGameServer() {
   });
 }
 
-export async function startGameServer({ port = 8000 } = {}) {
-  const server = createGameServer();
+export async function startGameServer({ port = 8000, modulesDirectory } = {}) {
+  const server = createGameServer({ modulesDirectory });
   await new Promise((accept, reject) => {
     server.once("error", reject);
     server.listen(port, "127.0.0.1", accept);
@@ -47,7 +55,14 @@ export async function startGameServer({ port = 8000 } = {}) {
   return server;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const server = await startGameServer({ port: Number(process.env.PORT ?? 8000) });
-  console.log(`Grow or Die running at http://127.0.0.1:${server.address().port}`);
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  const server = await startGameServer({
+    port: Number(process.env.PORT ?? 8000),
+  });
+  console.log(
+    `Grow or Die running at http://127.0.0.1:${server.address().port}`,
+  );
 }

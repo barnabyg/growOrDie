@@ -14,7 +14,9 @@
         --accent: #7fb069;
         --danger: #d96c47;
       }
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
       body {
         margin: 0;
         font-family: Georgia, "Times New Roman", serif;
@@ -30,11 +32,31 @@
         border-bottom: 1px solid var(--border);
         flex-wrap: wrap;
       }
-      header h1 { font-size: 1.1rem; margin: 0; letter-spacing: 0.05em; }
-      .stats { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-left: auto; }
-      .stat { text-align: center; }
-      .stat .label { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-      .stat .value { font-size: 1rem; font-variant-numeric: tabular-nums; }
+      header h1 {
+        font-size: 1.1rem;
+        margin: 0;
+        letter-spacing: 0.05em;
+      }
+      .stats {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+        margin-left: auto;
+      }
+      .stat {
+        text-align: center;
+      }
+      .stat .label {
+        display: block;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+      .stat .value {
+        font-size: 1rem;
+        font-variant-numeric: tabular-nums;
+      }
       main {
         max-width: 1060px;
         margin: 0 auto;
@@ -44,23 +66,66 @@
         gap: 1.25rem;
         align-items: start;
       }
-      .country { position: sticky; top: 1rem; }
-      .content { display: grid; gap: 1.25rem; align-content: start; }
+      .country {
+        position: sticky;
+        top: 1rem;
+      }
+      .content {
+        display: grid;
+        gap: 1.25rem;
+        align-content: start;
+      }
       section {
         background: var(--panel);
         border: 1px solid var(--border);
         border-radius: 8px;
         padding: 1rem 1.25rem;
       }
-      h2 { margin: 0 0 0.75rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-      .plan-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-      label { font-size: 0.9rem; }
-      .tech-row { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.2rem 0; font-size: 0.9rem; }
-      .tech-row input { margin: 0; }
-      .tech-name { min-width: 9.5rem; }
-      .tech-cost { color: var(--muted); white-space: nowrap; }
-      .tech-effect { color: var(--muted); font-size: 0.8rem; }
-      .tech-owned { color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; margin-left: auto; }
+      h2 {
+        margin: 0 0 0.75rem;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+      .plan-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      label {
+        font-size: 0.9rem;
+      }
+      .tech-row {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        padding: 0.2rem 0;
+        font-size: 0.9rem;
+      }
+      .tech-row input {
+        margin: 0;
+      }
+      .tech-name {
+        min-width: 9.5rem;
+      }
+      .tech-cost {
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .tech-effect {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .tech-owned {
+        color: var(--accent);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+        margin-left: auto;
+      }
       input[type="number"] {
         width: 6rem;
         padding: 0.4rem 0.5rem;
@@ -80,13 +145,37 @@
         border-radius: 6px;
         cursor: pointer;
       }
-      button:disabled { opacity: 0.45; cursor: not-allowed; }
-      button.secondary { background: var(--border); color: var(--text); }
-      .preview { margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-      .overspend { color: var(--danger); font-weight: bold; }
-      table.report { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
-      table.report td { padding: 0.25rem 0; border-bottom: 1px solid var(--border); }
-      table.report td:last-child { text-align: right; }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      button.secondary {
+        background: var(--border);
+        color: var(--text);
+      }
+      .preview {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .overspend {
+        color: var(--danger);
+        font-weight: bold;
+      }
+      table.report {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        font-variant-numeric: tabular-nums;
+      }
+      table.report td {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      table.report td:last-child {
+        text-align: right;
+      }
       .famine-banner {
         display: inline-block;
         margin-top: 0.5rem;
@@ -96,7 +185,10 @@
         background: #2a1d18;
         color: var(--muted);
       }
-      .famine-banner.famine { background: #3d1f14; color: var(--danger); }
+      .famine-banner.famine {
+        background: #3d1f14;
+        color: var(--danger);
+      }
       .milestone-banner {
         display: block;
         margin-top: 0.5rem;
@@ -107,18 +199,58 @@
         border: 1px solid #d4a94e;
         color: #d4a94e;
       }
-      #collapse-summary h2 { color: var(--danger); }
-      .event-log { max-height: 12rem; overflow-y: auto; margin: 0; padding-left: 1.1rem; font-size: 0.85rem; color: var(--muted); }
-      .event-log li { margin: 0.15rem 0; }
-      .event-log li.drought, .event-log li.flood, .event-log li.priceShock { color: var(--text); font-weight: bold; }
-      #country-svg { display: block; width: 100%; height: auto; }
-      #country-green { fill: var(--accent); transition: y 0.6s ease, height 0.6s ease, fill 0.4s ease; }
-      #country-green.drought { fill: #a97142; }
-      #country-green.flood { fill: #5b8ec4; }
-      .country-caption { margin: 0.75rem 0 0; font-size: 0.85rem; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+      #collapse-summary h2 {
+        color: var(--danger);
+      }
+      .event-log {
+        max-height: 12rem;
+        overflow-y: auto;
+        margin: 0;
+        padding-left: 1.1rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .event-log li {
+        margin: 0.15rem 0;
+      }
+      .event-log li.drought,
+      .event-log li.flood,
+      .event-log li.priceShock {
+        color: var(--text);
+        font-weight: bold;
+      }
+      #country-svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      #country-green {
+        fill: var(--accent);
+        transition:
+          y 0.6s ease,
+          height 0.6s ease,
+          fill 0.4s ease;
+      }
+      #country-green.drought {
+        fill: #a97142;
+      }
+      #country-green.flood {
+        fill: #5b8ec4;
+      }
+      .country-caption {
+        margin: 0.75rem 0 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+      }
       @media (max-width: 760px) {
-        main { grid-template-columns: 1fr; }
-        .country { position: static; }
+        main {
+          grid-template-columns: 1fr;
+        }
+        .country {
+          position: static;
+        }
       }
     </style>
   </head>
@@ -126,20 +258,46 @@
     <header>
       <h1>Grow or Die</h1>
       <div class="stats">
-        <div class="stat"><span class="label">Year</span><span class="value" id="stat-year"></span></div>
-        <div class="stat"><span class="label">Population</span><span class="value" id="stat-population"></span></div>
-        <div class="stat"><span class="label">Score</span><span class="value" id="stat-score"></span></div>
-        <div class="stat"><span class="label">Storage</span><span class="value" id="stat-storage"></span></div>
-        <div class="stat"><span class="label">Budget</span><span class="value" id="stat-budget"></span></div>
-        <div class="stat"><span class="label">World price</span><span class="value" id="stat-price"></span></div>
+        <div class="stat">
+          <span class="label">Year</span
+          ><span class="value" id="stat-year"></span>
+        </div>
+        <div class="stat">
+          <span class="label">Population</span
+          ><span class="value" id="stat-population"></span>
+        </div>
+        <div class="stat">
+          <span class="label">Score</span
+          ><span class="value" id="stat-score"></span>
+        </div>
+        <div class="stat">
+          <span class="label">Storage</span
+          ><span class="value" id="stat-storage"></span>
+        </div>
+        <div class="stat">
+          <span class="label">Budget</span
+          ><span class="value" id="stat-budget"></span>
+        </div>
+        <div class="stat">
+          <span class="label">World price</span
+          ><span class="value" id="stat-price"></span>
+        </div>
       </div>
     </header>
     <main>
       <section class="country">
         <h2>Country</h2>
-        <svg id="country-svg" viewBox="0 0 300 340" role="img" aria-label="Country silhouette; the green area is the share of Arable land prepared">
+        <svg
+          id="country-svg"
+          viewBox="0 0 300 340"
+          role="img"
+          aria-label="Country silhouette; the green area is the share of Arable land prepared"
+        >
           <defs>
-            <path id="country-shape" d="M 148 26 C 176 20, 211 40, 232 58 C 253 76, 268 104, 272 132 C 276 160, 275 193, 258 224 C 241 255, 199 305, 170 316 C 141 327, 107 308, 84 288 C 61 268, 37 228, 34 196 C 31 164, 45 124, 64 96 C 83 68, 120 32, 148 26 Z" />
+            <path
+              id="country-shape"
+              d="M 148 26 C 176 20, 211 40, 232 58 C 253 76, 268 104, 272 132 C 276 160, 275 193, 258 224 C 241 255, 199 305, 170 316 C 141 327, 107 308, 84 288 C 61 268, 37 228, 34 196 C 31 164, 45 124, 64 96 C 83 68, 120 32, 148 26 Z"
+            />
             <clipPath id="country-clip">
               <use href="#country-shape" />
             </clipPath>
@@ -148,132 +306,228 @@
             <rect x="0" y="0" width="300" height="340" fill="#57432e" />
             <rect id="country-green" x="0" y="272" width="300" height="68" />
           </g>
-          <use href="#country-shape" fill="none" stroke="#8a7a5f" stroke-width="3" />
+          <use
+            href="#country-shape"
+            fill="none"
+            stroke="#8a7a5f"
+            stroke-width="3"
+          />
         </svg>
         <p class="country-caption" id="country-caption"></p>
       </section>
       <div class="content">
-      <section id="production">
-        <h2>Plan — Year <span id="plan-year"></span></h2>
-        <div class="plan-row">
-          <label for="plan-hectares">Cultivate (of <span id="plan-max"></span> ha prepared)</label>
-          <input type="number" id="plan-hectares" min="0" step="1" />
-        </div>
-        <div class="plan-row">
-          <label for="plan-fertilizer">Fertilize (of cultivated · <span id="plan-fert-price"></span> coins/ha, doubles Yield)</label>
-          <input type="number" id="plan-fertilizer" min="0" step="1" />
-        </div>
-        <div class="plan-row">
-          <label for="plan-prep">Prepare new land (of <span id="plan-prep-max"></span> ha arable left · <span id="plan-prep-price"></span> coins/ha one-off)</label>
-          <input type="number" id="plan-prep" min="0" step="1" />
-        </div>
-        <div class="plan-row">
-          <button id="confirm-btn">Resolve harvest</button>
-        </div>
-        <p class="preview">
-          Seeds: <span id="plan-seed-cost"></span> · Fertilizer: <span id="plan-fert-cost"></span> · Land prep: <span id="plan-prep-cost"></span> · Technologies: <span id="plan-tech-cost"></span> · Total: <span id="plan-total-cost"></span> coins · Budget after plan: <span id="plan-remaining"></span>
-        </p>
-        <p class="preview">
-          Mandatory storage upkeep reserved: <span id="plan-upkeep-cost"></span> coins. Choose storage after the harvest.
-        </p>
-      </section>
-      <section id="technologies">
-        <h2>Technologies — one-off, effects from the next Turn</h2>
-        <div class="tech-row">
-          <input type="checkbox" id="tech-irrigation" />
-          <label for="tech-irrigation" class="tech-name">Irrigation</label>
-          <span class="tech-cost">2,000 coins</span>
-          <span class="tech-effect">Drought Yield loss halved</span>
-          <span class="tech-owned" id="tech-irrigation-owned" hidden>Owned</span>
-        </div>
-        <div class="tech-row">
-          <input type="checkbox" id="tech-highYieldSeeds" />
-          <label for="tech-highYieldSeeds" class="tech-name">High-yield seeds</label>
-          <span class="tech-cost">3,000 coins</span>
-          <span class="tech-effect">Base Yield +50%</span>
-          <span class="tech-owned" id="tech-highYieldSeeds-owned" hidden>Owned</span>
-        </div>
-        <div class="tech-row">
-          <input type="checkbox" id="tech-granary" />
-          <label for="tech-granary" class="tech-name">Granary</label>
-          <span class="tech-cost">2,500 coins</span>
-          <span class="tech-effect">Storage upkeep halved</span>
-          <span class="tech-owned" id="tech-granary-owned" hidden>Owned</span>
-        </div>
-        <div class="tech-row">
-          <input type="checkbox" id="tech-tradeRoutes" />
-          <label for="tech-tradeRoutes" class="tech-name">Trade routes</label>
-          <span class="tech-cost">3,000 coins</span>
-          <span class="tech-effect">Export price +20%</span>
-          <span class="tech-owned" id="tech-tradeRoutes-owned" hidden>Owned</span>
-        </div>
-        <div class="tech-row">
-          <input type="checkbox" id="tech-landSurvey" />
-          <label for="tech-landSurvey" class="tech-name">Land survey</label>
-          <span class="tech-cost">2,000 coins</span>
-          <span class="tech-effect">Land prep cost halved</span>
-          <span class="tech-owned" id="tech-landSurvey-owned" hidden>Owned</span>
-        </div>
-        <div class="tech-row">
-          <input type="checkbox" id="tech-fertilizerWorks" />
-          <label for="tech-fertilizerWorks" class="tech-name">Fertilizer works</label>
-          <span class="tech-cost">2,500 coins</span>
-          <span class="tech-effect">Fertilizer cost halved</span>
-          <span class="tech-owned" id="tech-fertilizerWorks-owned" hidden>Owned</span>
-        </div>
-      </section>
-      <section id="allocation" hidden>
-        <h2>Allocate harvest · Year <span id="allocation-year"></span></h2>
-        <p id="allocation-event"></p>
-        <p>Harvest: <span id="allocation-harvest"></span></p>
-        <p>Consumption: <span id="allocation-consumption"></span></p>
-        <p>Actual surplus: <span id="allocation-surplus"></span> · export price: <span id="allocation-price"></span></p>
-        <div class="plan-row">
-          <label for="plan-store">Keep in Storage (<span id="plan-upkeep-price"></span> coins/t upkeep)</label>
-          <input type="number" id="plan-store" min="0" step="any" />
-        </div>
-        <p class="preview" id="plan-store-range"></p>
-        <p class="preview" id="allocation-preview" aria-live="polite"></p>
-        <p class="preview">The remaining new harvest is exported automatically. This harvest is committed; reloading resumes this decision.</p>
-        <button id="allocate-btn">Finish year</button>
-      </section>
-      <section id="report" hidden>
-        <h2>Year report — Year <span id="report-year"></span></h2>
-        <table class="report">
-          <tr><td>Harvest</td><td id="report-harvest"></td></tr>
-          <tr><td>Consumption</td><td id="report-consumption"></td></tr>
-          <tr><td>Available food (harvest + opening storage)</td><td id="report-available"></td></tr>
-          <tr><td>Event</td><td id="report-event"></td></tr>
-          <tr><td>Population</td><td id="report-pop-change"></td></tr>
-          <tr><td>Budget: seeds</td><td id="report-seeds"></td></tr>
-          <tr><td>Budget: fertilizer</td><td id="report-fertilizer"></td></tr>
-          <tr><td>Budget: land preparation</td><td id="report-prep"></td></tr>
-          <tr><td>Budget: storage upkeep</td><td id="report-upkeep"></td></tr>
-          <tr><td>Budget: technologies</td><td id="report-technologies"></td></tr>
-          <tr><td>Exported (auto, at World price)</td><td id="report-export"></td></tr>
-          <tr><td>Budget: carry-over (unspent)</td><td id="report-carryover"></td></tr>
-          <tr><td>Budget: revenue (tax + exports)</td><td id="report-tax"></td></tr>
-          <tr><td>Next-turn Budget</td><td id="report-new-budget"></td></tr>
-        </table>
-        <div class="milestone-banner" id="milestone-banner" hidden></div>
-        <span class="famine-banner" id="report-famine"></span>
-      </section>
-      <section id="collapse-summary" hidden>
-        <h2>Collapse</h2>
-        <table class="report">
-          <tr><td>Run length</td><td id="collapse-length"></td></tr>
-          <tr><td>Final Score</td><td id="collapse-score"></td></tr>
-          <tr><td>What led to the Collapse</td><td id="collapse-cause"></td></tr>
-        </table>
-      </section>
-      <section>
-        <h2>Event log</h2>
-        <ul id="event-log" class="event-log"></ul>
-      </section>
-      <section>
-        <h2>Run</h2>
-        <button class="secondary" id="restart-btn">Restart run</button>
-      </section>
+        <section id="production">
+          <h2>Plan — Year <span id="plan-year"></span></h2>
+          <div class="plan-row">
+            <label for="plan-hectares"
+              >Cultivate (of <span id="plan-max"></span> ha prepared)</label
+            >
+            <input type="number" id="plan-hectares" min="0" step="1" />
+          </div>
+          <div class="plan-row">
+            <label for="plan-fertilizer"
+              >Fertilize (of cultivated ·
+              <span id="plan-fert-price"></span> coins/ha, doubles Yield)</label
+            >
+            <input type="number" id="plan-fertilizer" min="0" step="1" />
+          </div>
+          <div class="plan-row">
+            <label for="plan-prep"
+              >Prepare new land (of <span id="plan-prep-max"></span> ha arable
+              left · <span id="plan-prep-price"></span> coins/ha one-off)</label
+            >
+            <input type="number" id="plan-prep" min="0" step="1" />
+          </div>
+          <div class="plan-row">
+            <button type="button" id="confirm-btn">Resolve harvest</button>
+          </div>
+          <p class="preview">
+            Seeds: <span id="plan-seed-cost"></span> · Fertilizer:
+            <span id="plan-fert-cost"></span> · Land prep:
+            <span id="plan-prep-cost"></span> · Technologies:
+            <span id="plan-tech-cost"></span> · Total:
+            <span id="plan-total-cost"></span> coins · Budget after plan:
+            <span id="plan-remaining"></span>
+          </p>
+          <p class="preview">
+            Mandatory storage upkeep reserved:
+            <span id="plan-upkeep-cost"></span> coins. Choose storage after the
+            harvest.
+          </p>
+        </section>
+        <section id="technologies">
+          <h2>Technologies — one-off, effects from the next Turn</h2>
+          <div class="tech-row">
+            <input type="checkbox" id="tech-irrigation" />
+            <label for="tech-irrigation" class="tech-name">Irrigation</label>
+            <span class="tech-cost">2,000 coins</span>
+            <span class="tech-effect">Drought Yield loss halved</span>
+            <span class="tech-owned" id="tech-irrigation-owned" hidden
+              >Owned</span
+            >
+          </div>
+          <div class="tech-row">
+            <input type="checkbox" id="tech-highYieldSeeds" />
+            <label for="tech-highYieldSeeds" class="tech-name"
+              >High-yield seeds</label
+            >
+            <span class="tech-cost">3,000 coins</span>
+            <span class="tech-effect">Base Yield +50%</span>
+            <span class="tech-owned" id="tech-highYieldSeeds-owned" hidden
+              >Owned</span
+            >
+          </div>
+          <div class="tech-row">
+            <input type="checkbox" id="tech-granary" />
+            <label for="tech-granary" class="tech-name">Granary</label>
+            <span class="tech-cost">2,500 coins</span>
+            <span class="tech-effect">Storage upkeep halved</span>
+            <span class="tech-owned" id="tech-granary-owned" hidden>Owned</span>
+          </div>
+          <div class="tech-row">
+            <input type="checkbox" id="tech-tradeRoutes" />
+            <label for="tech-tradeRoutes" class="tech-name">Trade routes</label>
+            <span class="tech-cost">3,000 coins</span>
+            <span class="tech-effect">Export price +20%</span>
+            <span class="tech-owned" id="tech-tradeRoutes-owned" hidden
+              >Owned</span
+            >
+          </div>
+          <div class="tech-row">
+            <input type="checkbox" id="tech-landSurvey" />
+            <label for="tech-landSurvey" class="tech-name">Land survey</label>
+            <span class="tech-cost">2,000 coins</span>
+            <span class="tech-effect">Land prep cost halved</span>
+            <span class="tech-owned" id="tech-landSurvey-owned" hidden
+              >Owned</span
+            >
+          </div>
+          <div class="tech-row">
+            <input type="checkbox" id="tech-fertilizerWorks" />
+            <label for="tech-fertilizerWorks" class="tech-name"
+              >Fertilizer works</label
+            >
+            <span class="tech-cost">2,500 coins</span>
+            <span class="tech-effect">Fertilizer cost halved</span>
+            <span class="tech-owned" id="tech-fertilizerWorks-owned" hidden
+              >Owned</span
+            >
+          </div>
+        </section>
+        <section id="allocation" hidden>
+          <h2>Allocate harvest · Year <span id="allocation-year"></span></h2>
+          <p id="allocation-event"></p>
+          <p>Harvest: <span id="allocation-harvest"></span></p>
+          <p>Consumption: <span id="allocation-consumption"></span></p>
+          <p>
+            Actual surplus: <span id="allocation-surplus"></span> · export
+            price: <span id="allocation-price"></span>
+          </p>
+          <div class="plan-row">
+            <label for="plan-store"
+              >Keep in Storage (<span id="plan-upkeep-price"></span> coins/t
+              upkeep)</label
+            >
+            <input type="number" id="plan-store" min="0" step="any" />
+          </div>
+          <p class="preview" id="plan-store-range"></p>
+          <p class="preview" id="allocation-preview" aria-live="polite"></p>
+          <p class="preview">
+            The remaining new harvest is exported automatically. This harvest is
+            committed; reloading resumes this decision.
+          </p>
+          <button type="button" id="allocate-btn">Finish year</button>
+        </section>
+        <section id="report" hidden>
+          <h2>Year report — Year <span id="report-year"></span></h2>
+          <table class="report">
+            <tr>
+              <td>Harvest</td>
+              <td id="report-harvest"></td>
+            </tr>
+            <tr>
+              <td>Consumption</td>
+              <td id="report-consumption"></td>
+            </tr>
+            <tr>
+              <td>Available food (harvest + opening storage)</td>
+              <td id="report-available"></td>
+            </tr>
+            <tr>
+              <td>Event</td>
+              <td id="report-event"></td>
+            </tr>
+            <tr>
+              <td>Population</td>
+              <td id="report-pop-change"></td>
+            </tr>
+            <tr>
+              <td>Budget: seeds</td>
+              <td id="report-seeds"></td>
+            </tr>
+            <tr>
+              <td>Budget: fertilizer</td>
+              <td id="report-fertilizer"></td>
+            </tr>
+            <tr>
+              <td>Budget: land preparation</td>
+              <td id="report-prep"></td>
+            </tr>
+            <tr>
+              <td>Budget: storage upkeep</td>
+              <td id="report-upkeep"></td>
+            </tr>
+            <tr>
+              <td>Budget: technologies</td>
+              <td id="report-technologies"></td>
+            </tr>
+            <tr>
+              <td>Exported (auto, at World price)</td>
+              <td id="report-export"></td>
+            </tr>
+            <tr>
+              <td>Budget: carry-over (unspent)</td>
+              <td id="report-carryover"></td>
+            </tr>
+            <tr>
+              <td>Budget: revenue (tax + exports)</td>
+              <td id="report-tax"></td>
+            </tr>
+            <tr>
+              <td>Next-turn Budget</td>
+              <td id="report-new-budget"></td>
+            </tr>
+          </table>
+          <div class="milestone-banner" id="milestone-banner" hidden></div>
+          <span class="famine-banner" id="report-famine"></span>
+        </section>
+        <section id="collapse-summary" hidden>
+          <h2>Collapse</h2>
+          <table class="report">
+            <tr>
+              <td>Run length</td>
+              <td id="collapse-length"></td>
+            </tr>
+            <tr>
+              <td>Final Score</td>
+              <td id="collapse-score"></td>
+            </tr>
+            <tr>
+              <td>What led to the Collapse</td>
+              <td id="collapse-cause"></td>
+            </tr>
+          </table>
+        </section>
+        <section>
+          <h2>Event log</h2>
+          <ul id="event-log" class="event-log"></ul>
+        </section>
+        <section>
+          <h2>Run</h2>
+          <button type="button" class="secondary" id="restart-btn">
+            Restart run
+          </button>
+        </section>
       </div>
     </main>
     <script type="module" src="./dist/ui.js"></script>

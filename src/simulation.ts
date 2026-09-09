@@ -1,7 +1,15 @@
 import { economyRates, isAffordable, planCosts } from "./economy.js";
 import { createRng } from "./rng.js";
 import { eventProbabilities, type GameConfig } from "./config.js";
-import { type CollapseCause, type EventType, type FamineSeverity, type GameState, type PlayerPlan, type TurnResult, type YearReport } from "./types.js";
+import type {
+  CollapseCause,
+  EventType,
+  FamineSeverity,
+  GameState,
+  PlayerPlan,
+  TurnResult,
+  YearReport,
+} from "./types.js";
 
 export function createNewGame(config: GameConfig): GameState {
   return {
@@ -27,10 +35,16 @@ export function estimateHarvestTons(
   fertilizedHectares: number,
   highYieldSeedsOwned: boolean,
 ): number {
-  const baseYieldTons = (cultivatedHectares - fertilizedHectares) * config.baseYieldPerHectare;
-  const boostedYieldTons = fertilizedHectares * config.baseYieldPerHectare * config.fertilizerYieldMultiplier;
+  const baseYieldTons =
+    (cultivatedHectares - fertilizedHectares) * config.baseYieldPerHectare;
+  const boostedYieldTons =
+    fertilizedHectares *
+    config.baseYieldPerHectare *
+    config.fertilizerYieldMultiplier;
   const yieldTons = baseYieldTons + boostedYieldTons;
-  return highYieldSeedsOwned ? yieldTons * config.highYieldSeedsYieldMultiplier : yieldTons;
+  return highYieldSeedsOwned
+    ? yieldTons * config.highYieldSeedsYieldMultiplier
+    : yieldTons;
 }
 
 // The single test seam: current state + player plan + seed in, next-turn state + year report out.
@@ -53,10 +67,10 @@ export function resolveTurn(
   let event: EventType = "none";
   const events: EventType[] = ["none", "drought", "flood", "priceShock"];
   let cumulativeProbability = 0;
-  for (let index = 0; index < probabilities.length; index++) {
-    cumulativeProbability += probabilities[index]!;
+  for (const [index, candidate] of events.entries()) {
+    cumulativeProbability += probabilities[index] ?? 0;
     if (eventRoll < cumulativeProbability) {
-      event = events[index]!;
+      event = candidate;
       break;
     }
   }
@@ -75,43 +89,66 @@ export function resolveTurn(
   // cultivation was already clamped to the previously prepared hectares.
   const preparedHectares = Math.max(
     0,
-    Math.min(Math.floor(plan.preparedHectares), state.arableLandHectares - state.preparedLandHectares),
+    Math.min(
+      Math.floor(plan.preparedHectares),
+      state.arableLandHectares - state.preparedLandHectares,
+    ),
   );
 
   // Technologies are one-off purchases: the cost hits this Turn's Budget, but every
   // effect applies from the following Turn — all effects below read the previously
   // owned set. Already-owned (or duplicated) entries are ignored and never re-charged.
   const ownedTechnologies = new Set(state.ownedTechnologies);
-  const purchasedTechnologies = [...new Set((plan.purchaseTechnologies ?? []).filter((id) => !ownedTechnologies.has(id)))];
+  const purchasedTechnologies = [
+    ...new Set(
+      (plan.purchaseTechnologies ?? []).filter(
+        (id) => !ownedTechnologies.has(id),
+      ),
+    ),
+  ];
 
   // Base Harvest, then the rolled Event scales it (drought/flood) before Consumption.
-  const baseHarvestTons = estimateHarvestTons(config, cultivatedHectares, fertilizedHectares, ownedTechnologies.has("highYieldSeeds"));
+  const baseHarvestTons = estimateHarvestTons(
+    config,
+    cultivatedHectares,
+    fertilizedHectares,
+    ownedTechnologies.has("highYieldSeeds"),
+  );
   // Irrigation halves the Drought Yield loss: it shrinks the lost fraction instead of
   // halving the surviving multiplier (which would double the loss).
   const droughtMultiplier = ownedTechnologies.has("irrigation")
-    ? 1 - (1 - config.droughtYieldMultiplier) * config.irrigationDroughtLossMultiplier
+    ? 1 -
+      (1 - config.droughtYieldMultiplier) *
+        config.irrigationDroughtLossMultiplier
     : config.droughtYieldMultiplier;
   const harvestTons =
-    event === "drought" ? baseHarvestTons * droughtMultiplier
-    : event === "flood" ? baseHarvestTons * config.floodYieldMultiplier
-    : baseHarvestTons;
+    event === "drought"
+      ? baseHarvestTons * droughtMultiplier
+      : event === "flood"
+        ? baseHarvestTons * config.floodYieldMultiplier
+        : baseHarvestTons;
   const consumptionTons = state.population * config.consumptionPerPerson;
 
   // A Flood destroys a fraction of the opening Storage before food is pooled.
-  const storageDestroyedTons = event === "flood" ? state.storageTons * config.floodStorageLossFraction : 0;
-  const availableFoodTons = harvestTons + (state.storageTons - storageDestroyedTons);
+  const storageDestroyedTons =
+    event === "flood" ? state.storageTons * config.floodStorageLossFraction : 0;
+  const availableFoodTons =
+    harvestTons + (state.storageTons - storageDestroyedTons);
 
   let famine: FamineSeverity;
   let populationEnd: number;
   if (availableFoodTons >= consumptionTons) {
     famine = "none";
-    populationEnd = Math.round(state.population * (1 + config.populationGrowthRate));
+    populationEnd = Math.round(
+      state.population * (1 + config.populationGrowthRate),
+    );
   } else if (availableFoodTons <= 0) {
     famine = "total";
     populationEnd = 0;
   } else {
     famine = "partial";
-    const shortfallFraction = (consumptionTons - availableFoodTons) / consumptionTons;
+    const shortfallFraction =
+      (consumptionTons - availableFoodTons) / consumptionTons;
     populationEnd = Math.round(state.population * (1 - shortfallFraction));
   }
 
@@ -143,7 +180,10 @@ export function resolveTurn(
   let storageTons = 0;
   let exportTons = 0;
   if (famine === "none" && surplusTons > 0) {
-    const minStoreTons = Math.max(0, state.storageTons - storageDestroyedTons - consumptionTons);
+    const minStoreTons = Math.max(
+      0,
+      state.storageTons - storageDestroyedTons - consumptionTons,
+    );
     const rawStoreTons = Number.isFinite(plan.storeTons) ? plan.storeTons : 0;
     storageTons = Math.max(minStoreTons, Math.min(rawStoreTons, surplusTons));
     exportTons = surplusTons - storageTons;
@@ -160,24 +200,40 @@ export function resolveTurn(
           Math.min(
             config.worldPriceMax,
             // The shock direction is the next draw: up on [0, 0.5), down on [0.5, 1).
-            state.worldPrice * (rng() < 0.5 ? config.priceShockUpMultiplier : config.priceShockDownMultiplier),
+            state.worldPrice *
+              (rng() < 0.5
+                ? config.priceShockUpMultiplier
+                : config.priceShockDownMultiplier),
           ),
         )
       : state.worldPrice;
   // Trade routes multiply this Turn's final export price only — after any shock and
   // clamp, so it may sit above the World price ceiling. The World price walk is untouched.
-  const exportPriceCoins = baseExportPriceCoins * economyRates(state, config).trade;
+  const exportPriceCoins =
+    baseExportPriceCoins * economyRates(state, config).trade;
   const exportIncomeCoins = exportTons * exportPriceCoins;
 
   // World price random walk for next Turn: ±step, clamped to [min, max].
   const nextWorldPrice = Math.max(
     config.worldPriceMin,
-    Math.min(config.worldPriceMax, state.worldPrice + (rng() * 2 - 1) * config.worldPriceWalkStep),
+    Math.min(
+      config.worldPriceMax,
+      state.worldPrice + (rng() * 2 - 1) * config.worldPriceWalkStep,
+    ),
   );
 
-  const costs = planCosts(state, { ...plan, cultivatedHectares, fertilizedHectares, preparedHectares }, storageTons, config);
-  const mandatoryStorageTons = Math.max(0, state.storageTons - storageDestroyedTons - consumptionTons);
-  if (!isAffordable(state, costs, mandatoryStorageTons, config)) throw new Error("Plan exceeds available budget including storage upkeep");
+  const costs = planCosts(
+    state,
+    { ...plan, cultivatedHectares, fertilizedHectares, preparedHectares },
+    storageTons,
+    config,
+  );
+  const mandatoryStorageTons = Math.max(
+    0,
+    state.storageTons - storageDestroyedTons - consumptionTons,
+  );
+  if (!isAffordable(state, costs, mandatoryStorageTons, config))
+    throw new Error("Plan exceeds available budget including storage upkeep");
   const seedCostCoins = costs.seeds;
   const fertilizerCostCoins = costs.fertilizer;
   const landPrepCostCoins = costs.preparation;

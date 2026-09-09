@@ -14,6 +14,8 @@ The page starts a new run from the baseline (population 1,000; 2,000 ha arable w
 
 ## Development
 
+Use Node.js 24.13 or later within major version 24. See [Verification](docs/verification.md) for the canonical `npm run verify` command, Chromium setup, ordered quality gates, and live dashboard. On native Windows use `npm.cmd` and `npx.cmd`.
+
 ```
 npm test        # vitest: drives the turn-resolution seam headlessly
 npm run typecheck

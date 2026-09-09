@@ -1,7 +1,15 @@
 import { describe, it, expect } from "vitest";
 import { CONFIG } from "../src/config.js";
 import { createNewGame } from "../src/simulation.js";
-import { clearSave, loadSave, newSave, parseSave, persist, SAVE_KEY, SAVE_VERSION } from "../src/persistence.js";
+import {
+  clearSave,
+  loadSave,
+  newSave,
+  parseSave,
+  persist,
+  SAVE_KEY,
+  SAVE_VERSION,
+} from "../src/persistence.js";
 import type { SaveData } from "../src/persistence.js";
 
 // In-memory stand-in for localStorage so the persistence rules are testable without a DOM.
@@ -74,7 +82,9 @@ describe("parseSave", () => {
 
   it("returns null when runSeed is missing or not a finite number", () => {
     for (const bad of ["banana", null, undefined]) {
-      const raw: Record<string, unknown> = JSON.parse(JSON.stringify(midRunSave()));
+      const raw: Record<string, unknown> = JSON.parse(
+        JSON.stringify(midRunSave()),
+      );
       if (bad === undefined) delete raw.runSeed;
       else raw.runSeed = bad;
       expect(parseSave(JSON.stringify(raw))).toBeNull();
@@ -82,18 +92,31 @@ describe("parseSave", () => {
   });
 
   it("returns null when the state is missing", () => {
-    const raw: Record<string, unknown> = JSON.parse(JSON.stringify(midRunSave()));
+    const raw: Record<string, unknown> = JSON.parse(
+      JSON.stringify(midRunSave()),
+    );
     delete raw.state;
     expect(parseSave(JSON.stringify(raw))).toBeNull();
   });
 
   it("returns null when any numeric field is corrupted or missing", () => {
-    const fields = ["year", "population", "arableLandHectares", "preparedLandHectares", "storageTons", "budgetCoins", "worldPrice"] as const;
+    const fields = [
+      "year",
+      "population",
+      "arableLandHectares",
+      "preparedLandHectares",
+      "storageTons",
+      "budgetCoins",
+      "worldPrice",
+    ] as const;
     for (const field of fields) {
       for (const bad of ["banana", null]) {
         const raw = JSON.parse(JSON.stringify(midRunSave()));
         raw.state[field] = bad;
-        expect(parseSave(JSON.stringify(raw)), `${field}=${String(bad)}`).toBeNull();
+        expect(
+          parseSave(JSON.stringify(raw)),
+          `${field}=${String(bad)}`,
+        ).toBeNull();
       }
       const missing = JSON.parse(JSON.stringify(midRunSave()));
       delete missing.state[field];
@@ -112,7 +135,9 @@ describe("parseSave", () => {
   });
 
   it("loads legacy saves written before the event log existed", () => {
-    const raw: Record<string, unknown> = JSON.parse(JSON.stringify(midRunSave()));
+    const raw: Record<string, unknown> = JSON.parse(
+      JSON.stringify(midRunSave()),
+    );
     delete raw.eventLog;
     const loaded = parseSave(JSON.stringify(raw));
     expect(loaded).not.toBeNull();

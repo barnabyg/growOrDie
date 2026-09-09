@@ -82,12 +82,22 @@ export const CONFIG: GameConfig = {
 // All four event probabilities are authoritative. Accept ordinary floating-point
 // rounding (for example 0.6 + 0.2 + 0.1 + 0.1), never silently fill a missing share.
 export function eventProbabilities(config: GameConfig): number[] {
-  const probabilities = [config.eventNothingProbability, config.eventDroughtProbability,
-    config.eventFloodProbability, config.eventPriceShockProbability];
+  const probabilities = [
+    config.eventNothingProbability,
+    config.eventDroughtProbability,
+    config.eventFloodProbability,
+    config.eventPriceShockProbability,
+  ];
   const total = probabilities.reduce((sum, value) => sum + value, 0);
-  if (probabilities.some((value) => !Number.isFinite(value) || value < 0 || value > 1)
-    || Math.abs(total - 1) > 1e-12) {
-    throw new RangeError("Event probabilities must be finite, nonnegative, and sum to 1.");
+  if (
+    probabilities.some(
+      (value) => !Number.isFinite(value) || value < 0 || value > 1,
+    ) ||
+    Math.abs(total - 1) > 1e-12
+  ) {
+    throw new RangeError(
+      "Event probabilities must be finite, nonnegative, and sum to 1.",
+    );
   }
   return probabilities.map((value) => value / total);
 }
