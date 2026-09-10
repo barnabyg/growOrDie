@@ -338,6 +338,25 @@ Object.assign(CONFIG, {
   expect(droughtLoss).toBeCloseTo(0.1);
 });
 
+test("reducing cultivation also reduces the displayed fertilizer hectares", async ({
+  page,
+}) => {
+  await loadFixture(page);
+  const fertilizer = page.locator("#plan-fertilizer");
+
+  await fertilizer.fill("400");
+  await page.locator("#plan-hectares").fill("100");
+
+  await expect(fertilizer).toHaveAttribute("max", "100");
+  await expect(fertilizer).toHaveValue("100");
+  await expect(page.locator("#plan-fert-cost")).toHaveText("300");
+
+  await page.locator("#confirm-btn").click();
+  expect(
+    (await saved(page)).pendingTurn.result.report.fertilizerCostCoins,
+  ).toBe(300);
+});
+
 test("duplicate submissions cannot reroll a harvest or finalize a Turn twice", async ({
   page,
 }) => {

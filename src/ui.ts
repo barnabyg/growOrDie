@@ -175,7 +175,11 @@ function updatePlanPreview(state: GameState): void {
   const plan = readPlanInputs(state);
 
   // Keep each input's max in sync with the others (fertilizer <= cultivated).
-  el<HTMLInputElement>("plan-fertilizer").max = String(plan.cultivatedHectares);
+  const fertilizerInput = el<HTMLInputElement>("plan-fertilizer");
+  fertilizerInput.max = String(plan.cultivatedHectares);
+  if (fertilizerInput.valueAsNumber > plan.cultivatedHectares) {
+    fertilizerInput.value = String(plan.fertilizedHectares);
+  }
 
   const costs = productionCosts(state, plan, CONFIG);
   const seedCost = costs.seeds;
