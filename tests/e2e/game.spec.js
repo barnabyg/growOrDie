@@ -226,6 +226,46 @@ test("production, post-harvest allocation and reload preserve one committed outc
   );
   await expect(page.locator("#event-log li")).toHaveCount(1);
   expect(await saved(page)).toEqual(completed);
+  await expect(page.locator("#report-year")).toHaveText("1");
+  await expect(page.locator("#report-export")).toHaveText(
+    "400 t for +4,000 coins",
+  );
+  await page.locator("#event-log summary").click();
+  await expect(page.locator("#event-log details p")).toContainText(
+    "Harvest 1,600 t",
+  );
+  await expect(page.locator("#event-log details p")).toContainText(
+    "Storage 200 t",
+  );
+});
+
+test("history preserves earlier outcomes and legacy summaries without inventing reports", async ({
+  page,
+}) => {
+  await loadFixture(page);
+  await page.evaluate(() => {
+    const key = "growOrDie.save.v1";
+    const save = JSON.parse(localStorage.getItem(key));
+    save.eventLog = [{ year: 0, event: "none", summary: "Legacy summary" }];
+    localStorage.setItem(key, JSON.stringify(save));
+  });
+  await page.reload();
+  await expect(page.locator("#report")).toBeHidden();
+  await expect(page.locator("#event-log details")).toHaveCount(0);
+  await resolveHarvest(page);
+  await page.locator("#allocate-btn").click();
+  const first = (await saved(page)).eventLog[1];
+  await resolveHarvest(page);
+  await page.locator("#allocate-btn").click();
+  await page.reload();
+  await expect(page.locator("#report-year")).toHaveText("2");
+  await expect(page.locator("#event-log details")).toHaveCount(2);
+  expect((await saved(page)).eventLog[1]).toEqual(first);
+  await page.locator("#event-log summary").first().click();
+  await expect(page.locator("#event-log details p").first()).toBeVisible();
+  await expect(page.locator("#event-log li").first()).toHaveText(
+    "Year 0: Legacy summary",
+  );
 });
 
 test("duplicate submissions cannot reroll a harvest or finalize a Turn twice", async ({
@@ -424,6 +464,13 @@ for (const fixture of [
     expect((await saved(page)).pendingTurn).toEqual(committed);
     await page.locator("#allocate-btn").click();
     await expect(page.locator("#stat-year")).toHaveText("2");
+    const latestReport = await page.locator("#report").innerText();
+    await page.reload();
+    await expect(page.locator("#report")).toHaveText(latestReport, {
+      useInnerText: true,
+    });
+    await page.locator("#event-log summary").click();
+    await expect(page.locator("#event-log details p")).toContainText("Budget");
     if (fixture.name === "drought") {
       await expect(page.locator("#report-event")).toContainText("25%");
       await expect(page.locator("#country-green")).toHaveClass(/drought/);
@@ -451,6 +498,10 @@ test("total famine finishes once, remains collapsed on reload, and restart clear
   await expect(page.locator("#stat-population")).toHaveText("0");
   await expect(page.locator("#confirm-btn")).toBeDisabled();
   await page.reload();
+  await expect(page.locator("#report-famine")).toHaveText("Famine (total)");
+  await expect(page.locator("#event-log summary")).toContainText(
+    "Famine: total",
+  );
   await expect(page.locator("#collapse-summary")).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#restart-btn").click();

@@ -301,6 +301,9 @@ function renderCollapse(state: GameState): void {
 }
 
 function render(): void {
+  const latest = save.eventLog.at(-1)?.result;
+  if (latest) renderReport(latest);
+  else el<HTMLElement>("report").hidden = true;
   renderStats(save.state);
   renderCountry(save.state);
   renderPlan(save.state);
@@ -355,6 +358,16 @@ function renderEventLog(): void {
     const item = document.createElement("li");
     item.className = entry.event;
     item.textContent = `Year ${entry.year}: ${entry.summary}`;
+    if (entry.result) {
+      const { state, report } = entry.result;
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = `Outcomes: population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} · Famine: ${report.famine}`;
+      const body = document.createElement("p");
+      body.textContent = `Harvest ${fmt(report.harvestTons)} t · Consumption ${fmt(report.consumptionTons)} t · Storage ${fmt(state.storageTons)} t · Export ${fmt(report.exportTons)} t for ${fmt(report.exportIncomeCoins)} coins · Budget ${fmt(state.budgetCoins)} coins · Score ${fmt(state.highestPopulation)}${state.collapsed ? " · Collapse" : ""}`;
+      details.append(summary, body);
+      item.appendChild(details);
+    }
     list.appendChild(item);
   }
 }
@@ -391,6 +404,7 @@ function confirmAllocation(): void {
     event: result.report.event,
     summary: eventSummary(result.report),
     cultivatedHectares: pending.plan.cultivatedHectares,
+    result,
   });
   saveFailed = !persist(save);
   renderReport(result);

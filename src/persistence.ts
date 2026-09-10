@@ -9,6 +9,7 @@ import type {
   PlayerPlan,
   TechnologyId,
   YearReport,
+  TurnResult,
 } from "./types.js";
 
 export const SAVE_KEY = "growOrDie.save.v1";
@@ -19,6 +20,7 @@ export interface EventLogEntry {
   event: EventType;
   summary: string;
   cultivatedHectares?: number;
+  result?: TurnResult;
 }
 
 export interface SaveData {
@@ -351,7 +353,19 @@ export function parseSave(raw: string | null): SaveData | null {
     return null;
   } else {
     // The log is display-only: drop malformed entries instead of rejecting the run.
-    eventLog = candidate.eventLog.filter(isEventEntry);
+    eventLog = candidate.eventLog.filter(isEventEntry).map((entry) => {
+      const { result, ...summary } = entry;
+      const detail = record(result);
+      const state = parseState(detail?.state);
+      const report = detail?.report;
+      return state &&
+        isYearReport(report) &&
+        report.year === entry.year &&
+        state.year === entry.year + 1 &&
+        report.populationEnd === state.population
+        ? { ...summary, result: { state, report } }
+        : summary;
+    });
   }
 
   const pendingTurn =

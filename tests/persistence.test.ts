@@ -49,6 +49,20 @@ it("distinguishes failed reads from missing saves and reports failed writes", ()
 });
 
 // A save mid-run, deliberately far from the baseline, so a round-trip that
+it("drops malformed optional outcome details without losing legacy summaries or the run", () => {
+  const save = newSave(5);
+  const entry = { year: 1, event: "none", summary: "Original summary" };
+  const loaded = parseSave(
+    JSON.stringify({
+      ...save,
+      eventLog: [{ ...entry, result: { state: {}, report: {} } }],
+    }),
+  );
+  expect(loaded?.state).toEqual(save.state);
+  expect(loaded?.eventLog).toEqual([entry]);
+});
+
+// A save mid-run, deliberately far from the baseline, so a round-trip that
 // silently reset to defaults would be obvious.
 function midRunSave(): SaveData {
   return {
