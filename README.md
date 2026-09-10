@@ -79,6 +79,8 @@ those settings. The simulation is deterministic for a given state, plan, seed,
 and configuration. All four Event probabilities are explicit, finite values
 between 0 and 1, summing to 1 within floating-point tolerance; invalid settings
 throw rather than silently changing the shock probability.
+The reproducible policy results and hands-on observations are recorded in the
+[balance and strategic-depth study](docs/balance-playtests.md).
 
 The two-decision Turn, responsive layout, outcome history, storage-failure
 recovery, and configuration-driven descriptions are implemented. Open issues
