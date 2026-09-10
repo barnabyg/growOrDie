@@ -228,6 +228,61 @@ test("production, post-harvest allocation and reload preserve one committed outc
   expect(await saved(page)).toEqual(completed);
 });
 
+test("duplicate submissions cannot reroll a harvest or finalize a Turn twice", async ({
+  page,
+}) => {
+  await loadFixture(page);
+  await page.locator("#plan-fertilizer").fill("400");
+  await page.locator("#confirm-btn").evaluate((button) => {
+    button.click();
+    button.click();
+  });
+  const pending = await saved(page);
+  expect(pending.state.year).toBe(1);
+  expect(pending.pendingTurn.result.report.harvestTons).toBe(1600);
+  expect(pending.eventLog).toHaveLength(0);
+  await page.locator("#confirm-btn").evaluate((button) => button.click());
+  expect(await saved(page)).toEqual(pending);
+  await page.locator("#plan-store").fill("200");
+  await page.locator("#allocate-btn").evaluate((button) => {
+    button.click();
+    button.click();
+  });
+  await expect(page.locator("#stat-year")).toHaveText("2");
+  const completed = await saved(page);
+  expect(completed.pendingTurn).toBeUndefined();
+  expect(completed.eventLog).toHaveLength(1);
+  expect(completed.state.storageTons).toBe(200);
+  await page.reload();
+  expect(await saved(page)).toEqual(completed);
+});
+
+test("Restart during allocation preserves a cancelled harvest and discards it only on confirmation", async ({
+  page,
+}) => {
+  await loadFixture(page);
+  await resolveHarvest(page);
+  const pending = await saved(page);
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await page.locator("#restart-btn").click();
+  expect(await saved(page)).toEqual(pending);
+  await page.reload();
+  await expect(page.locator("#allocation")).toBeVisible();
+  expect(await saved(page)).toEqual(pending);
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator("#restart-btn").click();
+  await expect(page.locator("#allocation")).toBeHidden();
+  await expect(page.locator("#production")).toBeVisible();
+  const restarted = await saved(page);
+  expect(restarted.pendingTurn).toBeUndefined();
+  expect(restarted.state.year).toBe(1);
+  expect(restarted.state.population).toBe(1000);
+  expect(restarted.eventLog).toHaveLength(0);
+  await page.reload();
+  await expect(page.locator("#allocation")).toBeHidden();
+  expect(await saved(page)).toEqual(restarted);
+});
+
 test("storage affordability cannot spend beyond the remaining production budget", async ({
   page,
 }) => {
