@@ -1,4 +1,4 @@
-﻿# Grow or Die
+# Grow or Die
 
 A web-based simulation game in which the player manages an agriculture-based country, trying to grow the population while surviving random events and a volatile export market.
 
@@ -6,7 +6,7 @@ A web-based simulation game in which the player manages an agriculture-based cou
 
 ### Time
 
-**Turn**: One year of play: the player allocates the annual budget, then the year resolves in one batch — event, harvest, trade, population update. Displayed in-game as "Year N".
+**Turn**: One year of play: the player commits production and investment, then allocates Storage and Export after the Event, Harvest, and Consumption are known. Displayed in-game as "Year N".
 _Avoid_: round, cycle, phase
 
 **Event**: A random occurrence that may affect a turn; at most one per year. In v1: drought, flood, export price shock.

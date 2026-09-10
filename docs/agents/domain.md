@@ -6,11 +6,11 @@ How the engineering skills should consume this repo's domain documentation when 
 
 - **`CONTEXT.md`** at the repo root: the glossary of domain terms (Turn, Event, Arable land, Budget, Famine, ...).
 - **`docs/adr/`**: read ADRs that touch the area you're about to work in. Current decisions:
-  - `0001-annual-turn-model.md` — annual turns with batch resolution
+  - `0001-annual-turn-model.md` — production commitment followed by post-harvest allocation
   - `0002-unlimited-food-storage.md` — unlimited storage capacity, upkeep per ton
   - `0003-static-web-app-localstorage.md` — static web app, state in localStorage
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
+If a referenced domain document is missing, report the missing path and use the implementation and issue specification to identify the unresolved question.
 
 ## File structure
 

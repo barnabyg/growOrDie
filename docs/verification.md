@@ -4,7 +4,7 @@
 
 Issue #25 updates the historical #1 decision to omit automated UI tests for v1. The user authorized completing #25 on 9 September 2026. Browser interaction checks are now required for critical workflows because isolated simulation tests missed disagreements between displayed costs, saved state and actual charges. This policy keeps the deterministic simulation tests and adds Chromium checks through the real page, loopback HTTP server and browser storage.
 
-Tests cover production, allocation bounds, discounts, purchase timing, food conservation after floods, deterministic weather and price shocks, event tints, save/reload, Collapse and restart. Completed-report history enhancements (#21) and mobile layout changes (#16) remain separate work; these tests do not assume those unimplemented behaviors.
+Tests cover production, allocation bounds, discounts, purchase timing, food conservation after floods, deterministic weather and price shocks, event tints, save/reload, Collapse and restart. Coverage also includes completed-report history and reload continuity, legacy summaries, responsive layouts with enlarged text, storage-access failures and retries, and configuration-driven Technology labels.
 
 Use Node.js 24.13 or later within major version 24, then install the locked tools and Chromium:
 
@@ -68,7 +68,7 @@ location.reload();
 
 Resolve with the plan above, reload during allocation, finish the year, and reload again. Expect brown for drought or blue for flood throughout; the following ordinary harvest clears the tint. #19's manual checks on 9 September 2026 confirmed both settled colors. These transitions and accessible cultivation captions are now automated.
 
-Silhouette shape quality and perceived animation smoothness still require visual inspection. #18's manual check on 9 September 2026 confirmed empty, partial and full cultivation fills plus the legacy-save fallback; the analytical country test checks area rather than height. Phone layout (#16), report-history enhancements (#21), and unavailable-storage UI recovery (#13) remain outside this ticket.
+Silhouette shape quality and perceived animation smoothness still require visual inspection. #18's manual check on 9 September 2026 confirmed empty, partial and full cultivation fills plus the legacy-save fallback; the analytical country test checks area rather than height. See [mobile layout verification](mobile-layout.md) and [save recovery](saves.md) for the implemented behavior and remaining manual-testing limitations.
 
 For the dashboard, start `npm.cmd run verify`, open its printed `TEST_DASHBOARD_URL` while it runs, and check the active stage, test count, failures, elapsed time and terminal output. A failing gate must stop later gates and preserve its exit code. The focused observer tests exercise this failure path, independent ports, reporter write failure, process observer failure and dashboard binding failure. Close the browser after the command completes; final evidence remains in the JSON report.
 
