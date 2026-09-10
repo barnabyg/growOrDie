@@ -368,7 +368,10 @@
           <div class="plan-row">
             <label for="plan-fertilizer"
               >Fertilize (of cultivated ·
-              <span id="plan-fert-price"></span> coins/ha, doubles Yield)</label
+              <span id="plan-fert-price"></span> coins/ha, Yield ×<span
+                id="plan-fert-yield"
+              ></span
+              >)</label
             >
             <input type="number" id="plan-fertilizer" min="0" step="1" />
           </div>
@@ -401,8 +404,8 @@
           <div class="tech-row">
             <input type="checkbox" id="tech-irrigation" />
             <label for="tech-irrigation" class="tech-name">Irrigation</label>
-            <span class="tech-cost">2,000 coins</span>
-            <span class="tech-effect">Drought Yield loss halved</span>
+            <span class="tech-cost"></span>
+            <span class="tech-effect"></span>
             <span class="tech-owned" id="tech-irrigation-owned" hidden
               >Owned</span
             >
@@ -412,8 +415,8 @@
             <label for="tech-highYieldSeeds" class="tech-name"
               >High-yield seeds</label
             >
-            <span class="tech-cost">3,000 coins</span>
-            <span class="tech-effect">Base Yield +50%</span>
+            <span class="tech-cost"></span>
+            <span class="tech-effect"></span>
             <span class="tech-owned" id="tech-highYieldSeeds-owned" hidden
               >Owned</span
             >
@@ -421,15 +424,15 @@
           <div class="tech-row">
             <input type="checkbox" id="tech-granary" />
             <label for="tech-granary" class="tech-name">Granary</label>
-            <span class="tech-cost">2,500 coins</span>
-            <span class="tech-effect">Storage upkeep halved</span>
+            <span class="tech-cost"></span>
+            <span class="tech-effect"></span>
             <span class="tech-owned" id="tech-granary-owned" hidden>Owned</span>
           </div>
           <div class="tech-row">
             <input type="checkbox" id="tech-tradeRoutes" />
             <label for="tech-tradeRoutes" class="tech-name">Trade routes</label>
-            <span class="tech-cost">3,000 coins</span>
-            <span class="tech-effect">Export price +20%</span>
+            <span class="tech-cost"></span>
+            <span class="tech-effect"></span>
             <span class="tech-owned" id="tech-tradeRoutes-owned" hidden
               >Owned</span
             >
@@ -437,8 +440,8 @@
           <div class="tech-row">
             <input type="checkbox" id="tech-landSurvey" />
             <label for="tech-landSurvey" class="tech-name">Land survey</label>
-            <span class="tech-cost">2,000 coins</span>
-            <span class="tech-effect">Land prep cost halved</span>
+            <span class="tech-cost"></span>
+            <span class="tech-effect"></span>
             <span class="tech-owned" id="tech-landSurvey-owned" hidden
               >Owned</span
             >
@@ -448,8 +451,8 @@
             <label for="tech-fertilizerWorks" class="tech-name"
               >Fertilizer works</label
             >
-            <span class="tech-cost">2,500 coins</span>
-            <span class="tech-effect">Fertilizer cost halved</span>
+            <span class="tech-cost"></span>
+            <span class="tech-effect"></span>
             <span class="tech-owned" id="tech-fertilizerWorks-owned" hidden
               >Owned</span
             >

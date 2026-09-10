@@ -268,6 +268,76 @@ test("history preserves earlier outcomes and legacy summaries without inventing 
   );
 });
 
+test("tuned Technology and fertilizer descriptions agree with costs and next-Turn effects", async ({
+  page,
+}) => {
+  await page.route("**/dist/config.js", async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      body: `${await response.text()}
+Object.assign(CONFIG, {
+  fertilizerYieldMultiplier: 1.75,
+  irrigationDroughtLossMultiplier: 0.2,
+  highYieldSeedsYieldMultiplier: 1.3,
+  granaryUpkeepMultiplier: 0.7,
+  tradeRoutesPriceMultiplier: 1.1,
+  landSurveyCostMultiplier: 0.4,
+  fertilizerWorksCostMultiplier: 0.6,
+  eventNothingProbability: 1, eventDroughtProbability: 0,
+  eventFloodProbability: 0, eventPriceShockProbability: 0,
+  technologyCosts: { irrigation: 1.5, highYieldSeeds: 2, granary: 3, tradeRoutes: 4, landSurvey: 5, fertilizerWorks: 6 }
+});`,
+    });
+  });
+  await loadFixture(page);
+  await expect(page.locator("#plan-fert-yield")).toHaveText("1.75");
+  const technologies = [
+    ["irrigation", "1.5", "Drought Yield loss ×0.2"],
+    ["highYieldSeeds", "2", "Base Yield ×1.3"],
+    ["granary", "3", "Storage upkeep ×0.7"],
+    ["tradeRoutes", "4", "Export price ×1.1"],
+    ["landSurvey", "5", "Land preparation cost ×0.4"],
+    ["fertilizerWorks", "6", "Fertilizer cost ×0.6"],
+  ];
+  for (const [id, cost, effect] of technologies) {
+    const row = page
+      .locator(".tech-row")
+      .filter({ has: page.locator(`#tech-${id}`) });
+    await expect(row.locator(".tech-cost")).toHaveText(`${cost} coins`);
+    await expect(row.locator(".tech-effect")).toHaveText(effect);
+    await page.locator(`#tech-${id}`).check();
+  }
+  await resolveHarvest(page);
+  let pending = (await saved(page)).pendingTurn;
+  expect(pending.result.report.technologyCostCoins).toBe(21.5);
+  expect(pending.result.report.harvestTons).toBe(1400);
+  await page.locator("#plan-store").fill("0");
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#plan-fert-price")).toHaveText("1.8");
+  await expect(page.locator("#plan-prep-price")).toHaveText("24");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.7");
+  await resolveHarvest(page);
+  pending = (await saved(page)).pendingTurn;
+  expect(pending.result.report.harvestTons).toBe(1820);
+  expect(pending.result.report.fertilizerCostCoins).toBeCloseTo(720);
+  expect(pending.result.report.exportPriceCoins).toBeCloseTo(
+    (await saved(page)).state.worldPrice * 1.1,
+  );
+  expect(pending.storageUpkeepPerTon).toBe(0.7);
+  const droughtLoss = await page.evaluate(async () => {
+    const { CONFIG } = await import("/dist/config.js");
+    const { resolveTurn } = await import("/dist/simulation.js");
+    const save = JSON.parse(localStorage.getItem("growOrDie.save.v1"));
+    return resolveTurn(save.state, save.pendingTurn.plan, 1, {
+      ...CONFIG,
+      eventNothingProbability: 0,
+      eventDroughtProbability: 1,
+    }).report.droughtYieldLossFraction;
+  });
+  expect(droughtLoss).toBeCloseTo(0.1);
+});
+
 test("duplicate submissions cannot reroll a harvest or finalize a Turn twice", async ({
   page,
 }) => {
