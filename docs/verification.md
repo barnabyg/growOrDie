@@ -6,6 +6,8 @@ Issue #25 updates the historical #1 decision to omit automated UI tests for v1. 
 
 Tests cover production, allocation bounds, discounts, purchase timing, food conservation after floods, deterministic weather and price shocks, event tints, save/reload, Collapse and restart. Coverage also includes completed-report history and reload continuity, legacy summaries, responsive layouts with enlarged text, storage-access failures and retries, and configuration-driven Technology labels.
 
+Field journal checks also cover live food scenarios, paired production controls, previews that leave saves untouched, allocation accounting, Technology landmarks and purchase timing, milestones, mobile dark mode, reduced motion and unavailable audio. Pure forecast tests compare against resolved simulation outcomes with both default and tuned configuration.
+
 Use Node.js 24.13 or later within major version 24, then install the locked tools and Chromium:
 
 ```sh
@@ -68,7 +70,7 @@ location.reload();
 
 Resolve with the plan above, reload during allocation, finish the year, and reload again. Expect brown for drought or blue for flood throughout; the following ordinary harvest clears the tint. #19's manual checks on 9 September 2026 confirmed both settled colors. These transitions and accessible cultivation captions are now automated.
 
-Silhouette shape quality and perceived animation smoothness still require visual inspection. #18's manual check on 9 September 2026 confirmed empty, partial and full cultivation fills plus the legacy-save fallback; the analytical country test checks area rather than height. See [mobile layout verification](mobile-layout.md) and [save recovery](saves.md) for the implemented behavior and remaining manual-testing limitations.
+Landscape quality and perceived animation smoothness still require visual inspection. The Field journal landscape represents fractional hectares using prepared and cultivated parcels, while exact values remain in its caption; legacy saves without cultivation data retain the Unknown caption. The older analytical country helper remains covered by its area tests. See [Field journal manual checks](field-journal-ui.md), [mobile layout verification](mobile-layout.md) and [save recovery](saves.md) for implemented behavior and remaining manual-testing limitations.
 
 For the dashboard, start `npm.cmd run verify`, open its printed `TEST_DASHBOARD_URL` while it runs, and check the active stage, test count, failures, elapsed time and terminal output. A failing gate must stop later gates and preserve its exit code. The focused observer tests exercise this failure path, independent ports, reporter write failure, process observer failure and dashboard binding failure. Close the browser after the command completes; final evidence remains in the JSON report.
 

@@ -45,6 +45,31 @@ prepared hectares. That costs 2,000 coins before Storage upkeep and produces
 cause a shortfall. Keeping food provides a buffer but costs upkeep; exporting
 provides money instead. Storage has no capacity limit.
 
+The Field journal interface pairs sliders with exact number inputs. **All prepared**
+and **All cultivated** are shortcuts; the first-Year suggestion fills both without
+committing the plan. Live food and Budget meters show the tradeoffs. Expand
+**Weather scenarios** for ordinary, Drought, and Flood food balances. These are
+possible outcomes, not a forecast of the hidden Event; they include opening
+Storage, Flood losses, and currently owned Technologies. Purchases and newly
+prepared land improve future Turns only.
+
+The illustrated country distinguishes prepared, cultivated, and unprepared land.
+Changing production shows a labelled plan preview; a committed Harvest shows the
+actual cultivation and weather. Parcels and settlement buildings are visual
+representations of the aggregate state, not extra regions or rules. Owned
+Technologies add landmarks. The next doubling Milestone has a population meter.
+
+After resolving, the header labels opening resources separately from the actual
+outcome. Allocation shows food kept, automatic Export income, upkeep, and the
+next-Year Budget together. **Keep minimum** respects surviving old food; **Keep
+maximum** respects the affordable range. Finishing the Year highlights population
+changes, with detailed accounting under **Harvest, Event & Budget details**.
+Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
+with a run summary and a confirmed **Start a new run** action. On mobile, the
+current decision appears before a compact landscape. Optional synthesized sound
+starts off in every tab and can be muted immediately; animations respect reduced
+motion. See [interface checks](docs/field-journal-ui.md) for manual examples.
+
 Meeting Consumption grows population. A shortfall causes Famine and population
 loss; no food means total Famine. **Score** records peak population, and doubling
 milestones are celebrated. **Collapse** ends play below half the starting
@@ -82,8 +107,9 @@ throw rather than silently changing the shock probability.
 The reproducible policy results and hands-on observations are recorded in the
 [balance and strategic-depth study](docs/balance-playtests.md).
 
-The two-decision Turn, responsive layout, outcome history, storage-failure
-recovery, and configuration-driven descriptions are implemented. Open issues
+The two-decision Turn, Field journal interface, responsive layout, outcome
+history, storage-failure recovery, and configuration-driven descriptions are
+implemented. Open issues
 in the [tracker](https://github.com/barnabyg/growOrDie/issues) describe remaining
 work; the app has no backend, accounts, multiplayer, or cloud synchronization.
 Use [CONTEXT.md](CONTEXT.md) for terminology, [ADRs](docs/adr/) for decisions,

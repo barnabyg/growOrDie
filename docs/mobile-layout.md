@@ -1,5 +1,14 @@
 # Responsive layout verification
 
+The Field journal interface retains all eight layout regression combinations
+below. On small screens, the current production or allocation decision appears
+before a compact landscape; Collapse replaces the planning controls. Sliders,
+exact number inputs, forecasts, Technology cards and report cells wrap to the
+available width. Additional browser checks cover mobile dark mode, reduced
+motion and unavailable audio. See [Field journal manual checks](field-journal-ui.md)
+for the current interface. The issue reproduction below describes the earlier
+presentation and the regression checks it established.
+
 Issue #16 was reproduced in Chromium with a 320 px viewport and a 377 px page
 scroll width. Technology rows could not wrap and the mobile grid retained its
 content's minimum width.

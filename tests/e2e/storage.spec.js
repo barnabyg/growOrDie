@@ -69,65 +69,82 @@ test("failed harvest save stays visible, retries once, and preserves the previou
   expect(errors).toEqual([]);
 });
 
-test("failed allocation and Restart preserve stored progress until retry succeeds", async ({
-  page,
-}) => {
-  const errors = [];
-  page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(origin);
-  await page.locator("#confirm-btn").click();
-  const previous = await page.evaluate(() =>
-    localStorage.getItem("growOrDie.save.v1"),
-  );
-  await page.evaluate(() => {
-    const original = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (key, value) {
-      if (!window.storageRecovered) throw new Error("quota");
-      return original.call(this, key, value);
-    };
+for (const collapsed of [false, true]) {
+  test(`failed allocation and Restart preserve a ${collapsed ? "collapsed" : "continuing"} run until retry succeeds`, async ({
+    page,
+  }) => {
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto(origin);
+    await page.evaluate(async () => {
+      const { newSave, persist } = await import("/dist/persistence.js");
+      persist(newSave(5));
+    });
+    await page.reload();
+    if (collapsed) await page.locator("#plan-hectares").fill("0");
+    await page.locator("#confirm-btn").click();
+    const previous = await page.evaluate(() =>
+      localStorage.getItem("growOrDie.save.v1"),
+    );
+    await page.evaluate(() => {
+      const original = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (!window.storageRecovered) throw new Error("quota");
+        return original.call(this, key, value);
+      };
+    });
+    await page.locator("#allocate-btn").click();
+    await expect(page.locator("#stat-year")).toHaveText("2");
+    await expect(page.locator("#report")).toBeVisible();
+    await expect(page.locator("#event-log li")).toHaveCount(1);
+    await expect(page.locator("#confirm-btn")).toBeDisabled();
+    if (collapsed) {
+      await expect(page.locator("#production")).toBeHidden();
+      await expect(page.locator("#collapse-summary")).toBeVisible();
+      await expect(page.locator("#collapse-restart-btn")).toBeDisabled();
+    } else {
+      await page.locator("#plan-hectares").fill("0");
+      await expect(page.locator("#confirm-btn")).toBeDisabled();
+    }
+    expect(
+      await page.evaluate(() => localStorage.getItem("growOrDie.save.v1")),
+    ).toBe(previous);
+    await page.evaluate(() => {
+      window.storageRecovered = true;
+    });
+    await page.locator("#retry-save-btn").click();
+    await expect(page.locator("#save-notice")).toBeHidden();
+    if (collapsed)
+      await expect(page.locator("#collapse-restart-btn")).toBeEnabled();
+    else await expect(page.locator("#confirm-btn")).toBeEnabled();
+    const completed = await page.evaluate(() =>
+      localStorage.getItem("growOrDie.save.v1"),
+    );
+    await page.evaluate(() => {
+      window.storageRecovered = false;
+    });
+    page.on("dialog", (dialog) => dialog.accept());
+    await page.locator("#restart-btn").click();
+    await expect(page.locator("#save-status")).toContainText(
+      "Restart was not saved",
+    );
+    await expect(page.locator("#stat-year")).toHaveText("2");
+    expect(
+      await page.evaluate(() => localStorage.getItem("growOrDie.save.v1")),
+    ).toBe(completed);
+    await page.locator("#retry-save-btn").click();
+    await expect(page.locator("#stat-year")).toHaveText("2");
+    await page.evaluate(() => {
+      window.storageRecovered = true;
+    });
+    await page.locator("#retry-save-btn").click();
+    await expect(page.locator("#stat-year")).toHaveText("1");
+    await expect(page.locator("#event-log li")).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator("#stat-year")).toHaveText("1");
+    expect(errors).toEqual([]);
   });
-  await page.locator("#allocate-btn").click();
-  await expect(page.locator("#stat-year")).toHaveText("2");
-  await expect(page.locator("#report")).toBeVisible();
-  await expect(page.locator("#event-log li")).toHaveCount(1);
-  await expect(page.locator("#confirm-btn")).toBeDisabled();
-  await page.locator("#plan-hectares").fill("0");
-  await expect(page.locator("#confirm-btn")).toBeDisabled();
-  expect(
-    await page.evaluate(() => localStorage.getItem("growOrDie.save.v1")),
-  ).toBe(previous);
-  await page.evaluate(() => {
-    window.storageRecovered = true;
-  });
-  await page.locator("#retry-save-btn").click();
-  await expect(page.locator("#save-notice")).toBeHidden();
-  const completed = await page.evaluate(() =>
-    localStorage.getItem("growOrDie.save.v1"),
-  );
-  await page.evaluate(() => {
-    window.storageRecovered = false;
-  });
-  page.on("dialog", (dialog) => dialog.accept());
-  await page.locator("#restart-btn").click();
-  await expect(page.locator("#save-status")).toContainText(
-    "Restart was not saved",
-  );
-  await expect(page.locator("#stat-year")).toHaveText("2");
-  expect(
-    await page.evaluate(() => localStorage.getItem("growOrDie.save.v1")),
-  ).toBe(completed);
-  await page.locator("#retry-save-btn").click();
-  await expect(page.locator("#stat-year")).toHaveText("2");
-  await page.evaluate(() => {
-    window.storageRecovered = true;
-  });
-  await page.locator("#retry-save-btn").click();
-  await expect(page.locator("#stat-year")).toHaveText("1");
-  await expect(page.locator("#event-log li")).toHaveCount(0);
-  await page.reload();
-  await expect(page.locator("#stat-year")).toHaveText("1");
-  expect(errors).toEqual([]);
-});
+}
 
 for (const failure of ["getItem", "localStorage"]) {
   test(`startup handles throwing ${failure} and retries without overwriting an existing run`, async ({

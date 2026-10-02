@@ -3,238 +3,343 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f3ead8" />
     <title>Grow or Die</title>
     <style>
       :root {
-        --bg: #14100c;
-        --panel: #211a13;
-        --border: #3a2f22;
-        --text: #ece3d4;
-        --muted: #a89a85;
+        color-scheme: light dark;
+        --bg: light-dark(#f3ead8, #171b13);
+        --panel: light-dark(#fffaf0, #252a1e);
+        --border: light-dark(#d8d3bc, #454c37);
+        --text: light-dark(#2c3222, #f0eddd);
+        --muted: light-dark(#666950, #bec2aa);
         --accent: #7fb069;
-        --danger: #d96c47;
+        --green: light-dark(#41612d, #a8c883);
+        --green-ink: light-dark(#fffaf0, #182410);
+        --gold: light-dark(#9b6a1d, #e1bf76);
+        --danger: light-dark(#a23c28, #efa28d);
+        --track: light-dark(#e0ddc7, #363e2a);
+        --land: light-dark(#d8d8b7, #3a4b30);
+        --prepared: light-dark(#cbbf96, #786843);
+        --river: light-dark(#b6ced2, #415e69);
+        --roof: light-dark(#ac714b, #b68b61);
+        --house: light-dark(#ead6a8, #c4b38a);
       }
       * {
         box-sizing: border-box;
       }
+      [hidden] {
+        display: none;
+      }
       body {
         margin: 0;
-        font-family: Georgia, "Times New Roman", serif;
         background: var(--bg);
         color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.5;
       }
-      header {
-        display: flex;
+      button,
+      input {
+        font: inherit;
+      }
+      button,
+      summary,
+      input[type="range"],
+      input[type="checkbox"],
+      label[for^="tech-"] {
+        cursor: pointer;
+      }
+      button {
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 0.7rem 1rem;
+        background: var(--green);
+        color: var(--green-ink);
+        font-weight: 600;
+        display: inline-flex;
+        justify-content: center;
         align-items: center;
-        gap: 1.5rem;
-        padding: 0.75rem 1.25rem;
+        gap: 0.5rem;
+      }
+      button:hover:not(:disabled) {
+        filter: brightness(1.08);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      button.secondary {
         background: var(--panel);
-        border-bottom: 1px solid var(--border);
-        flex-wrap: wrap;
+        color: var(--text);
+        border-color: var(--border);
       }
-      header h1 {
-        font-size: 1.1rem;
+      button.quiet {
+        background: transparent;
+        color: var(--green);
+        padding: 0.35rem 0.55rem;
+        font-size: 0.8rem;
+      }
+      :focus-visible {
+        outline: 3px solid var(--gold);
+        outline-offset: 4px;
+      }
+      .icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        flex: none;
+      }
+      .icon-library {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+      }
+      .collapse-symbol {
+        width: 2.5rem;
+        height: 2.5rem;
+        color: var(--danger);
+        margin-bottom: 0.65rem;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.25;
+      }
+      h1 {
         margin: 0;
-        letter-spacing: 0.05em;
+        font-size: 1.8rem;
+        letter-spacing: -0.035em;
       }
-      .stats {
-        display: flex;
-        gap: 1.25rem;
-        flex-wrap: wrap;
-        margin-left: auto;
+      h2 {
+        margin: 0 0 1rem;
+        font-size: 1.35rem;
       }
-      .stat {
-        text-align: center;
+      h3 {
+        margin: 0 0 0.6rem;
+        font-size: 1.05rem;
       }
-      .stat .label {
-        display: block;
-        font-size: 0.65rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+      p {
+        margin: 0.6rem 0;
+      }
+      .label,
+      .eyebrow {
+        font-size: 0.75rem;
         color: var(--muted);
       }
-      .stat .value {
-        font-size: 1rem;
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+      }
+      .value,
+      output {
         font-variant-numeric: tabular-nums;
       }
-      main {
-        max-width: 1060px;
+      .masthead {
+        max-width: 1160px;
         margin: 0 auto;
-        padding: 1.5rem 1.25rem 3rem;
+        padding: 1.5rem 1.5rem 0;
+      }
+      .topline {
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .brand {
+        display: flex;
+        gap: 0.65rem;
+        align-items: center;
+      }
+      .brand > .icon {
+        width: 2rem;
+        height: 2rem;
+        color: var(--gold);
+      }
+      .brand p {
+        font-size: 0.8rem;
+        margin: 0.15rem 0 0;
+        color: var(--muted);
+      }
+      .run-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .run-actions button {
+        font-size: 0.8rem;
+      }
+      .stats {
         display: grid;
-        grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 1rem;
+        padding: 1.2rem 0;
+        margin-top: 1rem;
+        border-block: 1px solid var(--border);
+      }
+      .stat {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .stat .label {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .stat .icon {
+        width: 0.95rem;
+        height: 0.95rem;
+        color: var(--gold);
+      }
+      .stat .value {
+        display: block;
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin-top: 0.15rem;
+      }
+      .year-rhythm {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        margin-top: 1rem;
+      }
+      .turn-steps {
+        display: flex;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .turn-steps li {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .step-dot {
+        width: 1.5rem;
+        height: 1.5rem;
+        display: inline-grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--track);
+      }
+      .turn-steps [aria-current="step"] {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .turn-steps [aria-current="step"] .step-dot {
+        background: var(--green);
+        color: var(--green-ink);
+      }
+      #turn-status {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin: 0;
+      }
+      main {
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 1.5rem 1.5rem 3rem;
+        display: grid;
+        grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.35fr);
         gap: 1.25rem;
         align-items: start;
+      }
+      section {
+        min-width: 0;
+        border-radius: 14px;
+        padding: 1.25rem;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        overflow-wrap: anywhere;
+      }
+      .content {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+      #save-notice {
+        grid-column: 1 / -1;
+        color: var(--danger);
+        border-color: var(--danger);
       }
       .country {
         position: sticky;
         top: 1rem;
       }
-      .content {
-        min-width: 0;
-        display: grid;
-        gap: 1.25rem;
-        align-content: start;
-      }
-      section {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 1rem 1.25rem;
-      }
-      h2 {
-        margin: 0 0 0.75rem;
-        font-size: 0.95rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--muted);
-      }
-      .plan-row {
+      .country-heading {
         display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-      }
-      label {
-        font-size: 0.9rem;
-      }
-      .tech-row {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
+        justify-content: space-between;
         gap: 0.5rem;
-        padding: 0.2rem 0;
-        font-size: 0.9rem;
+        align-items: baseline;
       }
-      .tech-row input {
-        margin: 0;
-      }
-      .tech-name {
-        min-width: 9.5rem;
-        max-width: 100%;
-      }
-      .tech-cost {
-        color: var(--muted);
-        white-space: nowrap;
-      }
-      .tech-effect {
-        color: var(--muted);
-        font-size: 0.8rem;
-      }
-      .tech-owned {
-        color: var(--accent);
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        white-space: nowrap;
-        margin-left: auto;
-      }
-      input[type="number"] {
-        width: 6rem;
-        padding: 0.4rem 0.5rem;
-        font-size: 1rem;
-        background: var(--bg);
-        color: var(--text);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-      }
-      button {
-        padding: 0.45rem 1.1rem;
-        font-size: 0.95rem;
-        font-family: inherit;
-        background: var(--accent);
-        color: #14230e;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-      }
-      button:disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
-      }
-      button.secondary {
-        background: var(--border);
-        color: var(--text);
-      }
-      .preview {
-        margin-top: 0.75rem;
-        font-size: 0.85rem;
-        color: var(--muted);
-        font-variant-numeric: tabular-nums;
-      }
-      .overspend {
-        color: var(--danger);
-        font-weight: bold;
-      }
-      table.report {
-        table-layout: fixed;
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.9rem;
-        font-variant-numeric: tabular-nums;
-      }
-      table.report td {
-        overflow-wrap: anywhere;
-        padding: 0.25rem 0;
-        border-bottom: 1px solid var(--border);
-      }
-      table.report td:last-child {
-        text-align: right;
-      }
-      .famine-banner {
-        display: inline-block;
-        margin-top: 0.5rem;
-        padding: 0.35rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.9rem;
-        background: #2a1d18;
-        color: var(--muted);
-      }
-      .famine-banner.famine {
-        background: #3d1f14;
-        color: var(--danger);
-      }
-      .milestone-banner {
-        display: block;
-        margin-top: 0.5rem;
-        padding: 0.45rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.95rem;
-        background: #2e2410;
-        border: 1px solid #d4a94e;
-        color: #d4a94e;
-      }
-      #collapse-summary h2 {
-        color: var(--danger);
-      }
-      .event-log {
-        max-height: 12rem;
-        overflow-y: auto;
-        margin: 0;
-        padding-left: 1.1rem;
-        font-size: 0.85rem;
-        color: var(--muted);
-      }
-      .event-log li {
-        margin: 0.15rem 0;
-      }
-      .event-log li.drought,
-      .event-log li.flood,
-      .event-log li.priceShock {
-        color: var(--text);
-        font-weight: bold;
+      .country-heading h2 {
+        margin-bottom: 0.2rem;
       }
       #country-svg {
         display: block;
         width: 100%;
         height: auto;
       }
+      .land-sky {
+        fill: var(--bg);
+      }
+      .land-hills {
+        fill: var(--land);
+      }
+      .land-river {
+        fill: none;
+        stroke: var(--river);
+        stroke-width: 13;
+        stroke-linecap: round;
+      }
+      .unprepared-field {
+        fill: var(--land);
+      }
+      .prepared-field {
+        fill: var(--prepared);
+      }
+      .tree-trunk {
+        fill: var(--roof);
+      }
+      .tree-leaves {
+        fill: var(--green);
+      }
+      .house-walls {
+        fill: var(--house);
+      }
+      .house-roof {
+        fill: var(--roof);
+      }
+      .house-door {
+        fill: var(--prepared);
+      }
+      .village-house,
+      #country-green,
+      .weather-water,
+      .weather-cracks {
+        transition:
+          opacity 0.4s ease,
+          fill 0.4s ease;
+      }
       #country-green {
         fill: var(--accent);
-        transition:
-          y 0.6s ease,
-          height 0.6s ease,
-          fill 0.4s ease;
       }
       #country-green.drought {
         fill: #a97142;
@@ -242,83 +347,849 @@
       #country-green.flood {
         fill: #5b8ec4;
       }
+      .weather-cracks {
+        opacity: 0;
+        fill: none;
+        stroke: var(--roof);
+        stroke-width: 2;
+      }
+      .weather-water {
+        opacity: 0;
+        fill: var(--river);
+      }
+      .weather-drought .weather-cracks {
+        opacity: 0.8;
+      }
+      .weather-flood .weather-water {
+        opacity: 0.65;
+      }
+      .collapsed .village-house {
+        filter: grayscale(1);
+      }
+      .landmark {
+        fill: var(--house);
+        stroke: var(--green);
+        stroke-width: 2;
+      }
       .country-caption {
-        margin: 0.75rem 0 0;
-        font-size: 0.85rem;
         color: var(--muted);
-        text-align: center;
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+      }
+      .land-legend {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.65rem;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.75rem;
+      }
+      .land-legend strong {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+      .swatch {
+        display: inline-block;
+        width: 0.5rem;
+        height: 0.5rem;
+        margin-right: 0.25rem;
+        background: var(--land);
+        border-radius: 2px;
+      }
+      .swatch.prepared {
+        background: var(--prepared);
+      }
+      .swatch.cultivated {
+        background: var(--accent);
+      }
+      .milestone-progress {
+        margin-top: 1.2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+      }
+      .milestone-title {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--gold);
+        font-size: 0.8rem;
+      }
+      .milestone-title .icon {
+        width: 1rem;
+        height: 1rem;
+      }
+      progress {
+        width: 100%;
+        height: 0.5rem;
+        border: none;
+        border-radius: 3px;
+        overflow: hidden;
+        background: var(--track);
+        accent-color: var(--gold);
+        display: block;
+        margin-top: 0.7rem;
+      }
+      progress::-webkit-progress-bar {
+        background: var(--track);
+      }
+      progress::-webkit-progress-value {
+        background: var(--gold);
+      }
+      progress::-moz-progress-bar {
+        background: var(--gold);
+      }
+      .country-technologies {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-bottom: 0;
+      }
+      .section-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .first-plan {
+        background: var(--bg);
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+      }
+      .first-plan p {
+        margin: 0;
+      }
+      .plan-field {
+        margin-top: 1rem;
+      }
+      .planning-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+        gap: 1rem;
+        align-items: start;
+      }
+      .production-fields > .plan-field:first-child {
+        margin-top: 0;
+      }
+      .field-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.35rem 0.75rem;
+        flex-wrap: wrap;
+      }
+      .field-heading > label {
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+      .field-detail {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      .input-pair {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        margin-top: 0.5rem;
+      }
+      input[type="number"] {
+        width: 6rem;
+        min-width: 0;
+        padding: 0.55rem 0.6rem;
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        font-size: 1rem;
         font-variant-numeric: tabular-nums;
       }
-      @media (max-width: 760px) {
-        main {
-          grid-template-columns: minmax(0, 1fr);
-          padding-inline: 0.75rem;
+      input[type="range"] {
+        flex: 1;
+        width: 100%;
+        min-width: 0;
+        height: 1.5rem;
+        accent-color: var(--green);
+      }
+      input[type="checkbox"] {
+        accent-color: var(--green);
+        width: 1.15rem;
+        height: 1.15rem;
+        margin: 0;
+      }
+      .field-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.1rem;
+        flex-wrap: wrap;
+      }
+      .food-outlook {
+        padding: 0.8rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+      }
+      .food-outlook h3 {
+        font-size: 1.15rem;
+      }
+      .meter-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        margin: 0.65rem 0 0.3rem;
+      }
+      .meter {
+        height: 0.5rem;
+        display: flex;
+        background: var(--track);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .meter > span {
+        height: 100%;
+        display: block;
+        transition: width 0.2s ease;
+      }
+      #forecast-harvest-bar {
+        background: var(--green);
+      }
+      #forecast-storage-bar {
+        background: var(--river);
+      }
+      #forecast-consumption-bar {
+        background: var(--gold);
+      }
+      .food-balance {
+        margin-top: 0.7rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--green);
+      }
+      .food-balance.shortfall,
+      .overspend {
+        color: var(--danger);
+      }
+      details {
+        font-size: 0.8rem;
+      }
+      summary {
+        padding: 0.55rem 0;
+        color: var(--muted);
+      }
+      summary:hover {
+        color: var(--text);
+      }
+      .scenario-table,
+      .report {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 0.8rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .scenario-table td,
+      .scenario-table th,
+      .report td {
+        padding: 0.4rem 0;
+        border-bottom: 1px solid var(--border);
+        overflow-wrap: anywhere;
+        vertical-align: top;
+      }
+      .scenario-table th {
+        font-weight: 600;
+        text-align: left;
+        color: var(--muted);
+      }
+      .scenario-table td:last-child,
+      .scenario-table th:last-child,
+      .report td:last-child {
+        text-align: right;
+        padding-left: 0.5rem;
+      }
+      .budget-summary {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+      }
+      .budget-summary .meter {
+        margin: 0.65rem 0;
+      }
+      #budget-bar {
+        background: var(--green);
+      }
+      .budget-summary.over-budget #budget-bar {
+        background: var(--danger);
+      }
+      .budget-values {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        font-size: 0.85rem;
+      }
+      .budget-values strong {
+        display: block;
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+      .preview {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      #plan-error {
+        color: var(--danger);
+        font-size: 0.8rem;
+      }
+      .commit-button {
+        width: 100%;
+        margin-top: 0.75rem;
+        padding-block: 0.85rem;
+      }
+      .technology-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+        margin-top: 0.9rem;
+      }
+      .tech-row {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 1.3rem 1.15rem minmax(0, 1fr);
+        column-gap: 0.5rem;
+        row-gap: 0.35rem;
+        align-content: start;
+        align-items: start;
+        padding: 0.85rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 0.85rem;
+      }
+      .tech-row > .icon {
+        color: var(--gold);
+        margin-top: 0.15rem;
+      }
+      .tech-row input {
+        margin-top: 0.2rem;
+      }
+      .tech-name {
+        grid-column: 3;
+        font-weight: 600;
+        min-width: 0;
+      }
+      .tech-cost,
+      .tech-benefit,
+      .tech-effect,
+      .tech-owned,
+      .tech-status {
+        grid-column: 3;
+        min-width: 0;
+      }
+      .tech-cost {
+        color: var(--gold);
+        font-size: 0.8rem;
+      }
+      .tech-benefit {
+        font-size: 0.8rem;
+      }
+      .tech-effect {
+        color: var(--muted);
+        font-size: 0.7rem;
+      }
+      .tech-owned,
+      .tech-status {
+        color: var(--green);
+        font-size: 0.75rem;
+      }
+      .tech-row.selected {
+        border-color: var(--green);
+        box-shadow: inset 0 0 0 1px var(--green);
+      }
+      .tech-row.owned {
+        background: var(--panel);
+      }
+      .tech-row.unaffordable .tech-status {
+        color: var(--danger);
+      }
+      .event-reveal {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        animation: reveal 0.25s ease-out;
+      }
+      .event-title {
+        display: flex;
+        gap: 0.65rem;
+        align-items: center;
+      }
+      .event-title > .icon {
+        width: 2.2rem;
+        height: 2.2rem;
+        color: var(--gold);
+      }
+      .event-title h3 {
+        margin: 0;
+        font-size: 1.45rem;
+      }
+      #allocation-event {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .outcome-title {
+        font:
+          600 1.6rem/1.2 Georgia,
+          serif;
+        margin-top: 0.8rem;
+        color: var(--green);
+      }
+      .famine .outcome-title {
+        color: var(--danger);
+      }
+      .result-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0;
+      }
+      .result-grid > div {
+        min-width: 0;
+      }
+      .result-grid strong {
+        display: block;
+        font-size: 1.2rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .result-grid .label {
+        display: block;
+      }
+      #allocation-surplus {
+        color: var(--green);
+      }
+      .allocation-choice {
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+      }
+      #allocation-error {
+        font-size: 0.8rem;
+        color: var(--danger);
+      }
+      .allocation-totals {
+        margin-top: 1rem;
+        padding: 0.9rem;
+        border-radius: 8px;
+        background: var(--bg);
+      }
+      .allocation-totals p {
+        margin: 0.25rem 0;
+        font-size: 0.85rem;
+      }
+      .allocation-totals p:last-child {
+        padding-top: 0.65rem;
+        margin-top: 0.65rem;
+        border-top: 1px solid var(--border);
+        font-weight: 600;
+      }
+      .history-section h2 {
+        margin-bottom: 0.3rem;
+      }
+      .report-hero {
+        display: flex;
+        gap: 0.75rem;
+        align-items: start;
+      }
+      .report-hero > .icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        color: var(--green);
+      }
+      #report.famine .report-hero > .icon {
+        color: var(--danger);
+      }
+      #report h2 {
+        margin: 0.15rem 0 0;
+      }
+      #report-headline {
+        font:
+          600 1.8rem/1.2 Georgia,
+          serif;
+        color: var(--green);
+        margin: 0.75rem 0 0.3rem;
+      }
+      #report.famine #report-headline {
+        color: var(--danger);
+      }
+      #report-population-summary {
+        margin: 0;
+        font-size: 0.85rem;
+      }
+      .report-highlights {
+        display: flex;
+        gap: 0.5rem 1.25rem;
+        flex-wrap: wrap;
+        margin: 0.8rem 0;
+        font-size: 0.8rem;
+      }
+      .famine-banner {
+        color: var(--green);
+        font-size: 0.8rem;
+      }
+      .famine-banner.famine {
+        color: var(--danger);
+      }
+      .milestone-banner {
+        margin: 0.9rem 0;
+        padding: 0.9rem;
+        background: var(--bg);
+        border: 1px solid var(--gold);
+        border-radius: 8px;
+        color: var(--gold);
+        font-size: 1rem;
+        animation: reveal 0.35s ease-out;
+      }
+      #collapse-summary {
+        border-color: var(--danger);
+      }
+      #collapse-summary h2 {
+        color: var(--danger);
+        font-size: 2rem;
+        margin-bottom: 0.65rem;
+      }
+      #collapse-cause {
+        font-size: 0.95rem;
+      }
+      #collapse-event {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .event-log {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        font-size: 0.8rem;
+      }
+      .event-log li {
+        border-top: 1px solid var(--border);
+        padding: 0.75rem 0;
+      }
+      .event-log li:first-child {
+        border-top: none;
+      }
+      .event-log li.drought,
+      .event-log li.flood,
+      .event-log li.priceShock {
+        color: var(--gold);
+      }
+      .event-log p {
+        color: var(--text);
+      }
+      #empty-history {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .help {
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 0 1.5rem 2rem;
+        color: var(--muted);
+      }
+      .help details {
+        border-top: 1px solid var(--border);
+        padding-top: 0.5rem;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+      }
+      @keyframes reveal {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
         }
-        section {
-          min-width: 0;
-          padding-inline: 0.75rem;
-          overflow-wrap: anywhere;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .tech-row {
-          display: grid;
-          grid-template-columns: auto minmax(0, 1fr);
-          align-items: start;
+      }
+      @media (max-width: 840px) {
+        .masthead {
+          padding: 1rem 0.85rem 0;
         }
-        .tech-name {
-          min-width: 0;
+        h1 {
+          font-size: 1.6rem;
         }
-        .tech-cost,
-        .tech-effect,
-        .tech-owned {
-          grid-column: 2;
-          white-space: normal;
-          margin-left: 0;
-        }
-        button,
-        input[type="number"] {
-          max-width: 100%;
+        .brand p {
+          display: none;
         }
         .stats {
-          min-width: 0;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 0.8rem;
+          padding: 0.9rem 0;
         }
-        .stat {
-          max-width: 100%;
-          overflow-wrap: anywhere;
+        .stat .value {
+          font-size: 1rem;
+        }
+        .turn-steps {
+          gap: 0.6rem;
+          font-size: 0.75rem;
+        }
+        .year-rhythm {
+          margin-top: 0.75rem;
+        }
+        main {
+          display: flex;
+          flex-direction: column;
+          padding: 1rem 0.75rem 2rem;
+          gap: 1rem;
+        }
+        section {
+          padding: 1rem;
+        }
+        main > section,
+        .content > section {
+          width: 100%;
+        }
+        .content {
+          display: contents;
+        }
+        #save-notice {
+          order: 0;
+        }
+        #collapse-summary {
+          order: 1;
+        }
+        #report {
+          order: 2;
+        }
+        #production,
+        #allocation {
+          order: 3;
         }
         .country {
           position: static;
+          order: 4;
+        }
+        #technologies {
+          order: 5;
+        }
+        .history-section {
+          order: 6;
+        }
+        #country-svg {
+          height: 11rem;
+        }
+        .help {
+          padding-inline: 0.85rem;
+        }
+      }
+      @media (max-width: 540px) {
+        .technology-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .run-actions button {
+          padding: 0.5rem 0.65rem;
+        }
+        .run-actions .icon {
+          width: 1rem;
+          height: 1rem;
+        }
+        .topline {
+          gap: 0.65rem;
+        }
+        .tech-row {
+          grid-template-columns: 1.4rem 1.2rem minmax(0, 1fr);
+        }
+        .tech-name {
+          min-height: 1.5rem;
+        }
+      }
+      @media (pointer: coarse) {
+        button,
+        summary,
+        label[for^="tech-"] {
+          min-height: 44px;
+        }
+        input[type="range"] {
+          min-height: 44px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .event-reveal,
+        .milestone-banner {
+          animation: none;
+        }
+        .village-house,
+        #country-green,
+        .weather-water,
+        .weather-cracks,
+        .meter > span {
+          transition: none;
         }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Grow or Die</h1>
+    <svg
+      class="icon-library"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <symbol id="icon-wheat" viewBox="0 0 24 24">
+          <path
+            d="M5 21 20 6M10 16C5 17 3 13 4 10c4 0 7 2 6 6Zm4-4c-5 1-7-3-6-6 4 0 7 2 6 6Zm4-4c-4 1-6-3-5-6 4 0 6 2 5 6ZM10 16c-1-5 3-7 6-6 0 4-2 7-6 6Zm4-4c-1-5 3-7 6-6 0 4-2 7-6 6Z"
+          />
+        </symbol>
+        <symbol id="icon-people" viewBox="0 0 24 24">
+          <circle cx="9" cy="7" r="3" />
+          <path
+            d="M3 21v-4a6 6 0 0 1 12 0v4M17 4a3 3 0 0 1 0 6m2 3c2 1 2 4 2 7"
+          />
+        </symbol>
+        <symbol id="icon-coins" viewBox="0 0 24 24">
+          <ellipse cx="10" cy="6" rx="7" ry="3" />
+          <path
+            d="M3 6v5c0 4 14 4 14 0V6M3 11v5c0 4 14 4 14 0v-5m0 0c5-1 5 4 5 6s-4 4-9 3"
+          />
+        </symbol>
+        <symbol id="icon-barn" viewBox="0 0 24 24">
+          <path d="m2 10 10-7 10 7M4 9v12h16V9M9 21v-9h6v9M9 12l6 9m0-9-6 9" />
+        </symbol>
+        <symbol id="icon-droplet" viewBox="0 0 24 24">
+          <path d="M12 2C10 6 5 11 5 15a7 7 0 0 0 14 0c0-4-5-9-7-13Z" />
+        </symbol>
+        <symbol id="icon-leaf" viewBox="0 0 24 24">
+          <path d="M20 3C5 2 2 12 7 17s15 1 13-14ZM3 21 16 8" />
+        </symbol>
+        <symbol id="icon-trade" viewBox="0 0 24 24">
+          <path d="M3 7h17l-4-4m4 4-4 4M21 17H4l4-4m-4 4 4 4" />
+        </symbol>
+        <symbol id="icon-survey" viewBox="0 0 24 24">
+          <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3ZM9 3v15m6-12v15" />
+        </symbol>
+        <symbol id="icon-fertilizer" viewBox="0 0 24 24">
+          <path
+            d="M7 3h10M9 3v6l-5 9c-1 2 0 3 2 3h12c2 0 3-1 2-3l-5-9V3M7 15h10"
+          />
+        </symbol>
+        <symbol id="icon-arrow" viewBox="0 0 24 24">
+          <path d="M4 12h16m-6-6 6 6-6 6" />
+        </symbol>
+        <symbol id="icon-sun" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"
+          />
+        </symbol>
+        <symbol id="icon-rain" viewBox="0 0 24 24">
+          <path
+            d="M5 14a4 4 0 0 1 0-8 6 6 0 0 1 11-2 5 5 0 0 1 2 10H5Zm2 3-1 3m6-3-1 3m6-3-1 3"
+          />
+        </symbol>
+        <symbol id="icon-trophy" viewBox="0 0 24 24">
+          <path
+            d="M7 3h10v6a5 5 0 0 1-10 0ZM7 5H3v3a4 4 0 0 0 5 4m9-7h4v3a4 4 0 0 1-5 4M12 14v6m-5 1h10"
+          />
+        </symbol>
+        <symbol id="icon-collapse" viewBox="0 0 24 24">
+          <path
+            d="M3 21h18M5 21V9l7-6 7 6v12M10 3l2 6-3 4 4 3-2 5M5 10H3m16 0h2"
+          />
+        </symbol>
+        <symbol id="icon-volume" viewBox="0 0 24 24">
+          <path
+            d="M3 9h4l5-4v14l-5-4H3ZM16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"
+          />
+        </symbol>
+      </defs>
+    </svg>
+    <header class="masthead">
+      <div class="topline">
+        <div class="brand">
+          <svg class="icon" aria-hidden="true"><use href="#icon-wheat" /></svg>
+          <div>
+            <h1>Grow or Die</h1>
+            <p>A country to cultivate. A people to feed.</p>
+          </div>
+        </div>
+        <div class="run-actions">
+          <button
+            type="button"
+            class="secondary"
+            id="sound-btn"
+            aria-pressed="false"
+          >
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-volume" /></svg
+            ><span id="sound-label">Sound off</span></button
+          ><button type="button" class="secondary" id="restart-btn">
+            Restart run
+          </button>
+        </div>
+      </div>
       <div class="stats">
         <div class="stat">
           <span class="label">Year</span
           ><span class="value" id="stat-year"></span>
         </div>
         <div class="stat">
-          <span class="label">Population</span
+          <span class="label"
+            ><svg class="icon" aria-hidden="true">
+              <use href="#icon-people" /></svg
+            ><span id="population-label">Population</span></span
           ><span class="value" id="stat-population"></span>
         </div>
         <div class="stat">
-          <span class="label">Score</span
+          <span class="label"
+            ><svg class="icon" aria-hidden="true">
+              <use href="#icon-trophy" /></svg
+            >Score</span
           ><span class="value" id="stat-score"></span>
         </div>
         <div class="stat">
-          <span class="label">Storage</span
+          <span class="label"
+            ><svg class="icon" aria-hidden="true"><use href="#icon-barn" /></svg
+            ><span id="storage-label">Storage</span></span
           ><span class="value" id="stat-storage"></span>
         </div>
         <div class="stat">
-          <span class="label">Budget</span
+          <span class="label"
+            ><svg class="icon" aria-hidden="true">
+              <use href="#icon-coins" /></svg
+            ><span id="budget-label">Budget</span></span
           ><span class="value" id="stat-budget"></span>
         </div>
         <div class="stat">
-          <span class="label">World price</span
+          <span class="label"
+            ><svg class="icon" aria-hidden="true">
+              <use href="#icon-trade" /></svg
+            ><span id="price-label">World price</span></span
           ><span class="value" id="stat-price"></span>
         </div>
+      </div>
+      <div class="year-rhythm">
+        <ol class="turn-steps" aria-label="Year progress">
+          <li id="step-plan" aria-current="step">
+            <span class="step-dot">1</span>Plan
+          </li>
+          <li id="step-allocate">
+            <span class="step-dot">2</span>Harvest &amp; allocate
+          </li>
+          <li id="step-report"><span class="step-dot">3</span>Year report</li>
+        </ol>
+        <p id="turn-status" role="status"></p>
       </div>
     </header>
     <main>
@@ -326,254 +1197,734 @@
         <p id="save-status" role="alert"></p>
         <button type="button" id="retry-save-btn">Retry</button>
       </section>
-      <section class="country">
-        <h2>Country</h2>
+      <section class="country" aria-labelledby="country-title">
+        <div class="country-heading">
+          <h2 id="country-title">Your country</h2>
+          <span class="eyebrow" id="country-mode">Plan preview</span>
+        </div>
         <svg
           id="country-svg"
-          viewBox="0 0 300 340"
+          viewBox="0 0 520 385"
           role="img"
-          aria-label="Country silhouette; the green area is the share of Arable land prepared"
+          aria-label="Your country"
         >
           <defs>
-            <path
-              id="country-shape"
-              d="M 148 26 C 176 20, 211 40, 232 58 C 253 76, 268 104, 272 132 C 276 160, 275 193, 258 224 C 241 255, 199 305, 170 316 C 141 327, 107 308, 84 288 C 61 268, 37 228, 34 196 C 31 164, 45 124, 64 96 C 83 68, 120 32, 148 26 Z"
-            />
-            <clipPath id="country-clip">
-              <use href="#country-shape" />
-            </clipPath>
+            <pattern
+              id="crop-rows"
+              width="13"
+              height="13"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(18)"
+            >
+              <path
+                d="M3 0v13"
+                stroke="var(--house)"
+                stroke-width="2.5"
+                opacity="0.6"
+              />
+            </pattern>
+            <symbol id="land-tree" viewBox="0 0 26 32" width="26" height="32">
+              <rect class="tree-trunk" x="11" y="22" width="4" height="9" />
+              <path class="tree-leaves" d="m13 0 11 18h-5l7 9H0l7-9H2Z" />
+            </symbol>
+            <symbol id="land-house" viewBox="0 0 38 39" width="38" height="39">
+              <rect
+                class="house-walls"
+                x="5"
+                y="17"
+                width="28"
+                height="20"
+                rx="1"
+              />
+              <path class="house-roof" d="M0 18 19 2l19 16Z" />
+              <rect class="house-door" x="16" y="25" width="8" height="12" />
+              <rect class="house-door" x="8" y="23" width="5" height="5" />
+            </symbol>
           </defs>
-          <g clip-path="url(#country-clip)">
-            <rect x="0" y="0" width="300" height="340" fill="#57432e" />
-            <rect id="country-green" x="0" y="272" width="300" height="68" />
-          </g>
-          <use
-            href="#country-shape"
-            fill="none"
-            stroke="#8a7a5f"
-            stroke-width="3"
+          <rect class="land-sky" width="520" height="385" rx="18" />
+          <circle cx="443" cy="46" r="19" fill="var(--gold)" opacity="0.4" />
+          <path
+            class="land-hills"
+            d="M0 138Q77 55 165 111T331 100 520 129v35H0Z"
+            opacity="0.55"
           />
+          <path
+            class="land-hills"
+            d="M0 158Q81 108 204 135T385 125 520 159v214H0Z"
+          />
+          <path class="land-river" d="M0 112q90 18 61 72t-38 92q-8 51 21 98" />
+          <g aria-hidden="true">
+            <use class="village-house" href="#land-house" x="170" y="103" />
+            <use class="village-house" href="#land-house" x="218" y="87" />
+            <use class="village-house" href="#land-house" x="267" y="102" />
+            <use class="village-house" href="#land-house" x="310" y="86" />
+            <use class="village-house" href="#land-house" x="135" y="75" />
+            <use class="village-house" href="#land-house" x="190" y="59" />
+            <use class="village-house" href="#land-house" x="250" y="52" />
+            <use class="village-house" href="#land-house" x="294" y="53" />
+          </g>
+          <g id="country-fields" aria-hidden="true"></g>
+          <g id="country-green" aria-hidden="true"></g>
+          <path
+            class="weather-water"
+            d="M37 289q48-19 92 4t91-3 92 4 95-3 86 7v30H37Z"
+          />
+          <path
+            class="weather-cracks"
+            d="m65 306 7 11-7 9m151-19 10 7-5 10m172-19 8 13-10 9"
+          />
+          <g class="landmark" aria-hidden="true">
+            <g id="landmark-irrigation" display="none">
+              <path
+                d="M67 144h355M120 140v12m90-12v12m90-12v12"
+                fill="none"
+                stroke="var(--river)"
+                stroke-width="4"
+              />
+            </g>
+            <g id="landmark-granary" display="none">
+              <rect x="370" y="99" width="37" height="40" rx="4" />
+              <path d="m366 100 23-16 23 16Z" />
+              <path d="M389 104v35" />
+            </g>
+            <g id="landmark-tradeRoutes" display="none">
+              <path d="M482 171v160" stroke="var(--roof)" stroke-width="8" />
+              <path d="m482 177 13 9-13 9Z" fill="var(--gold)" />
+            </g>
+            <g id="landmark-landSurvey" display="none">
+              <path
+                d="M39 162v-15h15m413 15v-15h-15M39 342v15h15m413-15v15h-15"
+                fill="none"
+                stroke-dasharray="4 3"
+              />
+            </g>
+            <g id="landmark-highYieldSeeds" display="none">
+              <circle cx="112" cy="121" r="12" fill="var(--gold)" />
+              <path
+                d="m106 127 12-12m-10-1 5 6m-1-10 5 6"
+                stroke="var(--panel)"
+              />
+            </g>
+            <g id="landmark-fertilizerWorks" display="none">
+              <rect x="424" y="113" width="24" height="25" rx="3" />
+              <path d="M429 114v-14h9v14" />
+              <path d="M430 129h11" />
+            </g>
+          </g>
         </svg>
         <p class="country-caption" id="country-caption"></p>
+        <div class="land-legend">
+          <div>
+            <span class="swatch cultivated"></span>Cultivated<strong
+              id="land-cultivated"
+            ></strong>
+          </div>
+          <div>
+            <span class="swatch prepared"></span>Prepared<strong
+              id="land-prepared"
+            ></strong>
+          </div>
+          <div>
+            <span class="swatch"></span>Unprepared<strong
+              id="land-unprepared"
+            ></strong>
+          </div>
+        </div>
+        <div class="milestone-progress">
+          <span class="milestone-title"
+            ><svg class="icon" aria-hidden="true">
+              <use href="#icon-trophy" /></svg
+            >Next Milestone: <strong id="milestone-target"></strong></span
+          ><progress
+            id="milestone-progress"
+            aria-label="Population toward the next Milestone"
+            value="0"
+            max="1"
+          ></progress>
+          <p class="preview" id="milestone-caption"></p>
+        </div>
+        <p class="country-technologies" id="country-technologies"></p>
       </section>
       <div class="content">
-        <section id="production">
-          <h2>Plan — Year <span id="plan-year"></span></h2>
-          <div class="plan-row">
-            <label for="plan-hectares"
-              >Cultivate (of <span id="plan-max"></span> ha prepared)</label
-            >
-            <input type="number" id="plan-hectares" min="0" step="1" />
+        <section id="collapse-summary" hidden aria-labelledby="collapse-title">
+          <svg class="icon collapse-symbol" aria-hidden="true">
+            <use href="#icon-collapse" />
+          </svg>
+          <p class="eyebrow">Your run has ended</p>
+          <h2 id="collapse-title">Collapse</h2>
+          <p id="collapse-cause"></p>
+          <p id="collapse-event"></p>
+          <div class="result-grid">
+            <div>
+              <span class="label">Run length</span
+              ><strong id="collapse-length"></strong>
+            </div>
+            <div>
+              <span class="label">Final Score · peak population</span
+              ><strong id="collapse-score"></strong>
+            </div>
           </div>
-          <div class="plan-row">
-            <label for="plan-fertilizer"
-              >Fertilize (of cultivated ·
-              <span id="plan-fert-price"></span> coins/ha, Yield ×<span
-                id="plan-fert-yield"
-              ></span
-              >)</label
-            >
-            <input type="number" id="plan-fertilizer" min="0" step="1" />
-          </div>
-          <div class="plan-row">
-            <label for="plan-prep"
-              >Prepare new land (of <span id="plan-prep-max"></span> ha arable
-              left · <span id="plan-prep-price"></span> coins/ha one-off)</label
-            >
-            <input type="number" id="plan-prep" min="0" step="1" />
-          </div>
-          <div class="plan-row">
-            <button type="button" id="confirm-btn">Resolve harvest</button>
-          </div>
-          <p class="preview">
-            Seeds: <span id="plan-seed-cost"></span> · Fertilizer:
-            <span id="plan-fert-cost"></span> · Land prep:
-            <span id="plan-prep-cost"></span> · Technologies:
-            <span id="plan-tech-cost"></span> · Total:
-            <span id="plan-total-cost"></span> coins · Budget after plan:
-            <span id="plan-remaining"></span>
-          </p>
-          <p class="preview">
-            Mandatory storage upkeep reserved:
-            <span id="plan-upkeep-cost"></span> coins. Choose storage after the
-            harvest.
-          </p>
-        </section>
-        <section id="technologies">
-          <h2>Technologies — one-off, effects from the next Turn</h2>
-          <div class="tech-row">
-            <input type="checkbox" id="tech-irrigation" />
-            <label for="tech-irrigation" class="tech-name">Irrigation</label>
-            <span class="tech-cost"></span>
-            <span class="tech-effect"></span>
-            <span class="tech-owned" id="tech-irrigation-owned" hidden
-              >Owned</span
-            >
-          </div>
-          <div class="tech-row">
-            <input type="checkbox" id="tech-highYieldSeeds" />
-            <label for="tech-highYieldSeeds" class="tech-name"
-              >High-yield seeds</label
-            >
-            <span class="tech-cost"></span>
-            <span class="tech-effect"></span>
-            <span class="tech-owned" id="tech-highYieldSeeds-owned" hidden
-              >Owned</span
-            >
-          </div>
-          <div class="tech-row">
-            <input type="checkbox" id="tech-granary" />
-            <label for="tech-granary" class="tech-name">Granary</label>
-            <span class="tech-cost"></span>
-            <span class="tech-effect"></span>
-            <span class="tech-owned" id="tech-granary-owned" hidden>Owned</span>
-          </div>
-          <div class="tech-row">
-            <input type="checkbox" id="tech-tradeRoutes" />
-            <label for="tech-tradeRoutes" class="tech-name">Trade routes</label>
-            <span class="tech-cost"></span>
-            <span class="tech-effect"></span>
-            <span class="tech-owned" id="tech-tradeRoutes-owned" hidden
-              >Owned</span
-            >
-          </div>
-          <div class="tech-row">
-            <input type="checkbox" id="tech-landSurvey" />
-            <label for="tech-landSurvey" class="tech-name">Land survey</label>
-            <span class="tech-cost"></span>
-            <span class="tech-effect"></span>
-            <span class="tech-owned" id="tech-landSurvey-owned" hidden
-              >Owned</span
-            >
-          </div>
-          <div class="tech-row">
-            <input type="checkbox" id="tech-fertilizerWorks" />
-            <label for="tech-fertilizerWorks" class="tech-name"
-              >Fertilizer works</label
-            >
-            <span class="tech-cost"></span>
-            <span class="tech-effect"></span>
-            <span class="tech-owned" id="tech-fertilizerWorks-owned" hidden
-              >Owned</span
-            >
-          </div>
-        </section>
-        <section id="allocation" hidden>
-          <h2>Allocate harvest · Year <span id="allocation-year"></span></h2>
-          <p id="allocation-event"></p>
-          <p>Harvest: <span id="allocation-harvest"></span></p>
-          <p>Consumption: <span id="allocation-consumption"></span></p>
-          <p>
-            Actual surplus: <span id="allocation-surplus"></span> · export
-            price: <span id="allocation-price"></span>
-          </p>
-          <div class="plan-row">
-            <label for="plan-store"
-              >Keep in Storage (<span id="plan-upkeep-price"></span> coins/t
-              upkeep)</label
-            >
-            <input type="number" id="plan-store" min="0" step="any" />
-          </div>
-          <p class="preview" id="plan-store-range"></p>
-          <p class="preview" id="allocation-preview" aria-live="polite"></p>
-          <p class="preview">
-            The remaining new harvest is exported automatically. This harvest is
-            committed; reloading resumes this decision.
-          </p>
-          <button type="button" id="allocate-btn">Finish year</button>
-        </section>
-        <section id="report" hidden>
-          <h2>Year report — Year <span id="report-year"></span></h2>
-          <table class="report">
-            <tr>
-              <td>Harvest</td>
-              <td id="report-harvest"></td>
-            </tr>
-            <tr>
-              <td>Consumption</td>
-              <td id="report-consumption"></td>
-            </tr>
-            <tr>
-              <td>Available food (harvest + opening storage)</td>
-              <td id="report-available"></td>
-            </tr>
-            <tr>
-              <td>Event</td>
-              <td id="report-event"></td>
-            </tr>
-            <tr>
-              <td>Population</td>
-              <td id="report-pop-change"></td>
-            </tr>
-            <tr>
-              <td>Budget: seeds</td>
-              <td id="report-seeds"></td>
-            </tr>
-            <tr>
-              <td>Budget: fertilizer</td>
-              <td id="report-fertilizer"></td>
-            </tr>
-            <tr>
-              <td>Budget: land preparation</td>
-              <td id="report-prep"></td>
-            </tr>
-            <tr>
-              <td>Budget: storage upkeep</td>
-              <td id="report-upkeep"></td>
-            </tr>
-            <tr>
-              <td>Budget: technologies</td>
-              <td id="report-technologies"></td>
-            </tr>
-            <tr>
-              <td>Exported (auto, at World price)</td>
-              <td id="report-export"></td>
-            </tr>
-            <tr>
-              <td>Budget: carry-over (unspent)</td>
-              <td id="report-carryover"></td>
-            </tr>
-            <tr>
-              <td>Budget: revenue (tax + exports)</td>
-              <td id="report-tax"></td>
-            </tr>
-            <tr>
-              <td>Next-turn Budget</td>
-              <td id="report-new-budget"></td>
-            </tr>
-          </table>
-          <div class="milestone-banner" id="milestone-banner" hidden></div>
-          <span class="famine-banner" id="report-famine"></span>
-        </section>
-        <section id="collapse-summary" hidden>
-          <h2>Collapse</h2>
-          <table class="report">
-            <tr>
-              <td>Run length</td>
-              <td id="collapse-length"></td>
-            </tr>
-            <tr>
-              <td>Final Score</td>
-              <td id="collapse-score"></td>
-            </tr>
-            <tr>
-              <td>What led to the Collapse</td>
-              <td id="collapse-cause"></td>
-            </tr>
-          </table>
-        </section>
-        <section>
-          <h2>Event log</h2>
-          <ul id="event-log" class="event-log"></ul>
-        </section>
-        <section>
-          <h2>Run</h2>
-          <button type="button" class="secondary" id="restart-btn">
-            Restart run
+          <button type="button" id="collapse-restart-btn" class="commit-button">
+            Start a new run<svg class="icon" aria-hidden="true">
+              <use href="#icon-arrow" />
+            </svg>
           </button>
+        </section>
+        <section id="report" hidden aria-labelledby="report-title">
+          <div class="report-hero">
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-people" />
+            </svg>
+            <div>
+              <span class="eyebrow">Year complete</span>
+              <h2 id="report-title">
+                Year report — Year <span id="report-year"></span>
+              </h2>
+            </div>
+          </div>
+          <p id="report-headline"></p>
+          <p id="report-population-summary"></p>
+          <div class="report-highlights">
+            <span>Storage: <strong id="report-storage-summary"></strong></span
+            ><span>Budget: <strong id="report-budget-summary"></strong></span>
+          </div>
+          <span class="famine-banner" id="report-famine"></span>
+          <div class="milestone-banner" id="milestone-banner" hidden></div>
+          <details id="report-details">
+            <summary>Harvest, Event &amp; Budget details</summary>
+            <table class="report">
+              <caption class="sr-only">
+                Detailed year accounting
+              </caption>
+              <tr>
+                <td>Harvest</td>
+                <td id="report-harvest"></td>
+              </tr>
+              <tr>
+                <td>Consumption</td>
+                <td id="report-consumption"></td>
+              </tr>
+              <tr>
+                <td>Available food (harvest + opening storage)</td>
+                <td id="report-available"></td>
+              </tr>
+              <tr>
+                <td>Event</td>
+                <td id="report-event"></td>
+              </tr>
+              <tr>
+                <td>Population</td>
+                <td id="report-pop-change"></td>
+              </tr>
+              <tr>
+                <td>Budget: seeds</td>
+                <td id="report-seeds"></td>
+              </tr>
+              <tr>
+                <td>Budget: fertilizer</td>
+                <td id="report-fertilizer"></td>
+              </tr>
+              <tr>
+                <td>Budget: land preparation</td>
+                <td id="report-prep"></td>
+              </tr>
+              <tr>
+                <td>Budget: storage upkeep</td>
+                <td id="report-upkeep"></td>
+              </tr>
+              <tr>
+                <td>Budget: technologies</td>
+                <td id="report-technologies"></td>
+              </tr>
+              <tr>
+                <td>Exported (auto, at World price)</td>
+                <td id="report-export"></td>
+              </tr>
+              <tr>
+                <td>Budget: carry-over (unspent)</td>
+                <td id="report-carryover"></td>
+              </tr>
+              <tr>
+                <td>Budget: revenue (tax + exports)</td>
+                <td id="report-tax"></td>
+              </tr>
+              <tr>
+                <td>Next-turn Budget</td>
+                <td id="report-new-budget"></td>
+              </tr>
+            </table>
+          </details>
+        </section>
+        <section id="production" aria-labelledby="plan-title">
+          <div class="section-heading">
+            <h2 id="plan-title">Plan — Year <span id="plan-year"></span></h2>
+            <span class="eyebrow">Production &amp; investment</span>
+          </div>
+          <div class="first-plan" id="first-plan">
+            <p>
+              Feed your people before growing your country. Fertilizer increases
+              Yield; weather can still reduce it.
+            </p>
+            <button type="button" class="quiet" id="suggest-plan-btn">
+              Try cultivating &amp; fertilizing all prepared land
+            </button>
+          </div>
+          <div class="planning-grid">
+            <div class="production-fields">
+              <div class="plan-field">
+                <div class="field-heading">
+                  <label for="plan-hectares">Cultivate</label
+                  ><span class="field-detail"
+                    >of <span id="plan-max"></span> ha prepared</span
+                  >
+                </div>
+                <div class="input-pair">
+                  <input
+                    type="range"
+                    id="plan-hectares-slider"
+                    min="0"
+                    step="1"
+                    aria-label="Adjust cultivated hectares"
+                  /><input
+                    type="number"
+                    id="plan-hectares"
+                    min="0"
+                    step="1"
+                    aria-describedby="cultivation-help"
+                  />
+                </div>
+                <div class="field-actions">
+                  <span class="field-detail" id="cultivation-help"
+                    >Seeds: <span id="plan-seed-price"></span> coins/ha</span
+                  ><button class="quiet" id="cultivate-all-btn" type="button">
+                    All prepared
+                  </button>
+                </div>
+              </div>
+              <div class="plan-field">
+                <div class="field-heading">
+                  <label for="plan-fertilizer">Fertilize</label
+                  ><span class="field-detail"
+                    ><span id="plan-fert-price"></span> coins/ha · Yield ×<span
+                      id="plan-fert-yield"
+                    ></span
+                  ></span>
+                </div>
+                <div class="input-pair">
+                  <input
+                    type="range"
+                    id="plan-fertilizer-slider"
+                    min="0"
+                    step="1"
+                    aria-label="Adjust fertilized hectares"
+                  /><input
+                    type="number"
+                    id="plan-fertilizer"
+                    min="0"
+                    step="1"
+                    aria-describedby="fertilizer-help"
+                  />
+                </div>
+                <div class="field-actions">
+                  <span class="field-detail" id="fertilizer-help"
+                    >Of this year's cultivated land</span
+                  ><button class="quiet" id="fertilize-all-btn" type="button">
+                    All cultivated
+                  </button>
+                </div>
+              </div>
+              <div class="plan-field">
+                <div class="field-heading">
+                  <label for="plan-prep">Prepare new land</label
+                  ><span class="field-detail"
+                    ><span id="plan-prep-price"></span> coins/ha · one-off</span
+                  >
+                </div>
+                <div class="input-pair">
+                  <input
+                    type="range"
+                    id="plan-prep-slider"
+                    min="0"
+                    step="1"
+                    aria-label="Adjust new land preparation"
+                  /><input
+                    type="number"
+                    id="plan-prep"
+                    min="0"
+                    step="1"
+                    aria-describedby="preparation-help"
+                  />
+                </div>
+                <p class="field-detail" id="preparation-help">
+                  <span id="plan-prep-max"></span> ha unprepared · available to
+                  cultivate next Turn
+                </p>
+              </div>
+            </div>
+            <section class="food-outlook" aria-labelledby="forecast-title">
+              <div class="section-heading">
+                <h3 id="forecast-title">Can you feed everyone?</h3>
+                <span class="label">Before Events · estimate</span>
+              </div>
+              <div class="meter-label">
+                <span>Harvest + opening Storage</span
+                ><strong id="forecast-available"></strong>
+              </div>
+              <div
+                class="meter"
+                role="img"
+                id="forecast-food-meter"
+                aria-label="Forecast food"
+              >
+                <span id="forecast-harvest-bar"></span
+                ><span id="forecast-storage-bar"></span>
+              </div>
+              <div class="meter-label">
+                <span>Consumption</span
+                ><strong id="forecast-consumption"></strong>
+              </div>
+              <div
+                class="meter"
+                role="img"
+                id="forecast-consumption-meter"
+                aria-label="Consumption"
+              >
+                <span id="forecast-consumption-bar"></span>
+              </div>
+              <p
+                class="food-balance"
+                id="forecast-balance"
+                aria-live="polite"
+              ></p>
+              <p class="preview">
+                Green: Harvest · blue: stored food. The Event is unknown until
+                you resolve.
+              </p>
+              <details>
+                <summary>Weather scenarios</summary>
+                <table class="scenario-table">
+                  <caption class="sr-only">
+                    Possible food balances after Consumption, not the rolled
+                    Event
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Scenario</th>
+                      <th>Harvest</th>
+                      <th>Food balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Ordinary</td>
+                      <td id="forecast-ordinary-harvest"></td>
+                      <td id="forecast-ordinary-balance"></td>
+                    </tr>
+                    <tr>
+                      <td>Drought</td>
+                      <td id="forecast-drought-harvest"></td>
+                      <td id="forecast-drought-balance"></td>
+                    </tr>
+                    <tr>
+                      <td>Flood</td>
+                      <td id="forecast-flood-harvest"></td>
+                      <td id="forecast-flood-balance"></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="preview" id="forecast-flood-note"></p>
+              </details>
+            </section>
+          </div>
+          <div class="budget-summary" id="budget-summary">
+            <div class="budget-values">
+              <span>Plan spending<strong id="plan-total-cost"></strong></span
+              ><span
+                >Budget after plan<strong id="plan-remaining"></strong
+              ></span>
+            </div>
+            <div
+              class="meter"
+              role="img"
+              id="budget-meter"
+              aria-label="Planned spending"
+            >
+              <span id="budget-bar"></span>
+            </div>
+            <details>
+              <summary>Spending breakdown</summary>
+              <table class="report">
+                <caption class="sr-only">
+                  Planned costs in coins
+                </caption>
+                <tr>
+                  <td>Seeds</td>
+                  <td id="plan-seed-cost"></td>
+                </tr>
+                <tr>
+                  <td>Fertilizer</td>
+                  <td id="plan-fert-cost"></td>
+                </tr>
+                <tr>
+                  <td>Land preparation</td>
+                  <td id="plan-prep-cost"></td>
+                </tr>
+                <tr>
+                  <td>Technologies</td>
+                  <td id="plan-tech-cost"></td>
+                </tr>
+                <tr>
+                  <td>Mandatory Storage upkeep</td>
+                  <td id="plan-upkeep-cost"></td>
+                </tr>
+              </table>
+            </details>
+            <p class="preview">
+              Includes mandatory upkeep for retained food. Choose Storage after
+              the Harvest.
+            </p>
+            <p id="plan-error" role="alert" hidden></p>
+          </div>
+          <button type="button" id="confirm-btn" class="commit-button">
+            Resolve harvest<svg class="icon" aria-hidden="true">
+              <use href="#icon-arrow" />
+            </svg>
+          </button>
+        </section>
+        <section id="allocation" hidden aria-labelledby="allocation-title">
+          <div class="section-heading">
+            <h2 id="allocation-title">
+              Allocate harvest · Year <span id="allocation-year"></span>
+            </h2>
+            <span class="eyebrow">Actual outcome</span>
+          </div>
+          <div class="event-reveal" id="event-reveal">
+            <div class="event-title">
+              <svg class="icon" aria-hidden="true">
+                <use id="allocation-event-icon" href="#icon-sun" />
+              </svg>
+              <h3 id="allocation-event-title">Harvest Event</h3>
+            </div>
+            <p id="allocation-event"></p>
+            <p class="outcome-title" id="allocation-outcome"></p>
+            <p id="allocation-population-change" class="preview"></p>
+          </div>
+          <div class="result-grid">
+            <div>
+              <span class="label">Harvest</span
+              ><strong id="allocation-harvest"></strong>
+            </div>
+            <div>
+              <span class="label">Consumption</span
+              ><strong id="allocation-consumption"></strong>
+            </div>
+            <div>
+              <span class="label">Actual Surplus</span
+              ><strong id="allocation-surplus"></strong>
+            </div>
+            <div>
+              <span class="label">Export price</span
+              ><strong id="allocation-price"></strong>
+            </div>
+          </div>
+          <div class="allocation-choice">
+            <div class="field-heading">
+              <label for="plan-store">Keep in Storage</label
+              ><span class="field-detail"
+                ><span id="plan-upkeep-price"></span> coins/t upkeep</span
+              >
+            </div>
+            <div class="input-pair">
+              <input
+                type="range"
+                id="plan-store-slider"
+                step="any"
+                aria-label="Adjust Storage allocation"
+              /><input
+                type="number"
+                id="plan-store"
+                min="0"
+                step="any"
+                aria-describedby="plan-store-range"
+              />
+            </div>
+            <div class="field-actions">
+              <button class="quiet" id="store-min-btn" type="button">
+                Keep minimum</button
+              ><button class="quiet" id="store-max-btn" type="button">
+                Keep maximum
+              </button>
+            </div>
+            <p class="preview" id="plan-store-range"></p>
+            <p class="preview" id="allocation-retained"></p>
+            <p id="allocation-error" role="alert" hidden></p>
+            <div class="allocation-totals" id="allocation-totals">
+              <p>Keep <strong id="allocation-stored"></strong> for next year</p>
+              <p>
+                Export <strong id="allocation-exported"></strong> for
+                <strong id="allocation-income"></strong>
+              </p>
+              <p>Storage upkeep: <strong id="allocation-upkeep"></strong></p>
+              <p>
+                Next-year Budget: <strong id="allocation-next-budget"></strong>
+              </p>
+            </div>
+            <p class="sr-only" id="allocation-preview" aria-live="polite"></p>
+            <p class="preview">
+              Only the remaining new Harvest is exported. This Harvest is
+              committed; reloading resumes this decision.
+            </p>
+          </div>
+          <button type="button" id="allocate-btn" class="commit-button">
+            Finish year<svg class="icon" aria-hidden="true">
+              <use href="#icon-arrow" />
+            </svg>
+          </button>
+        </section>
+        <section id="technologies" aria-labelledby="technologies-title">
+          <div class="section-heading">
+            <h2 id="technologies-title">Technologies</h2>
+            <span class="label">One-off · effects next Turn</span>
+          </div>
+          <p class="preview">
+            Invest in your country's future. Owned Technologies appear in the
+            landscape.
+          </p>
+          <div class="technology-grid">
+            <div class="tech-row">
+              <svg class="icon" aria-hidden="true">
+                <use href="#icon-droplet" /></svg
+              ><input
+                type="checkbox"
+                id="tech-irrigation"
+                aria-describedby="tech-irrigation-benefit"
+              /><label for="tech-irrigation" class="tech-name">Irrigation</label
+              ><span class="tech-cost"></span
+              ><span class="tech-benefit" id="tech-irrigation-benefit"></span
+              ><span class="tech-effect"></span
+              ><span class="tech-owned" id="tech-irrigation-owned" hidden
+                >Owned</span
+              ><span class="tech-status" id="tech-irrigation-status"></span>
+            </div>
+            <div class="tech-row">
+              <svg class="icon" aria-hidden="true">
+                <use href="#icon-leaf" /></svg
+              ><input
+                type="checkbox"
+                id="tech-highYieldSeeds"
+                aria-describedby="tech-highYieldSeeds-benefit"
+              /><label for="tech-highYieldSeeds" class="tech-name"
+                >High-yield seeds</label
+              ><span class="tech-cost"></span
+              ><span
+                class="tech-benefit"
+                id="tech-highYieldSeeds-benefit"
+              ></span
+              ><span class="tech-effect"></span
+              ><span class="tech-owned" id="tech-highYieldSeeds-owned" hidden
+                >Owned</span
+              ><span class="tech-status" id="tech-highYieldSeeds-status"></span>
+            </div>
+            <div class="tech-row">
+              <svg class="icon" aria-hidden="true">
+                <use href="#icon-barn" /></svg
+              ><input
+                type="checkbox"
+                id="tech-granary"
+                aria-describedby="tech-granary-benefit"
+              /><label for="tech-granary" class="tech-name">Granary</label
+              ><span class="tech-cost"></span
+              ><span class="tech-benefit" id="tech-granary-benefit"></span
+              ><span class="tech-effect"></span
+              ><span class="tech-owned" id="tech-granary-owned" hidden
+                >Owned</span
+              ><span class="tech-status" id="tech-granary-status"></span>
+            </div>
+            <div class="tech-row">
+              <svg class="icon" aria-hidden="true">
+                <use href="#icon-trade" /></svg
+              ><input
+                type="checkbox"
+                id="tech-tradeRoutes"
+                aria-describedby="tech-tradeRoutes-benefit"
+              /><label for="tech-tradeRoutes" class="tech-name"
+                >Trade routes</label
+              ><span class="tech-cost"></span
+              ><span class="tech-benefit" id="tech-tradeRoutes-benefit"></span
+              ><span class="tech-effect"></span
+              ><span class="tech-owned" id="tech-tradeRoutes-owned" hidden
+                >Owned</span
+              ><span class="tech-status" id="tech-tradeRoutes-status"></span>
+            </div>
+            <div class="tech-row">
+              <svg class="icon" aria-hidden="true">
+                <use href="#icon-survey" /></svg
+              ><input
+                type="checkbox"
+                id="tech-landSurvey"
+                aria-describedby="tech-landSurvey-benefit"
+              /><label for="tech-landSurvey" class="tech-name"
+                >Land survey</label
+              ><span class="tech-cost"></span
+              ><span class="tech-benefit" id="tech-landSurvey-benefit"></span
+              ><span class="tech-effect"></span
+              ><span class="tech-owned" id="tech-landSurvey-owned" hidden
+                >Owned</span
+              ><span class="tech-status" id="tech-landSurvey-status"></span>
+            </div>
+            <div class="tech-row">
+              <svg class="icon" aria-hidden="true">
+                <use href="#icon-fertilizer" /></svg
+              ><input
+                type="checkbox"
+                id="tech-fertilizerWorks"
+                aria-describedby="tech-fertilizerWorks-benefit"
+              /><label for="tech-fertilizerWorks" class="tech-name"
+                >Fertilizer works</label
+              ><span class="tech-cost"></span
+              ><span
+                class="tech-benefit"
+                id="tech-fertilizerWorks-benefit"
+              ></span
+              ><span class="tech-effect"></span
+              ><span class="tech-owned" id="tech-fertilizerWorks-owned" hidden
+                >Owned</span
+              ><span
+                class="tech-status"
+                id="tech-fertilizerWorks-status"
+              ></span>
+            </div>
+          </div>
+        </section>
+        <section class="history-section">
+          <h2>Country chronicle</h2>
+          <p id="empty-history">Your first Harvest will begin the story.</p>
+          <ul id="event-log" class="event-log"></ul>
         </section>
       </div>
     </main>
+    <footer class="help">
+      <details>
+        <summary>How to play</summary>
+        <p>
+          Each Year, plan production and investment, then allocate the actual
+          Surplus between Storage and automatic Export. Preparing new land and
+          purchasing Technologies improve future Turns. Storage buffers food
+          shortfalls but costs annual upkeep and cannot be exported.
+        </p>
+        <p>
+          Meeting Consumption grows Population. Famine reduces it. Score is your
+          peak Population; every doubling earns a Milestone. Collapse ends the
+          run below half the starting Population. There is no fixed winning
+          Population.
+        </p>
+        <p>
+          Progress saves after resolving the Harvest and finishing the Year.
+          Reloading preserves a committed Event. Sound is optional and starts
+          off; motion follows your device's reduced-motion preference.
+        </p>
+      </details>
+    </footer>
     <script type="module" src="./dist/ui.js"></script>
   </body>
 </html>
