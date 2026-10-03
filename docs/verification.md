@@ -42,7 +42,9 @@ A final JSON report is written under `verification-results/<timestamp>-<process>
 
 `npm test -- tests/<name>.test.ts` runs focused unit tests without a dashboard. `npm run test:all` freshly compiles the game in an isolated temporary directory and runs all unit, HTTP and browser tests. `npm run test:e2e` runs browser tests against existing `dist/`, so use `npm run build` first when invoking it separately. The canonical command always uses a fresh compilation.
 
-GitHub Actions runs the canonical command on Ubuntu and Windows after a clean `npm ci`, and uploads the verification report even on failure. Browser tests run headlessly with one worker and an independently allocated loopback game server. The verification command never repairs files or rewrites tracked build output. Apply any formatter fixes separately during development, then run verification again.
+GitHub Actions runs the canonical command on Ubuntu and Windows after a clean `npm ci` for every pull request and every push to `main`, and uploads the verification report even on failure. Browser tests run headlessly with one worker and an independently allocated loopback game server. The verification command never repairs files or rewrites tracked build output. Apply any formatter fixes separately during development, then run verification again.
+
+Both `verify (ubuntu-latest)` and `verify (windows-latest)` are required status checks for merging into `main`; see [AGENTS.md](../AGENTS.md#pull-requests).
 
 ## Deterministic fixtures and manual checks
 
