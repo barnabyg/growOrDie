@@ -83,8 +83,11 @@ Year report each lead with one headline: the Population change (such as
 outcome in words. The Event appears once beneath it, and the other figures share
 one readable stat row. Detailed accounting is under **Harvest, Event & Budget details**.
 Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
-with a run summary and a confirmed **Start a new run** action; the header keeps
-the final Year played and the summary gives the run length in Years. On mobile, the
+with a run summary and a confirmed **Start a new run** action. The summary
+states the cause using the final Year's Harvest, stored food and Consumption,
+names the final Year's Event only when one occurred, and gives the run length in
+Years and the Score; Milestone progress is hidden. The header keeps the final
+Year played. On mobile, the
 current decision appears before a compact landscape. Optional synthesized sound
 starts off in every tab and can be muted immediately; animations respect reduced
 motion. See [interface checks](docs/field-journal-ui.md) for manual examples.
