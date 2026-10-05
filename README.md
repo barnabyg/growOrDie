@@ -79,7 +79,9 @@ is exported unless you choose to keep it. **Keep minimum** respects surviving
 old food; **Keep maximum** respects the affordable range. Each shows the food it
 keeps and the resulting next-Year Budget before you choose. Finishing the Year
 highlights population changes, with detailed accounting under **Harvest, Event & Budget details**.
-Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
+Earlier outcomes remain in the **Country chronicle**, a table of Year, Event,
+Harvest, Population change and Budget, newest first, with Famine Years labelled
+in text. Collapse replaces planning
 with a run summary and a confirmed **Start a new run** action; the header keeps
 the final Year played and the summary gives the run length in Years. On mobile, the
 current decision appears before a compact landscape. Optional synthesized sound
@@ -93,7 +95,7 @@ population, including zero; there is no fixed winning population.
 
 Progress saves after harvest commitment and allocation. Reloading during
 allocation preserves the rolled outcome. The latest report returns on reload;
-expand history entries to inspect earlier outcomes. **Restart run** asks for
+the Country chronicle summarises earlier outcomes. **Restart run** asks for
 confirmation before replacing the run, including a pending harvest. Storage
 failures show a warning and Retry and pause further advances. Legacy summaries
 remain readable without invented details; see [saved games and recovery](docs/saves.md).

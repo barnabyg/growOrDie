@@ -18,6 +18,7 @@ import { economyRates } from "./economy.js";
 import { carriedPlan } from "./carryover.js";
 import { CONFIG } from "./config.js";
 import { eventSummary } from "./simulation.js";
+import { chronicleRows, UNKNOWN } from "./chronicle.js";
 import {
   coinRate,
   coins,
@@ -743,24 +744,41 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
 }
 
 function renderEventLog(): void {
-  const list = el<HTMLElement>("event-log");
-  list.textContent = "";
-  el<HTMLElement>("empty-history").hidden = save.eventLog.length > 0;
-  for (const entry of save.eventLog) {
-    const item = document.createElement("li");
-    item.className = entry.event;
-    item.textContent = `Year ${entry.year}: ${entry.summary}`;
-    if (entry.result) {
-      const { state, report } = entry.result;
-      const details = document.createElement("details");
-      const summary = document.createElement("summary");
-      summary.textContent = `Outcomes: population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} · ${famineLabel(report.famine)}`;
-      const body = document.createElement("p");
-      body.textContent = `Harvest ${tons(report.harvestTons)} · Consumption ${tons(report.consumptionTons)} · Storage ${tons(state.storageTons)} · Export ${tons(report.exportTons)} for ${coins(report.exportIncomeCoins)} · Budget ${coins(state.budgetCoins)} · Score ${fmt(state.highestPopulation)}${state.collapsed ? " · Collapse" : ""}`;
-      details.append(summary, body);
-      item.appendChild(details);
+  const table = el<HTMLTableElement>("event-log");
+  const body = table.tBodies[0];
+  if (!body) return;
+  const rows = chronicleRows(save.eventLog);
+  body.textContent = "";
+  table.hidden = rows.length === 0;
+  el<HTMLElement>("empty-history").hidden = rows.length > 0;
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+    tr.classList.add(row.eventType);
+    if (row.famine) tr.classList.add("famine");
+    const year = document.createElement("th");
+    year.scope = "row";
+    year.textContent = row.year;
+    tr.appendChild(year);
+    const cells: [string, string][] = [
+      ["event-cell", row.event],
+      ["harvest-cell", row.harvest],
+      ["population-cell", row.population],
+      ["budget-cell", row.budget],
+    ];
+    for (const [className, value] of cells) {
+      const cell = document.createElement("td");
+      cell.className = className;
+      cell.textContent = value;
+      if (value === UNKNOWN) cell.classList.add("unknown");
+      tr.appendChild(cell);
     }
-    list.appendChild(item);
+    if (row.famine) {
+      const tag = document.createElement("span");
+      tag.className = "famine-tag";
+      tag.textContent = row.famine;
+      tr.querySelector(".population-cell")?.appendChild(tag);
+    }
+    body.appendChild(tr);
   }
 }
 

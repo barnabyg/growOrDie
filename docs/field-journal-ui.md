@@ -69,7 +69,11 @@ next Budget. Invalid
 storage entries hide those totals until corrected. Completed reports lead with
 the outcome and put detailed accounting behind an expandable disclosure.
 Previous years remain in the Country chronicle, which continues the country
-column beneath the landscape on desktop.
+column beneath the landscape on desktop. It is a compact table of Year, Event,
+Harvest, Population change and the Budget carried forward, newest Year first.
+Famine Years are labelled in text (Partial famine, Total famine, plus Collapse)
+with a warning sign as well as colour. Legacy summary-only entries show their
+recorded summary as the Event and Unknown for figures they never stored.
 
 All screens share one formatter (`src/format.ts`): money always shows coins
 with correct plurals, rates read like 10.00 coins/t or 3 coins/ha, food
@@ -152,7 +156,10 @@ set `$env:PORT='0'` before starting and open the printed address.
    sound, complete a year and mute it; sound should be optional and should not
    block play when browser audio is unavailable. Shortcut actions should look
    like rounded, outlined chips: tinted on hover, a gold ring on keyboard focus,
-   and a dashed grey outline when unavailable.
+   and a dashed grey outline when unavailable. After a few Years, the Country
+   chronicle table should list the newest Year first, label any Famine Year in
+   text with a warning sign, and fit at 320 px; with doubled text it may scroll
+   inside its own box but never widens the page.
 
 For deterministic checks, use the developer console on the disposable page:
 
@@ -180,7 +187,10 @@ timing, Technology placement and keyboard order within the plan, landmarks,
 milestones, Collapse, mobile dark mode, reduced motion, unavailable audio, and
 the four-resource header with its opening-values note and at most two visible
 mentions of the current Year at 390 and 1,280 px. `tests/header.test.ts` covers
-the header text, Population change and status. `tests/format.test.ts` covers
+the header text, Population change and status. `tests/chronicle.test.ts` covers
+chronicle rows, including legacy summary-only entries, and
+`tests/e2e/game.spec.js` checks the table with a mixed history at 320 px.
+`tests/format.test.ts` covers
 units, rates and plurals; `tests/e2e/copy.spec.js` fails if raw identifiers or
 Turn wording appear on plan, allocation, report, chronicle or Collapse screens.
 `tests/e2e/layout.spec.js` also checks that shortcut actions render as bordered
