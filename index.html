@@ -181,7 +181,7 @@
       }
       .stats {
         display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 1rem;
         padding: 1.2rem 0;
         margin-top: 1rem;
@@ -207,6 +207,17 @@
         font-weight: 600;
         margin-top: 0.15rem;
       }
+      .stat .change {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .stats-note {
+        grid-column: 1 / -1;
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
       .year-rhythm {
         display: flex;
         justify-content: space-between;
@@ -214,37 +225,6 @@
         flex-wrap: wrap;
         gap: 0.5rem 1rem;
         margin-top: 1rem;
-      }
-      .turn-steps {
-        display: flex;
-        padding: 0;
-        margin: 0;
-        list-style: none;
-        gap: 1rem;
-        flex-wrap: wrap;
-        font-size: 0.8rem;
-        color: var(--muted);
-      }
-      .turn-steps li {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-      }
-      .step-dot {
-        width: 1.5rem;
-        height: 1.5rem;
-        display: inline-grid;
-        place-items: center;
-        border-radius: 50%;
-        background: var(--track);
-      }
-      .turn-steps [aria-current="step"] {
-        color: var(--green);
-        font-weight: 600;
-      }
-      .turn-steps [aria-current="step"] .step-dot {
-        background: var(--green);
-        color: var(--green-ink);
       }
       #turn-status {
         font-size: 0.8rem;
@@ -660,6 +640,14 @@
         margin-top: 0.75rem;
         padding-block: 0.85rem;
       }
+      #technologies {
+        margin-top: 1rem;
+        padding: 1rem 0 0;
+        border: 0;
+        border-top: 1px solid var(--border);
+        border-radius: 0;
+        background: none;
+      }
       .technology-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -944,16 +932,12 @@
           display: none;
         }
         .stats {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 0.8rem;
           padding: 0.9rem 0;
         }
         .stat .value {
           font-size: 1rem;
-        }
-        .turn-steps {
-          gap: 0.6rem;
-          font-size: 0.75rem;
         }
         .year-rhythm {
           margin-top: 0.75rem;
@@ -990,9 +974,6 @@
         .country {
           position: static;
           order: 4;
-        }
-        #technologies {
-          order: 5;
         }
         .history-section {
           order: 6;
@@ -1158,47 +1139,28 @@
           <span class="label"
             ><svg class="icon" aria-hidden="true">
               <use href="#icon-people" /></svg
-            ><span id="population-label">Population</span></span
-          ><span class="value" id="stat-population"></span>
-        </div>
-        <div class="stat">
-          <span class="label"
-            ><svg class="icon" aria-hidden="true">
-              <use href="#icon-trophy" /></svg
-            >Score</span
-          ><span class="value" id="stat-score"></span>
+            >Population</span
+          ><span class="value" id="stat-population"></span
+          ><span class="change" id="stat-population-change"></span>
         </div>
         <div class="stat">
           <span class="label"
             ><svg class="icon" aria-hidden="true"><use href="#icon-barn" /></svg
-            ><span id="storage-label">Storage</span></span
+            >Storage</span
           ><span class="value" id="stat-storage"></span>
         </div>
         <div class="stat">
           <span class="label"
             ><svg class="icon" aria-hidden="true">
               <use href="#icon-coins" /></svg
-            ><span id="budget-label">Budget</span></span
+            >Budget</span
           ><span class="value" id="stat-budget"></span>
         </div>
-        <div class="stat">
-          <span class="label"
-            ><svg class="icon" aria-hidden="true">
-              <use href="#icon-trade" /></svg
-            ><span id="price-label">World price</span></span
-          ><span class="value" id="stat-price"></span>
-        </div>
+        <p class="stats-note" id="stats-note" hidden>
+          Opening values, before this Year's allocation
+        </p>
       </div>
       <div class="year-rhythm">
-        <ol class="turn-steps" aria-label="Year progress">
-          <li id="step-plan" aria-current="step">
-            <span class="step-dot">1</span>Plan
-          </li>
-          <li id="step-allocate">
-            <span class="step-dot">2</span>Harvest &amp; allocate
-          </li>
-          <li id="step-report"><span class="step-dot">3</span>Year report</li>
-        </ol>
         <p id="turn-status" role="status"></p>
       </div>
     </header>
@@ -1459,7 +1421,7 @@
                 <td id="report-tax"></td>
               </tr>
               <tr>
-                <td>Next-turn Budget</td>
+                <td>Next-year Budget</td>
                 <td id="report-new-budget"></td>
               </tr>
             </table>
@@ -1505,7 +1467,7 @@
                 </div>
                 <div class="field-actions">
                   <span class="field-detail" id="cultivation-help"
-                    >Seeds: <span id="plan-seed-price"></span> coins/ha</span
+                    >Seeds: <span id="plan-seed-price"></span></span
                   ><button class="quiet" id="cultivate-all-btn" type="button">
                     All prepared
                   </button>
@@ -1515,7 +1477,7 @@
                 <div class="field-heading">
                   <label for="plan-fertilizer">Fertilize</label
                   ><span class="field-detail"
-                    ><span id="plan-fert-price"></span> coins/ha · Yield ×<span
+                    ><span id="plan-fert-price"></span> · Yield ×<span
                       id="plan-fert-yield"
                     ></span
                   ></span>
@@ -1547,7 +1509,7 @@
                 <div class="field-heading">
                   <label for="plan-prep">Prepare new land</label
                   ><span class="field-detail"
-                    ><span id="plan-prep-price"></span> coins/ha · one-off</span
+                    ><span id="plan-prep-price"></span> · one-off</span
                   >
                 </div>
                 <div class="input-pair">
@@ -1566,8 +1528,8 @@
                   />
                 </div>
                 <p class="field-detail" id="preparation-help">
-                  <span id="plan-prep-max"></span> ha unprepared · available to
-                  cultivate next Turn
+                  <span id="plan-prep-max"></span> unprepared · available to
+                  cultivate next Year
                 </p>
               </div>
             </div>
@@ -1646,6 +1608,125 @@
               </details>
             </section>
           </div>
+          <section id="technologies" aria-labelledby="technologies-title">
+            <div class="section-heading">
+              <h3 id="technologies-title">Technologies</h3>
+              <span class="label">One-off · effects next Year</span>
+            </div>
+            <p class="preview">
+              Invest in your country's future. Owned Technologies appear in the
+              landscape.
+            </p>
+            <div class="technology-grid">
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-droplet" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-irrigation"
+                  aria-describedby="tech-irrigation-benefit"
+                /><label for="tech-irrigation" class="tech-name"
+                  >Irrigation</label
+                ><span class="tech-cost"></span
+                ><span class="tech-benefit" id="tech-irrigation-benefit"></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-irrigation-owned" hidden
+                  >Owned</span
+                ><span class="tech-status" id="tech-irrigation-status"></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-leaf" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-highYieldSeeds"
+                  aria-describedby="tech-highYieldSeeds-benefit"
+                /><label for="tech-highYieldSeeds" class="tech-name"
+                  >High-yield seeds</label
+                ><span class="tech-cost"></span
+                ><span
+                  class="tech-benefit"
+                  id="tech-highYieldSeeds-benefit"
+                ></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-highYieldSeeds-owned" hidden
+                  >Owned</span
+                ><span
+                  class="tech-status"
+                  id="tech-highYieldSeeds-status"
+                ></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-barn" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-granary"
+                  aria-describedby="tech-granary-benefit"
+                /><label for="tech-granary" class="tech-name">Granary</label
+                ><span class="tech-cost"></span
+                ><span class="tech-benefit" id="tech-granary-benefit"></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-granary-owned" hidden
+                  >Owned</span
+                ><span class="tech-status" id="tech-granary-status"></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-trade" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-tradeRoutes"
+                  aria-describedby="tech-tradeRoutes-benefit"
+                /><label for="tech-tradeRoutes" class="tech-name"
+                  >Trade routes</label
+                ><span class="tech-cost"></span
+                ><span class="tech-benefit" id="tech-tradeRoutes-benefit"></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-tradeRoutes-owned" hidden
+                  >Owned</span
+                ><span class="tech-status" id="tech-tradeRoutes-status"></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-survey" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-landSurvey"
+                  aria-describedby="tech-landSurvey-benefit"
+                /><label for="tech-landSurvey" class="tech-name"
+                  >Land survey</label
+                ><span class="tech-cost"></span
+                ><span class="tech-benefit" id="tech-landSurvey-benefit"></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-landSurvey-owned" hidden
+                  >Owned</span
+                ><span class="tech-status" id="tech-landSurvey-status"></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-fertilizer" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-fertilizerWorks"
+                  aria-describedby="tech-fertilizerWorks-benefit"
+                /><label for="tech-fertilizerWorks" class="tech-name"
+                  >Fertilizer works</label
+                ><span class="tech-cost"></span
+                ><span
+                  class="tech-benefit"
+                  id="tech-fertilizerWorks-benefit"
+                ></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-fertilizerWorks-owned" hidden
+                  >Owned</span
+                ><span
+                  class="tech-status"
+                  id="tech-fertilizerWorks-status"
+                ></span>
+              </div>
+            </div>
+          </section>
           <div class="budget-summary" id="budget-summary">
             <div class="budget-values">
               <span>Plan spending<strong id="plan-total-cost"></strong></span
@@ -1741,7 +1822,7 @@
             <div class="field-heading">
               <label for="plan-store">Keep in Storage</label
               ><span class="field-detail"
-                ><span id="plan-upkeep-price"></span> coins/t upkeep</span
+                ><span id="plan-upkeep-price"></span> upkeep</span
               >
             </div>
             <div class="input-pair">
@@ -1797,121 +1878,6 @@
             </svg>
           </button>
         </section>
-        <section id="technologies" aria-labelledby="technologies-title">
-          <div class="section-heading">
-            <h2 id="technologies-title">Technologies</h2>
-            <span class="label">One-off · effects next Turn</span>
-          </div>
-          <p class="preview">
-            Invest in your country's future. Owned Technologies appear in the
-            landscape.
-          </p>
-          <div class="technology-grid">
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-droplet" /></svg
-              ><input
-                type="checkbox"
-                id="tech-irrigation"
-                aria-describedby="tech-irrigation-benefit"
-              /><label for="tech-irrigation" class="tech-name">Irrigation</label
-              ><span class="tech-cost"></span
-              ><span class="tech-benefit" id="tech-irrigation-benefit"></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-irrigation-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-irrigation-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-leaf" /></svg
-              ><input
-                type="checkbox"
-                id="tech-highYieldSeeds"
-                aria-describedby="tech-highYieldSeeds-benefit"
-              /><label for="tech-highYieldSeeds" class="tech-name"
-                >High-yield seeds</label
-              ><span class="tech-cost"></span
-              ><span
-                class="tech-benefit"
-                id="tech-highYieldSeeds-benefit"
-              ></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-highYieldSeeds-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-highYieldSeeds-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-barn" /></svg
-              ><input
-                type="checkbox"
-                id="tech-granary"
-                aria-describedby="tech-granary-benefit"
-              /><label for="tech-granary" class="tech-name">Granary</label
-              ><span class="tech-cost"></span
-              ><span class="tech-benefit" id="tech-granary-benefit"></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-granary-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-granary-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-trade" /></svg
-              ><input
-                type="checkbox"
-                id="tech-tradeRoutes"
-                aria-describedby="tech-tradeRoutes-benefit"
-              /><label for="tech-tradeRoutes" class="tech-name"
-                >Trade routes</label
-              ><span class="tech-cost"></span
-              ><span class="tech-benefit" id="tech-tradeRoutes-benefit"></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-tradeRoutes-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-tradeRoutes-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-survey" /></svg
-              ><input
-                type="checkbox"
-                id="tech-landSurvey"
-                aria-describedby="tech-landSurvey-benefit"
-              /><label for="tech-landSurvey" class="tech-name"
-                >Land survey</label
-              ><span class="tech-cost"></span
-              ><span class="tech-benefit" id="tech-landSurvey-benefit"></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-landSurvey-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-landSurvey-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-fertilizer" /></svg
-              ><input
-                type="checkbox"
-                id="tech-fertilizerWorks"
-                aria-describedby="tech-fertilizerWorks-benefit"
-              /><label for="tech-fertilizerWorks" class="tech-name"
-                >Fertilizer works</label
-              ><span class="tech-cost"></span
-              ><span
-                class="tech-benefit"
-                id="tech-fertilizerWorks-benefit"
-              ></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-fertilizerWorks-owned" hidden
-                >Owned</span
-              ><span
-                class="tech-status"
-                id="tech-fertilizerWorks-status"
-              ></span>
-            </div>
-          </div>
-        </section>
         <section class="history-section">
           <h2>Country chronicle</h2>
           <p id="empty-history">Your first Harvest will begin the story.</p>
@@ -1925,7 +1891,7 @@
         <p>
           Each Year, plan production and investment, then allocate the actual
           Surplus between Storage and automatic Export. Preparing new land and
-          purchasing Technologies improve future Turns. Storage buffers food
+          purchasing Technologies improve future Years. Storage buffers food
           shortfalls but costs annual upkeep and cannot be exported.
         </p>
         <p>

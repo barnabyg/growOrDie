@@ -93,8 +93,10 @@ for (const collapsed of [false, true]) {
         return original.call(this, key, value);
       };
     });
+    // A Collapsed run keeps showing its final Year rather than the next one.
+    const yearAfter = collapsed ? "1" : "2";
     await page.locator("#allocate-btn").click();
-    await expect(page.locator("#stat-year")).toHaveText("2");
+    await expect(page.locator("#stat-year")).toHaveText(yearAfter);
     await expect(page.locator("#report")).toBeVisible();
     await expect(page.locator("#event-log li")).toHaveCount(1);
     await expect(page.locator("#confirm-btn")).toBeDisabled();
@@ -128,12 +130,12 @@ for (const collapsed of [false, true]) {
     await expect(page.locator("#save-status")).toContainText(
       "Restart was not saved",
     );
-    await expect(page.locator("#stat-year")).toHaveText("2");
+    await expect(page.locator("#stat-year")).toHaveText(yearAfter);
     expect(
       await page.evaluate(() => localStorage.getItem("growOrDie.save.v1")),
     ).toBe(completed);
     await page.locator("#retry-save-btn").click();
-    await expect(page.locator("#stat-year")).toHaveText("2");
+    await expect(page.locator("#stat-year")).toHaveText(yearAfter);
     await page.evaluate(() => {
       window.storageRecovered = true;
     });

@@ -69,6 +69,21 @@ for (const width of [320, 390, 760, 1280]) {
         }
       };
       await fits();
+      // Technologies are part of the plan: they precede spending and Resolve.
+      const top = (selector) =>
+        page.locator(selector).evaluate((n) => n.getBoundingClientRect().top);
+      const lastTechBottom = await page
+        .locator(".tech-row")
+        .evaluateAll((rows) =>
+          Math.max(...rows.map((row) => row.getBoundingClientRect().bottom)),
+        );
+      expect(await top(".production-fields")).toBeLessThan(
+        await top("#technologies"),
+      );
+      expect(lastTechBottom).toBeLessThanOrEqual(await top("#budget-summary"));
+      expect(await top("#budget-summary")).toBeLessThan(
+        await top("#confirm-btn"),
+      );
       await page.locator("#tech-irrigation").check();
       await page.locator("#plan-fertilizer").fill("400");
       await page.locator("#confirm-btn").click();
