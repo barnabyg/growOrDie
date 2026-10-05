@@ -4,6 +4,7 @@ import { resourceHeader } from "./header.js";
 import { GameSound } from "./sound.js";
 import { beginTurn, finishTurn, productionCosts } from "./turn.js";
 import { economyRates } from "./economy.js";
+import { carriedPlan } from "./carryover.js";
 import { CONFIG } from "./config.js";
 import { eventSummary } from "./simulation.js";
 import {
@@ -174,12 +175,14 @@ function renderPlan(state: GameState): void {
     "t",
   );
 
+  // Each Year opens with the previous Year's production, clamped to what fits.
+  const opening = carriedPlan(state, save.eventLog.at(-1), CONFIG);
   const input = el<HTMLInputElement>("plan-hectares");
   input.max = String(maxHectares);
-  input.value = String(maxHectares);
+  input.value = String(opening.cultivatedHectares);
   const fertilizerInput = el<HTMLInputElement>("plan-fertilizer");
   fertilizerInput.max = String(maxHectares);
-  fertilizerInput.value = "0";
+  fertilizerInput.value = String(opening.fertilizedHectares);
   const prepInput = el<HTMLInputElement>("plan-prep");
   prepInput.max = String(maxPrep);
   prepInput.value = "0";
@@ -320,6 +323,7 @@ function updatePlanPreview(state: GameState): void {
     );
   }
   renderOutlook(state, plan);
+  renderResolveButton(state, plan);
   if (!save.pendingTurn && !state.collapsed) {
     renderCountry(
       state,
@@ -370,6 +374,17 @@ function renderOutlook(state: GameState, plan: PlayerPlan): void {
   text(
     "forecast-flood-note",
     `${Math.round(floodLossTons) > 0 ? `Flood scenario includes ${tons(floodLossTons)} of opening Storage lost. ` : ""}Purchases and new land preparation take effect next Year.`,
+  );
+}
+
+// Resolving stays possible, but an ordinary-forecast shortfall is stated on the button.
+function renderResolveButton(state: GameState, plan: PlayerPlan): void {
+  const balance = foodOutlook(state, plan, CONFIG).ordinary.balanceTons;
+  const shortfall = balance < 0;
+  el<HTMLButtonElement>("confirm-btn").classList.toggle("warning", shortfall);
+  text(
+    "confirm-label",
+    shortfall ? `Resolve with ${tons(-balance)} shortfall` : "Resolve harvest",
   );
 }
 

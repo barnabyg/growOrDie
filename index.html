@@ -640,6 +640,9 @@
         margin-top: 0.75rem;
         padding-block: 0.85rem;
       }
+      .commit-button.warning {
+        background: var(--danger);
+      }
       #technologies {
         margin-top: 1rem;
         padding: 1rem 0 0;
@@ -1777,7 +1780,8 @@
             <p id="plan-error" role="alert" hidden></p>
           </div>
           <button type="button" id="confirm-btn" class="commit-button">
-            Resolve harvest<svg class="icon" aria-hidden="true">
+            <span id="confirm-label">Resolve harvest</span
+            ><svg class="icon" aria-hidden="true">
               <use href="#icon-arrow" />
             </svg>
           </button>
