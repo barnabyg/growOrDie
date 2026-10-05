@@ -126,7 +126,8 @@ test("on a phone the pinned bar tracks the plan and allocation and commits each 
 test("the bar leaves focused inputs and the end of the page uncovered", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+  // A short phone screen, so the first production input starts behind the bar.
+  await page.setViewportSize({ width: 390, height: 680 });
   await fixture(page);
   for (const id of ["plan-prep", "tech-irrigation", "tech-fertilizerWorks"]) {
     // Park the input just behind the bar, then focus it.
