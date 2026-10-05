@@ -586,8 +586,9 @@ test("total famine finishes once, remains collapsed on reload, and restart clear
 }) => {
   await loadFixture(page);
   await resolveHarvest(page, { hectares: 0, fertilizer: 0 });
-  await expect(page.locator("#allocation-consumption")).toContainText(
-    "Total famine",
+  await expect(page.locator("#allocation-famine")).toHaveText("Total famine");
+  await expect(page.locator("#allocation-outcome-lead")).toHaveText(
+    "1,000 t shortfall",
   );
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#collapse-summary")).toBeVisible();

@@ -239,7 +239,7 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
     "1,460 t Surplus",
   );
   await page.locator("#confirm-btn").click();
-  await expect(page.locator("#allocation-event-title")).toHaveText("Flood");
+  await expect(page.locator("#allocation-event")).toContainText("Flood");
   await expect(page.locator("#stats-note")).toBeVisible();
   await expect(page.locator("#allocation-title")).toBeFocused();
   await expect(page.locator("#allocation-retained")).toContainText(
@@ -312,6 +312,71 @@ test("allocation defaults to the minimum Storage and previews both extremes", as
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#stat-budget")).toHaveText("12,200 coins");
   await expect(page.locator("#report-storage-summary")).toHaveText("0 t");
+});
+
+test("each outcome screen has one headline led by the key number and a readable stat row", async ({
+  page,
+}) => {
+  const fontSize = async (id) =>
+    Number.parseFloat(
+      await page
+        .locator(id)
+        .evaluate((node) => getComputedStyle(node).fontSize),
+    );
+  await fixture(page);
+  await page.locator("#suggest-plan-btn").click();
+  await page.locator("#confirm-btn").click();
+  await expect(page.locator("#allocation-title")).toBeFocused();
+  await expect(page.locator("#allocation-outcome-lead")).toHaveText(
+    "+50 people",
+  );
+  await expect(page.locator("#allocation-famine")).toHaveText("No famine");
+  await expect(page.locator("#allocation-population-change")).toHaveText(
+    "1,000 → 1,050 (+50)",
+  );
+  // The Event is stated once, as supporting context.
+  await expect(page.locator("#allocation-event")).toHaveText("No event");
+  await expect(page.locator("#allocation")).not.toContainText(
+    /ordinary year|people are fed/i,
+  );
+  await expect(page.locator("#allocation h3")).toHaveCount(0);
+  expect(await fontSize("#allocation-outcome-lead")).toBeGreaterThanOrEqual(24);
+  const statSize = await fontSize("#allocation-harvest");
+  expect(statSize).toBeGreaterThanOrEqual(16);
+  expect(await fontSize("#allocation-population-change")).toBe(statSize);
+
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#report-title")).toBeFocused();
+  await expect(page.locator("#report-outcome-lead")).toHaveText("+50 people");
+  await expect(page.locator("#report-famine")).toHaveText("No famine");
+  await expect(page.locator("#report-population-summary")).toHaveText(
+    "1,000 → 1,050 (+50)",
+  );
+  await expect(page.locator("#report-budget-summary")).toHaveText(
+    "12,200 coins",
+  );
+  for (const id of [
+    "#report-population-summary",
+    "#report-storage-summary",
+    "#report-budget-summary",
+  ]) {
+    expect(await fontSize(id)).toBe(statSize);
+  }
+
+  // Famine leads with the shortfall in tons and names it in words.
+  await fixture(page);
+  await page.locator("#plan-hectares").fill("300");
+  await page.locator("#plan-fertilizer").fill("0");
+  await page.locator("#confirm-btn").click();
+  await expect(page.locator("#allocation-outcome-lead")).toHaveText(
+    "400 t shortfall",
+  );
+  await expect(page.locator("#allocation-famine")).toHaveText("Partial famine");
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#report-outcome-lead")).toHaveText(
+    "400 t shortfall",
+  );
+  await expect(page.locator("#report-famine")).toHaveText("Partial famine");
 });
 
 test("the next Year carries the previous plan forward and Resolve warns about a forecast shortfall", async ({
@@ -548,6 +613,69 @@ test("Collapse replaces planning and supports a confirmed restart without losing
   await expect(page.locator("#stat-year")).toHaveText("1");
   await expect(page.locator("#event-log li")).toHaveCount(0);
 });
+
+for (const { name, runSeed, state, hectares, cause, event, score } of [
+  {
+    name: "total Famine",
+    runSeed: 5,
+    state: {},
+    hectares: "0",
+    cause:
+      "Total famine: Harvest 0 t and 0 t stored against 1,000 t needed. No one could be fed, so the population reached zero.",
+    event: null,
+    score: "1,000",
+  },
+  {
+    name: "a fall below half the starting population",
+    runSeed: 5,
+    state: { population: 1277, highestPopulation: 1300, storageTons: 73 },
+    hectares: "100",
+    cause:
+      "Partial famine: Harvest 200 t and 73 t stored against 1,277 t needed. Population fell from 1,277 to 273, below half the starting 1,000.",
+    event: null,
+    score: "1,300",
+  },
+  {
+    name: "a flood that leaves the population below half",
+    runSeed: 43,
+    state: { storageTons: 200 },
+    hectares: "100",
+    cause:
+      "Partial famine: Harvest 120 t and 150 t stored against 1,000 t needed. Population fell from 1,000 to 270, below half the starting 1,000.",
+    event: /^Flood: /,
+    score: "1,000",
+  },
+]) {
+  test(`the Collapse summary explains ${name} with the final Year's food figures`, async ({
+    page,
+  }) => {
+    await fixture(page, { runSeed, state });
+    await expect(page.locator("#milestone-meter")).toBeVisible();
+    await page.locator("#plan-hectares").fill(hectares);
+    await page.locator("#plan-fertilizer").fill("0");
+    await page.locator("#confirm-btn").click();
+    await page.locator("#allocate-btn").click();
+    await expect(page.locator("#collapse-summary")).toBeVisible();
+    await expect(page.locator("#collapse-cause")).toHaveText(cause);
+    if (event) await expect(page.locator("#collapse-event")).toHaveText(event);
+    else await expect(page.locator("#collapse-event")).toBeHidden();
+    await expect(page.locator("#collapse-length")).toHaveText("1 Year");
+    await expect(page.locator("#collapse-score")).toHaveText(score);
+    await expect(page.locator("#milestone-meter")).toBeHidden();
+    await page.reload();
+    await expect(page.locator("#collapse-cause")).toHaveText(cause);
+    await expect(page.locator("#milestone-meter")).toBeHidden();
+    const collapsed = await stored(page);
+    page.once("dialog", (dialog) => dialog.dismiss());
+    await page.locator("#collapse-restart-btn").click();
+    expect(await stored(page)).toBe(collapsed);
+    await expect(page.locator("#collapse-cause")).toHaveText(cause);
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.locator("#collapse-restart-btn").click();
+    await expect(page.locator("#collapse-summary")).toBeHidden();
+    await expect(page.locator("#milestone-meter")).toBeVisible();
+  });
+}
 
 test("a doubling celebrates a Milestone and advances the next population goal", async ({
   page,

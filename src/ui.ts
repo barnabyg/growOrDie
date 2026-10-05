@@ -6,6 +6,7 @@ import {
 } from "./landscape.js";
 import { foodBarLayout, foodOutlook } from "./outlook.js";
 import { resourceHeader } from "./header.js";
+import { outcomeHeadline, populationChange } from "./outcome.js";
 import { GameSound } from "./sound.js";
 import {
   affordableHectares,
@@ -16,6 +17,7 @@ import {
 import type { ProductionInput } from "./turn.js";
 import { economyRates } from "./economy.js";
 import { carriedPlan } from "./carryover.js";
+import { collapseSummary } from "./collapse.js";
 import { CONFIG } from "./config.js";
 import { eventSummary } from "./simulation.js";
 import { technologyBenefit, technologyStatus } from "./technology.js";
@@ -29,7 +31,6 @@ import {
   formatDecimal as fmtRate,
   hectares,
   tons,
-  years,
 } from "./format.js";
 import type {
   GameState,
@@ -410,38 +411,26 @@ function renderAllocation(): void {
   if (!pending) return;
   const { report } = pending.result;
   el<HTMLElement>("allocation-year").textContent = String(report.year);
+  const headline = outcomeHeadline(report);
+  text("allocation-outcome-lead", headline.lead);
+  text("allocation-famine", headline.context);
+  el<HTMLElement>("event-reveal").classList.toggle("famine", headline.famine);
   el<HTMLElement>("allocation-event").textContent = eventSummary(report);
-  const events = {
-    none: ["An ordinary year", "sun"],
-    drought: ["Drought", "sun"],
-    flood: ["Flood", "rain"],
-    priceShock: ["An Export price shock", "trade"],
+  const eventIcons = {
+    none: "sun",
+    drought: "sun",
+    flood: "rain",
+    priceShock: "trade",
   };
-  text("allocation-event-title", events[report.event][0] ?? "");
   el<SVGUseElement>("allocation-event-icon").setAttribute(
     "href",
-    `#icon-${events[report.event][1]}`,
+    `#icon-${eventIcons[report.event]}`,
   );
-  el<HTMLElement>("event-reveal").classList.toggle(
-    "famine",
-    report.famine !== "none",
-  );
-  text(
-    "allocation-outcome",
-    report.famine === "none"
-      ? "Your people are fed"
-      : report.famine === "total"
-        ? "No food. Total Famine."
-        : "Famine: food falls short",
-  );
-  const change = report.populationEnd - report.populationStart;
-  text(
-    "allocation-population-change",
-    `Population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} (${change >= 0 ? "+" : ""}${fmt(change)})`,
-  );
+  text("allocation-population-change", populationChange(report));
   el<HTMLElement>("allocation-harvest").textContent = tons(report.harvestTons);
-  el<HTMLElement>("allocation-consumption").textContent =
-    `${tons(report.consumptionTons)} needed · ${famineLabel(report.famine)}`;
+  el<HTMLElement>("allocation-consumption").textContent = tons(
+    report.consumptionTons,
+  );
   el<HTMLElement>("allocation-surplus").textContent = tons(
     Math.max(0, report.availableFoodTons - report.consumptionTons),
   );
@@ -539,9 +528,9 @@ function renderReport(result: TurnResult): void {
     report.availableFoodTons,
   );
 
-  const famineEl = el<HTMLElement>("report-famine");
-  famineEl.textContent = famineLabel(report.famine);
-  famineEl.classList.toggle("famine", report.famine !== "none");
+  const headline = outcomeHeadline(report);
+  text("report-outcome-lead", headline.lead);
+  text("report-famine", headline.context);
 
   const milestoneLevel = report.milestoneLevel;
   const milestoneEl = el<HTMLElement>("milestone-banner");
@@ -553,19 +542,11 @@ function renderReport(result: TurnResult): void {
     milestoneEl.hidden = true;
   }
 
-  const delta = report.populationEnd - report.populationStart;
-  text(
-    "report-headline",
-    delta >= 0 ? `${fmt(delta)} more people` : `${fmt(-delta)} people lost`,
-  );
-  text(
-    "report-population-summary",
-    `Population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} · peak ${fmt(state.highestPopulation)}`,
-  );
+  text("report-population-summary", populationChange(report));
+  text("report-peak", fmt(state.highestPopulation));
   text("report-storage-summary", tons(state.storageTons));
   text("report-budget-summary", coins(state.budgetCoins));
-  el<HTMLElement>("report-pop-change").textContent =
-    `${fmt(report.populationStart)} → ${fmt(report.populationEnd)} (${delta >= 0 ? "+" : ""}${fmt(delta)})`;
+  el<HTMLElement>("report-pop-change").textContent = populationChange(report);
 
   el<HTMLElement>("report-seeds").textContent =
     `-${coins(report.seedCostCoins)}`;
@@ -596,13 +577,12 @@ function renderCollapse(state: GameState): void {
     return;
   }
   section.hidden = false;
-  el<HTMLElement>("collapse-length").textContent = years(state.year - 1);
-  el<HTMLElement>("collapse-score").textContent = fmt(state.highestPopulation);
-  text("collapse-event", save.eventLog.at(-1)?.summary ?? "");
-  el<HTMLElement>("collapse-cause").textContent =
-    state.collapseCause === "totalFamine"
-      ? "Total Famine: no food at all, the population reached zero."
-      : `The population fell below half of the starting ${fmt(CONFIG.startingPopulation)}.`;
+  const summary = collapseSummary(save, CONFIG.startingPopulation);
+  text("collapse-cause", summary.cause);
+  text("collapse-event", summary.event);
+  el<HTMLElement>("collapse-event").hidden = summary.event === "";
+  text("collapse-length", summary.runLength);
+  text("collapse-score", summary.score);
 }
 
 function render(): void {
@@ -678,6 +658,8 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
     ) + 1,
   );
   const threshold = CONFIG.startingPopulation * 2 ** level;
+  // Milestone progress is a planning aid; the Collapse summary carries the Score.
+  el<HTMLElement>("milestone-meter").hidden = state.collapsed;
   text("milestone-target", `${fmt(threshold)} people`);
   const progress = el<HTMLProgressElement>("milestone-progress");
   progress.max = threshold;
