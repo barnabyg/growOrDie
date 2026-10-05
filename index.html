@@ -526,6 +526,16 @@
         margin-top: 0.1rem;
         flex-wrap: wrap;
       }
+      button:has(> .choice-outcome) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.1rem;
+        text-align: left;
+      }
+      .choice-outcome {
+        color: var(--muted);
+        font-weight: 400;
+      }
       .food-outlook {
         padding: 0.8rem;
         border: 1px solid var(--border);
@@ -1750,9 +1760,15 @@
             </div>
             <div class="field-actions">
               <button class="quiet" id="store-min-btn" type="button">
-                Keep minimum</button
+                Keep minimum<span
+                  class="choice-outcome"
+                  id="store-min-outcome"
+                ></span></button
               ><button class="quiet" id="store-max-btn" type="button">
-                Keep maximum
+                Keep maximum<span
+                  class="choice-outcome"
+                  id="store-max-outcome"
+                ></span>
               </button>
             </div>
             <p class="preview" id="plan-store-range"></p>

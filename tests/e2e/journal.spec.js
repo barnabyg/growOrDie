@@ -121,6 +121,46 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
   await expect(page.locator("#budget-label")).toHaveText("Budget");
 });
 
+test("allocation defaults to the minimum Storage and previews both extremes", async ({
+  page,
+}) => {
+  await fixture(page);
+  await page.locator("#suggest-plan-btn").click();
+  await page.locator("#confirm-btn").click();
+  const pending = await stored(page);
+  const checkDefault = async () => {
+    await expect(page.locator("#plan-store")).toHaveValue("0");
+    await expect(page.locator("#plan-store-slider")).toHaveValue("0");
+    await expect(page.locator("#plan-store")).toHaveAttribute("max", "600");
+    await expect(page.locator("#allocation-exported")).toHaveText("600 t");
+    await expect(page.locator("#allocation-next-budget")).toHaveText(
+      "12,200 coins",
+    );
+    await expect(page.locator("#store-min-outcome")).toHaveText(
+      "0 t kept · next Budget 12,200 coins",
+    );
+    await expect(page.locator("#store-max-outcome")).toHaveText(
+      "600 t kept · next Budget 5,600 coins",
+    );
+  };
+  await checkDefault();
+  await page.locator("#store-max-btn").click();
+  await expect(page.locator("#plan-store")).toHaveValue("600");
+  await expect(page.locator("#allocation-next-budget")).toHaveText(
+    "5,600 coins",
+  );
+  await expect(page.locator("#store-min-outcome")).toHaveText(
+    "0 t kept · next Budget 12,200 coins",
+  );
+  expect(await stored(page)).toBe(pending);
+  await page.reload();
+  expect(await stored(page)).toBe(pending);
+  await checkDefault();
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#stat-budget")).toHaveText("12,200 coins");
+  await expect(page.locator("#report-storage-summary")).toHaveText("0 t");
+});
+
 test("Technology cards and landmarks respect next-Turn timing", async ({
   page,
 }) => {

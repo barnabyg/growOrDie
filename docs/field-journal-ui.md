@@ -25,7 +25,9 @@ actual resolved year; older saves without cultivation data say Unknown.
 
 During allocation, the resource header explicitly labels the opening values.
 The allocation panel shows actual Population, Consumption and surplus, then
-previews retained Storage, exports, income, upkeep and the next Budget. Invalid
+previews retained Storage, exports, income, upkeep and the next Budget. The
+Storage choice opens at the minimum (surviving old food that must stay), and
+Keep minimum and Keep maximum each show their Storage and next Budget. Invalid
 storage entries hide those totals until corrected. Completed reports lead with
 the outcome and put detailed accounting behind an expandable disclosure.
 Previous years remain in the Country chronicle.
@@ -70,8 +72,11 @@ set `$env:PORT='0'` before starting and open the printed address.
    Finish the year: the Technology becomes Owned, its landmark appears, and the
    following year's forecast includes its benefit.
 4. With the ordinary fixture below (seed 5), cultivate and fertilize 400 ha,
-   prepare zero and buy no Technology. Retain 200 t. The preview and saved report
-   should agree: export 400 t, income 4,000 coins, upkeep 200 coins, next Budget
+   prepare zero and buy no Technology. Allocation should open at 0 t kept,
+   exporting 600 t with a next Budget of 12,200 coins. Keep minimum should read
+   0 t kept and 12,200 coins; Keep maximum should read 600 t kept and 5,600
+   coins. Reload: the same default should return. Retain 200 t. The preview
+   and saved report should agree: export 400 t, income 4,000 coins, upkeep 200 coins, next Budget
    10,000 coins and Population 1,050. Reload and check the report and chronicle.
 5. Use seed 29 with opening Storage of 2,000 t. The same production plan should
    reveal a flood: 500 t destroyed, 960 t harvested and 1,460 t surplus. Minimum

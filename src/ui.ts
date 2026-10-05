@@ -456,15 +456,24 @@ function renderAllocation(): void {
   const input = el<HTMLInputElement>("plan-store");
   input.min = String(pending.minStoreTons);
   input.max = String(pending.maxStoreTons);
-  input.value = String(pending.maxStoreTons);
+  input.value = String(pending.minStoreTons);
   input.disabled = pending.minStoreTons === pending.maxStoreTons;
   const slider = el<HTMLInputElement>("plan-store-slider");
   slider.min = input.min;
   slider.max = input.max;
   slider.value = input.value;
   slider.disabled = input.disabled;
-  for (const id of ["store-min-btn", "store-max-btn"]) {
-    el<HTMLButtonElement>(id).disabled = input.disabled || persistenceBlocked();
+  for (const [id, storeTons] of [
+    ["store-min", pending.minStoreTons],
+    ["store-max", pending.maxStoreTons],
+  ] as const) {
+    el<HTMLButtonElement>(`${id}-btn`).disabled =
+      input.disabled || persistenceBlocked();
+    const outcome = finishTurn(pending, storeTons, CONFIG).state;
+    text(
+      `${id}-outcome`,
+      `${exactTons(storeTons)} kept · next Budget ${coins(outcome.budgetCoins)}`,
+    );
   }
   text("plan-upkeep-price", coinRate(pending.storageUpkeepPerTon, "t"));
   el<HTMLElement>("plan-store-range").textContent =
