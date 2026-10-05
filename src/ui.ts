@@ -21,12 +21,12 @@ import { collapseSummary } from "./collapse.js";
 import { CONFIG } from "./config.js";
 import { eventSummary } from "./simulation.js";
 import { technologyBenefit, technologyStatus } from "./technology.js";
+import { chronicleRows, UNKNOWN } from "./chronicle.js";
 import {
   coinRate,
   coins,
   exactCoins,
   exactTons,
-  famineLabel,
   formatCount as fmt,
   formatDecimal as fmtRate,
   hectares,
@@ -295,6 +295,21 @@ function updatePlanPreview(state: GameState): void {
   }
   renderOutlook(state, plan);
   renderResolveButton(state, plan);
+  if (!save.pendingTurn) {
+    const balance = foodOutlook(state, plan, CONFIG).ordinary.balanceTons;
+    renderCommitBar("confirm-btn", [
+      {
+        label: "Food",
+        value: foodBalance(balance),
+        alert: balance < 0 ? "shortfall" : undefined,
+      },
+      {
+        label: "Budget after plan",
+        value: coins(remaining),
+        alert: remaining < 0 ? "overspend" : undefined,
+      },
+    ]);
+  }
   if (!save.pendingTurn && !state.collapsed) {
     renderCountry(
       state,
@@ -403,6 +418,34 @@ function renderResolveButton(state: GameState, plan: PlayerPlan): void {
   );
 }
 
+interface CommitBarValue {
+  label: string;
+  value: string;
+  alert?: "shortfall" | "overspend" | undefined;
+}
+
+/** Fill the mobile pinned bar (shown by CSS below the breakpoint) with two
+ * summary values, and mirror the in-page commit button it stands in for:
+ * its label, disabled state and shortfall warning. Hidden after Collapse. */
+function renderCommitBar(
+  sourceId: "confirm-btn" | "allocate-btn",
+  values: readonly [CommitBarValue, CommitBarValue],
+): void {
+  el<HTMLElement>("commit-bar").hidden = save.state.collapsed;
+  values.forEach(({ label, value, alert }, i) => {
+    text(`commit-bar-label-${i}`, label);
+    const valueEl = el<HTMLElement>(`commit-bar-value-${i}`);
+    valueEl.textContent = value;
+    valueEl.classList.remove("shortfall", "overspend");
+    if (alert) valueEl.classList.add(alert);
+  });
+  const source = el<HTMLButtonElement>(sourceId);
+  const button = el<HTMLButtonElement>("commit-bar-btn");
+  button.disabled = source.disabled;
+  button.classList.toggle("warning", source.classList.contains("warning"));
+  text("commit-bar-action", source.textContent?.trim() ?? "");
+}
+
 function renderAllocation(): void {
   const pending = save.pendingTurn;
   el<HTMLElement>("allocation").hidden = !pending;
@@ -497,6 +540,10 @@ function updateAllocationPreview(): void {
     el<HTMLElement>("allocation-preview").textContent =
       "Choose storage within the affordable range.";
     text("allocation-error", "Choose Storage within the affordable range.");
+    renderCommitBar("allocate-btn", [
+      { label: "Storage kept", value: "—" },
+      { label: "Next-year Budget", value: "—" },
+    ]);
     return;
   }
   const { report, state } = finishTurn(pending, value, CONFIG);
@@ -507,6 +554,10 @@ function updateAllocationPreview(): void {
   text("allocation-next-budget", coins(state.budgetCoins));
   el<HTMLElement>("allocation-preview").textContent =
     `Upkeep ${coins(report.storageUpkeepCoins)} · total spending ${coins(report.budgetSpentCoins)} · carry-over ${coins(report.budgetCarryOverCoins)} · export ${tons(report.exportTons)} for ${coins(report.exportIncomeCoins)}`;
+  renderCommitBar("allocate-btn", [
+    { label: "Storage kept", value: exactTons(value) },
+    { label: "Next-year Budget", value: coins(state.budgetCoins) },
+  ]);
 }
 
 function renderReport(result: TurnResult): void {
@@ -681,24 +732,41 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
 }
 
 function renderEventLog(): void {
-  const list = el<HTMLElement>("event-log");
-  list.textContent = "";
-  el<HTMLElement>("empty-history").hidden = save.eventLog.length > 0;
-  for (const entry of save.eventLog) {
-    const item = document.createElement("li");
-    item.className = entry.event;
-    item.textContent = `Year ${entry.year}: ${entry.summary}`;
-    if (entry.result) {
-      const { state, report } = entry.result;
-      const details = document.createElement("details");
-      const summary = document.createElement("summary");
-      summary.textContent = `Outcomes: population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} · ${famineLabel(report.famine)}`;
-      const body = document.createElement("p");
-      body.textContent = `Harvest ${tons(report.harvestTons)} · Consumption ${tons(report.consumptionTons)} · Storage ${tons(state.storageTons)} · Export ${tons(report.exportTons)} for ${coins(report.exportIncomeCoins)} · Budget ${coins(state.budgetCoins)} · Score ${fmt(state.highestPopulation)}${state.collapsed ? " · Collapse" : ""}`;
-      details.append(summary, body);
-      item.appendChild(details);
+  const table = el<HTMLTableElement>("event-log");
+  const body = table.tBodies[0];
+  if (!body) return;
+  const rows = chronicleRows(save.eventLog);
+  body.textContent = "";
+  table.hidden = rows.length === 0;
+  el<HTMLElement>("empty-history").hidden = rows.length > 0;
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+    tr.classList.add(row.eventType);
+    if (row.famine) tr.classList.add("famine");
+    const year = document.createElement("th");
+    year.scope = "row";
+    year.textContent = row.year;
+    tr.appendChild(year);
+    const cells: [string, string][] = [
+      ["event-cell", row.event],
+      ["harvest-cell", row.harvest],
+      ["population-cell", row.population],
+      ["budget-cell", row.budget],
+    ];
+    for (const [className, value] of cells) {
+      const cell = document.createElement("td");
+      cell.className = className;
+      cell.textContent = value;
+      if (value === UNKNOWN) cell.classList.add("unknown");
+      tr.appendChild(cell);
     }
-    list.appendChild(item);
+    if (row.famine) {
+      const tag = document.createElement("span");
+      tag.className = "famine-tag";
+      tag.textContent = row.famine;
+      tr.querySelector(".population-cell")?.appendChild(tag);
+    }
+    body.appendChild(tr);
   }
 }
 
@@ -867,6 +935,19 @@ function init(): void {
     confirmAllocation,
   );
   el<HTMLButtonElement>("confirm-btn").addEventListener("click", confirmPlan);
+  el<HTMLButtonElement>("commit-bar-btn").addEventListener("click", () => {
+    if (save.pendingTurn) confirmAllocation();
+    else confirmPlan();
+  });
+  // Reserve the pinned bar's height (0 while CSS hides it) so it never covers
+  // the end of the page or an input scrolled into view.
+  const commitBar = el<HTMLElement>("commit-bar");
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty(
+      "--commit-bar-height",
+      `${Math.ceil(commitBar.getBoundingClientRect().height)}px`,
+    );
+  }).observe(commitBar);
   el<HTMLButtonElement>("restart-btn").addEventListener("click", restart);
   el<HTMLButtonElement>("collapse-restart-btn").addEventListener(
     "click",

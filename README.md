@@ -83,13 +83,18 @@ Year report each lead with one headline: the Population change (such as
 **+50 people**), or the shortfall in tons during Famine, followed by the Famine
 outcome in words. The Event appears once beneath it, and the other figures share
 one readable stat row. Detailed accounting is under **Harvest, Event & Budget details**.
-Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
+Earlier outcomes remain in the **Country chronicle**, a table of Year, Event,
+Harvest, Population change and Budget, newest first, with Famine Years labelled
+in text. Collapse replaces planning
 with a run summary and a confirmed **Start a new run** action. The summary
 states the cause using the final Year's Harvest, stored food and Consumption,
 names the final Year's Event only when one occurred, and gives the run length in
 Years and the Score; Milestone progress is hidden. The header keeps the final
 Year played. On mobile, the
-current decision appears before a compact landscape. Optional synthesized sound
+current decision appears before a compact landscape, and a bar pinned to the
+bottom of the screen keeps the food balance, Budget after the plan and
+**Resolve harvest** in view while planning (Storage kept, next-Year Budget and
+**Finish year** while allocating). Optional synthesized sound
 starts off in every tab and can be muted immediately; animations respect reduced
 motion. See [interface checks](docs/field-journal-ui.md) for manual examples.
 
@@ -100,7 +105,7 @@ population, including zero; there is no fixed winning population.
 
 Progress saves after harvest commitment and allocation. Reloading during
 allocation preserves the rolled outcome. The latest report returns on reload;
-expand history entries to inspect earlier outcomes. **Restart run** asks for
+the Country chronicle summarises earlier outcomes. **Restart run** asks for
 confirmation before replacing the run, including a pending harvest. Storage
 failures show a warning and Retry and pause further advances. Legacy summaries
 remain readable without invented details; see [saved games and recovery](docs/saves.md).

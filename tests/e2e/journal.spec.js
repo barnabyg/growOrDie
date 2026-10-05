@@ -611,7 +611,7 @@ test("Collapse replaces planning and supports a confirmed restart without losing
   await page.locator("#collapse-restart-btn").click();
   await expect(page.locator("#production")).toBeVisible();
   await expect(page.locator("#stat-year")).toHaveText("1");
-  await expect(page.locator("#event-log li")).toHaveCount(0);
+  await expect(page.locator("#event-log tbody tr")).toHaveCount(0);
 });
 
 for (const { name, runSeed, state, hectares, cause, event, score } of [

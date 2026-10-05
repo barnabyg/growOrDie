@@ -686,6 +686,7 @@
         color: var(--green);
       }
       .food-balance.shortfall,
+      .commit-bar-values .shortfall,
       .overspend {
         color: var(--danger);
       }
@@ -767,6 +768,17 @@
       }
       .commit-button.warning {
         background: var(--danger);
+      }
+      /* Mobile-only pinned summary of the current decision; ui.ts mirrors the
+         in-page commit button and publishes its height as --commit-bar-height. */
+      html {
+        scroll-padding-bottom: var(--commit-bar-height, 0px);
+      }
+      body {
+        padding-bottom: var(--commit-bar-height, 0px);
+      }
+      .commit-bar {
+        display: none;
       }
       #technologies {
         margin-top: 1rem;
@@ -998,26 +1010,55 @@
         color: var(--muted);
         font-size: 0.85rem;
       }
+      /* Narrow screens or enlarged text scroll the table, never the page. */
+      .chronicle-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+      }
       .event-log {
-        padding: 0;
-        margin: 0;
-        list-style: none;
+        width: 100%;
+        border-collapse: collapse;
         font-size: 0.8rem;
+        font-variant-numeric: tabular-nums;
+        overflow-wrap: normal;
       }
-      .event-log li {
+      .event-log th,
+      .event-log td {
+        padding: 0.45rem 0.4rem;
         border-top: 1px solid var(--border);
-        padding: 0.75rem 0;
+        text-align: left;
+        vertical-align: top;
+        font-weight: normal;
       }
-      .event-log li:first-child {
+      .event-log th:first-child,
+      .event-log td:first-child {
+        padding-left: 0;
+      }
+      .event-log thead th {
         border-top: none;
+        color: var(--muted);
+        font-size: 0.75rem;
       }
-      .event-log li.drought,
-      .event-log li.flood,
-      .event-log li.priceShock {
+      .event-log tbody th {
+        font-weight: 600;
+      }
+      .event-log tr.drought .event-cell,
+      .event-log tr.flood .event-cell,
+      .event-log tr.priceShock .event-cell {
         color: var(--gold);
       }
-      .event-log p {
-        color: var(--text);
+      .event-log .unknown {
+        color: var(--muted);
+      }
+      .event-log tr.famine .population-cell {
+        color: var(--danger);
+      }
+      .famine-tag {
+        display: block;
+        font-weight: 600;
+      }
+      .famine-tag::before {
+        content: "\26A0\FE0E  " / "";
       }
       #empty-history {
         color: var(--muted);
@@ -1117,10 +1158,52 @@
         .help {
           padding-inline: 0.85rem;
         }
+        .commit-bar:not([hidden]) {
+          position: fixed;
+          inset: auto 0 0;
+          z-index: 10;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 0.4rem 0.75rem;
+          padding: 0.55rem 0.75rem max(0.55rem, env(safe-area-inset-bottom));
+          background: var(--panel);
+          border-top: 1px solid var(--border);
+          box-shadow: 0 -4px 12px rgb(0 0 0 / 12%);
+        }
+        .commit-bar-values {
+          flex: 1 1 auto;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.1rem 1rem;
+          margin: 0;
+          font-size: 0.75rem;
+        }
+        .commit-bar-values dt {
+          color: var(--muted);
+        }
+        .commit-bar-values dd {
+          margin: 0;
+          font-size: 0.95rem;
+          font-weight: 600;
+        }
+        .commit-bar .commit-button {
+          flex: 1 1 10rem;
+          width: auto;
+          margin-top: 0;
+          padding-block: 0.6rem;
+        }
       }
       @media (max-width: 540px) {
         .technology-grid {
           grid-template-columns: minmax(0, 1fr);
+        }
+        .event-log {
+          font-size: 0.75rem;
+        }
+        .event-log th,
+        .event-log td {
+          padding-inline: 0.2rem;
         }
         .run-actions button {
           padding: 0.5rem 0.65rem;
@@ -1461,9 +1544,26 @@
         <p class="country-technologies" id="country-technologies"></p>
       </section>
       <section class="history-section">
-        <h2>Country chronicle</h2>
+        <h2 id="history-title">Country chronicle</h2>
         <p id="empty-history">Your first Harvest will begin the story.</p>
-        <ul id="event-log" class="event-log"></ul>
+        <div class="chronicle-scroll">
+          <table
+            id="event-log"
+            class="event-log"
+            aria-labelledby="history-title"
+          >
+            <thead>
+              <tr>
+                <th scope="col">Year</th>
+                <th scope="col">Event</th>
+                <th scope="col">Harvest</th>
+                <th scope="col">Population change</th>
+                <th scope="col">Budget</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </section>
       <div class="content">
         <section id="collapse-summary" hidden aria-labelledby="collapse-title">
@@ -2104,6 +2204,24 @@
         </section>
       </div>
     </main>
+    <aside class="commit-bar" id="commit-bar" aria-label="Current decision">
+      <dl class="commit-bar-values">
+        <div>
+          <dt id="commit-bar-label-0">Food</dt>
+          <dd id="commit-bar-value-0"></dd>
+        </div>
+        <div>
+          <dt id="commit-bar-label-1">Budget after plan</dt>
+          <dd id="commit-bar-value-1"></dd>
+        </div>
+      </dl>
+      <button type="button" id="commit-bar-btn" class="commit-button">
+        <span id="commit-bar-action">Resolve harvest</span
+        ><svg class="icon" aria-hidden="true">
+          <use href="#icon-arrow" />
+        </svg>
+      </button>
+    </aside>
     <footer class="help">
       <details>
         <summary>How to play</summary>
