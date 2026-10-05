@@ -735,7 +735,9 @@ function renderEventLog(): void {
   const rows = chronicleRows(save.eventLog);
   body.textContent = "";
   table.hidden = rows.length === 0;
-  el<HTMLElement>("empty-history").hidden = rows.length > 0;
+  // A committed Harvest awaiting allocation has already begun the story.
+  el<HTMLElement>("empty-history").hidden =
+    rows.length > 0 || save.pendingTurn !== undefined;
   for (const row of rows) {
     const tr = document.createElement("tr");
     tr.classList.add(row.eventType);

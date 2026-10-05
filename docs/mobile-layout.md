@@ -12,7 +12,10 @@ Below the 840 px breakpoint a compact commit bar is pinned to the bottom of the
 viewport. While planning it shows the ordinary food balance, Budget after the
 plan and Resolve harvest; while allocating it shows Storage kept, the
 next-Year Budget and Finish year (both values read "—" while the Storage entry
-is invalid). The values update live. Its button mirrors the in-page commit
+is invalid). The values update live. The bar is compact: tight line spacing, no
+decorative arrow in its button, and the button on its own row when space runs
+short, so at 320 px with doubled text it stays near a third of a 900 px
+viewport. Its button mirrors the in-page commit
 button exactly: the same label (including the shortfall warning text), warning
 style and disabled state, and it commits the same decision. The page reserves
 the bar's measured height as bottom padding and scroll padding, so the last
@@ -42,7 +45,9 @@ span the viewport bottom without overflowing or taking half the screen during
 planning, allocation and the report; it must be absent at 1,280 px and after
 Collapse. `tests/e2e/commit-bar.spec.js` checks live values, mirrored disabled
 and warning states, committing from the bar, uncovered focused inputs and page
-end at 390 px. The test operates labelled inputs and buttons through a seeded run.
+end at 390 px. `tests/e2e/polish.spec.js` checks at 390 px that no label row
+touches the control below it on the plan, allocation and report screens, and
+that no visible text renders below 13 px. The test operates labelled inputs and buttons through a seeded run.
 Fresh-screen screenshots at 390 and 1280 px were visually inspected on
 9 September 2026: mobile details are readable and the desktop country/content
 columns remain side by side.
