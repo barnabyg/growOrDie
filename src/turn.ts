@@ -27,6 +27,50 @@ export function productionCosts(
   };
 }
 
+export type ProductionInput =
+  "cultivatedHectares" | "fertilizedHectares" | "preparedHectares";
+
+/** Largest whole hectares for one production input that keeps the plan within
+ * Budget, holding the other choices fixed (reduced cultivation also limits
+ * fertilization, as in the plan controls). It is capped by the land available
+ * to that input and is 0 when the rest of the plan is already unaffordable. */
+export function affordableHectares(
+  state: GameState,
+  plan: PlayerPlan,
+  input: ProductionInput,
+  config: GameConfig,
+): number {
+  const limit = Math.floor(
+    input === "cultivatedHectares"
+      ? state.preparedLandHectares
+      : input === "fertilizedHectares"
+        ? plan.cultivatedHectares
+        : state.arableLandHectares - state.preparedLandHectares,
+  );
+  const fits = (hectares: number) =>
+    productionCosts(
+      state,
+      {
+        ...plan,
+        [input]: hectares,
+        ...(input === "cultivatedHectares" && {
+          fertilizedHectares: Math.min(plan.fertilizedHectares, hectares),
+        }),
+      },
+      config,
+    ).affordable;
+  if (limit <= 0 || !fits(0)) return 0;
+  // Spending only grows with hectares, so search for the affordable boundary.
+  let low = 0;
+  let high = limit;
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    if (fits(mid)) low = mid;
+    else high = mid - 1;
+  }
+  return low;
+}
+
 export function beginTurn(
   state: GameState,
   plan: PlayerPlan,

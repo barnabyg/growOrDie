@@ -29,6 +29,14 @@ food destroyed by floods. It uses only Technology already owned at the start of
 the year. Newly prepared land and newly purchased Technology help next year.
 These scenarios describe possible outcomes, rather than predicting the event.
 
+Cultivate, Fertilize and Prepare each show the most hectares affordable while
+keeping the other current choices, including mandatory Storage upkeep and
+selected Technology; reducing cultivation also reduces fertilization. A red
+band under each slider marks the unaffordable range, which remains reachable.
+When the plan exceeds the Budget, the overspend message appears under the most
+recently changed input that exceeds its maximum (or under every such input),
+is linked to it for assistive technology, and the summary error remains.
+
 The country shows cultivated, prepared and unprepared shares, weather, a growing
 village and owned Technology landmarks. Its parcels illustrate aggregate
 hectares; they do not introduce separate fields to manage. Editing production
@@ -82,9 +90,15 @@ set `$env:PORT='0'` before starting and open the printed address.
    yield 960 t with a 40 t shortfall.
 2. Operate production controls by pointer and keyboard. Sliders and number
    inputs should agree; reducing cultivation should also limit fertilization.
-   With the suggested plan, preparing 100 ha should show overspending and disable
-   Resolve. The preparation note should say the new land is available next year.
-   Reset preparation to zero before continuing.
+   With the suggested plan, each production input should show its affordable
+   maximum: 400 ha to cultivate, 400 ha to fertilize and 33 ha to prepare.
+   Preparing 100 ha should mark the slider beyond 33 ha in red, show "Over
+   Budget: at most 33 ha is affordable with the rest of this plan." directly
+   below Prepare new land, keep the summary error and disable Resolve. A screen
+   reader should announce that message with the preparation input, and the
+   slider should still reach 1,600 ha. The preparation note should say the new
+   land is available next year. Reset preparation to zero before continuing;
+   the inline message should disappear.
 3. Check that Technologies sit between production and the spending summary,
    and that tabbing from the production controls reaches every Technology
    before Resolve harvest. Select a Technology. Its cost should change spending
@@ -138,8 +152,10 @@ location.reload();
 `tests/outlook.test.ts` compares forecasts with real simulation outcomes under
 ordinary, drought and flood events, including tuned configuration, owned
 Technology and delayed purchases. `tests/carryover.test.ts` covers the carried
-plan's derivation, clamping and legacy fallback. `tests/e2e/journal.spec.js`
-checks the carried plan and shortfall warning, controls,
+plan's derivation, clamping and legacy fallback. `tests/affordability.test.ts`
+checks each input's affordable maximum against the Resolve gate.
+`tests/e2e/journal.spec.js` checks the carried plan and shortfall warning,
+controls, affordable maximums and inline overspend messages,
 forecasts without save mutations, allocation accounting and reloads, purchase
 timing, Technology placement and keyboard order within the plan, landmarks,
 milestones, Collapse, mobile dark mode, reduced motion, unavailable audio, and

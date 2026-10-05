@@ -493,6 +493,39 @@
         height: 1.5rem;
         accent-color: var(--green);
       }
+      /* Mark the part of a production slider beyond the affordable maximum.
+         Native range tracks ignore backgrounds, so a wrapper draws the band.
+         --affordable is the affordable share of the range; 8px and 16px follow
+         the native thumb so the boundary lines up with the thumb centre. */
+      .budget-range {
+        --affordable: 1;
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+      }
+      .budget-range::after {
+        content: "";
+        position: absolute;
+        inset: calc(50% + 0.45rem) 0 auto;
+        height: 0.2rem;
+        border-radius: 2px;
+        pointer-events: none;
+        background: linear-gradient(
+          to right,
+          transparent calc(8px + var(--affordable) * (100% - 16px)),
+          var(--danger) 0
+        );
+      }
+      .field-limit,
+      .field-error {
+        margin: 0.35rem 0 0;
+      }
+      .field-error {
+        color: var(--danger);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
       input[type="checkbox"] {
         accent-color: var(--green);
         width: 1.15rem;
@@ -1454,20 +1487,27 @@
                   >
                 </div>
                 <div class="input-pair">
-                  <input
-                    type="range"
-                    id="plan-hectares-slider"
-                    min="0"
-                    step="1"
-                    aria-label="Adjust cultivated hectares"
-                  /><input
+                  <span class="budget-range" id="plan-hectares-range"
+                    ><input
+                      type="range"
+                      id="plan-hectares-slider"
+                      min="0"
+                      step="1"
+                      aria-label="Adjust cultivated hectares"
+                      aria-describedby="plan-hectares-affordable plan-hectares-error" /></span
+                  ><input
                     type="number"
                     id="plan-hectares"
                     min="0"
                     step="1"
-                    aria-describedby="cultivation-help"
+                    aria-describedby="cultivation-help plan-hectares-affordable plan-hectares-error"
                   />
                 </div>
+                <p
+                  class="field-detail field-limit"
+                  id="plan-hectares-affordable"
+                ></p>
+                <p class="field-error" id="plan-hectares-error" hidden></p>
                 <div class="field-actions">
                   <span class="field-detail" id="cultivation-help"
                     >Seeds: <span id="plan-seed-price"></span></span
@@ -1486,20 +1526,27 @@
                   ></span>
                 </div>
                 <div class="input-pair">
-                  <input
-                    type="range"
-                    id="plan-fertilizer-slider"
-                    min="0"
-                    step="1"
-                    aria-label="Adjust fertilized hectares"
-                  /><input
+                  <span class="budget-range" id="plan-fertilizer-range"
+                    ><input
+                      type="range"
+                      id="plan-fertilizer-slider"
+                      min="0"
+                      step="1"
+                      aria-label="Adjust fertilized hectares"
+                      aria-describedby="plan-fertilizer-affordable plan-fertilizer-error" /></span
+                  ><input
                     type="number"
                     id="plan-fertilizer"
                     min="0"
                     step="1"
-                    aria-describedby="fertilizer-help"
+                    aria-describedby="fertilizer-help plan-fertilizer-affordable plan-fertilizer-error"
                   />
                 </div>
+                <p
+                  class="field-detail field-limit"
+                  id="plan-fertilizer-affordable"
+                ></p>
+                <p class="field-error" id="plan-fertilizer-error" hidden></p>
                 <div class="field-actions">
                   <span class="field-detail" id="fertilizer-help"
                     >Of this year's cultivated land</span
@@ -1516,20 +1563,27 @@
                   >
                 </div>
                 <div class="input-pair">
-                  <input
-                    type="range"
-                    id="plan-prep-slider"
-                    min="0"
-                    step="1"
-                    aria-label="Adjust new land preparation"
-                  /><input
+                  <span class="budget-range" id="plan-prep-range"
+                    ><input
+                      type="range"
+                      id="plan-prep-slider"
+                      min="0"
+                      step="1"
+                      aria-label="Adjust new land preparation"
+                      aria-describedby="plan-prep-affordable plan-prep-error" /></span
+                  ><input
                     type="number"
                     id="plan-prep"
                     min="0"
                     step="1"
-                    aria-describedby="preparation-help"
+                    aria-describedby="preparation-help plan-prep-affordable plan-prep-error"
                   />
                 </div>
+                <p
+                  class="field-detail field-limit"
+                  id="plan-prep-affordable"
+                ></p>
+                <p class="field-error" id="plan-prep-error" hidden></p>
                 <p class="field-detail" id="preparation-help">
                   <span id="plan-prep-max"></span> unprepared · available to
                   cultivate next Year

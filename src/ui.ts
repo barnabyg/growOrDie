@@ -2,7 +2,13 @@ import { createLandscape, renderLandscape } from "./landscape.js";
 import { foodOutlook } from "./outlook.js";
 import { resourceHeader } from "./header.js";
 import { GameSound } from "./sound.js";
-import { beginTurn, finishTurn, productionCosts } from "./turn.js";
+import {
+  affordableHectares,
+  beginTurn,
+  finishTurn,
+  productionCosts,
+} from "./turn.js";
+import type { ProductionInput } from "./turn.js";
 import { economyRates } from "./economy.js";
 import { carriedPlan } from "./carryover.js";
 import { CONFIG } from "./config.js";
@@ -65,6 +71,8 @@ let readFailed = loadedSave === undefined;
 let saveFailed = false;
 let restartCandidate: SaveData | undefined;
 let planEdited = false;
+// The production input changed most recently; an overspend is reported there.
+let lastProductionInput: string | undefined;
 const sound = new GameSound();
 
 function text(id: string, value: string): void {
@@ -302,6 +310,7 @@ function updatePlanPreview(state: GameState): void {
   error.textContent = !complete
     ? "Enter a number in each hectares field."
     : `Plan exceeds the available Budget. Reduce spending before resolving.`;
+  renderProductionLimits(state, plan, complete && !costs.affordable);
   for (const id of TECHNOLOGY_IDS) {
     const checkbox = el<HTMLInputElement>(`tech-${id}`);
     const owned = state.ownedTechnologies.includes(id);
@@ -329,6 +338,49 @@ function updatePlanPreview(state: GameState): void {
       state,
       planEdited || save.eventLog.length === 0 ? plan : undefined,
     );
+  }
+}
+
+const PRODUCTION_INPUTS: Record<string, ProductionInput> = {
+  "plan-hectares": "cultivatedHectares",
+  "plan-fertilizer": "fertilizedHectares",
+  "plan-prep": "preparedHectares",
+};
+
+/** Show each input's affordable maximum, tint the unaffordable slider range and,
+ * when over Budget, put the message at the most recently changed input that
+ * exceeds its maximum (or every such input if that one does not). */
+function renderProductionLimits(
+  state: GameState,
+  plan: PlayerPlan,
+  overBudget: boolean,
+): void {
+  const limits = Object.entries(PRODUCTION_INPUTS).map(([id, input]) => ({
+    id,
+    max: affordableHectares(state, plan, input, CONFIG),
+    value: plan[input],
+  }));
+  const over = limits.filter(({ max, value }) => value > max).map((l) => l.id);
+  const blamed = !overBudget
+    ? []
+    : lastProductionInput && over.includes(lastProductionInput)
+      ? [lastProductionInput]
+      : over;
+  for (const { id, max } of limits) {
+    text(`${id}-affordable`, `Up to ${hectares(max)} affordable`);
+    const range = Number(el<HTMLInputElement>(`${id}-slider`).max);
+    el<HTMLElement>(`${id}-range`).style.setProperty(
+      "--affordable",
+      String(range > 0 ? Math.min(1, max / range) : 1),
+    );
+    const shown = blamed.includes(id);
+    const message = el<HTMLElement>(`${id}-error`);
+    message.hidden = !shown;
+    // Hidden text still counts in aria-describedby, so clear it as well.
+    message.textContent = shown
+      ? `Over Budget: at most ${hectares(max)} is affordable with the rest of this plan.`
+      : "";
+    el<HTMLInputElement>(id).setAttribute("aria-invalid", String(shown));
   }
 }
 
@@ -792,6 +844,7 @@ function init(): void {
   for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep"]) {
     el<HTMLInputElement>(id).addEventListener("input", () => {
       planEdited = true;
+      lastProductionInput = id;
       updatePlanPreview(save.state);
     });
     el<HTMLInputElement>(`${id}-slider`).addEventListener("input", () => {
@@ -799,6 +852,7 @@ function init(): void {
         `${id}-slider`,
       ).value;
       planEdited = true;
+      lastProductionInput = id;
       updatePlanPreview(save.state);
     });
   }
@@ -833,6 +887,7 @@ function init(): void {
       save.state.preparedLandHectares,
     );
     planEdited = true;
+    lastProductionInput = "plan-hectares";
     updatePlanPreview(save.state);
   });
   el<HTMLButtonElement>("fertilize-all-btn").addEventListener("click", () => {
@@ -840,6 +895,7 @@ function init(): void {
       readPlanInputs(save.state).cultivatedHectares,
     );
     planEdited = true;
+    lastProductionInput = "plan-fertilizer";
     updatePlanPreview(save.state);
   });
   el<HTMLButtonElement>("suggest-plan-btn").addEventListener("click", () => {
