@@ -280,11 +280,14 @@ function updatePlanPreview(state: GameState): void {
   error.textContent = !complete
     ? "Enter a number in each hectares field."
     : `Plan exceeds the available Budget. Reduce spending before resolving.`;
-  const blamedTechnology = renderProductionLimits(
-    state,
-    plan,
-    complete && !costs.affordable,
-  );
+  const limits = productionLimits(state, plan);
+  const blame = overspendBlame({
+    overBudget: complete && !costs.affordable,
+    lastChange: lastPlanChange,
+    overInputs: limits.filter((l) => l.value > l.max).map((l) => l.input),
+    selectedTechnologies: plan.purchaseTechnologies ?? [],
+  });
+  renderProductionLimits(limits, blame.inputs);
   for (const id of TECHNOLOGY_IDS) {
     const checkbox = el<HTMLInputElement>(`tech-${id}`);
     const status = technologyStatus({
@@ -299,14 +302,12 @@ function updatePlanPreview(state: GameState): void {
     const statusEl = el<HTMLElement>(`tech-${id}-status`);
     statusEl.textContent = status.text;
     statusEl.hidden = status.text === "";
-    const blamed = id === blamedTechnology;
-    const message = el<HTMLElement>(`tech-${id}-error`);
-    message.hidden = !blamed;
-    // Hidden text still counts in aria-describedby, so clear it as well.
-    message.textContent = blamed
-      ? `Over Budget by ${exactCoins(-remaining)}`
-      : "";
-    checkbox.setAttribute("aria-invalid", String(blamed));
+    renderFieldError(
+      `tech-${id}`,
+      id === blame.technology
+        ? `Over Budget by ${exactCoins(-remaining)}`
+        : undefined,
+    );
   }
   renderOutlook(state, plan);
   renderResolveButton(state, plan);
@@ -339,27 +340,48 @@ const PRODUCTION_INPUTS: Record<string, ProductionInput> = {
   "plan-prep": "preparedHectares",
 };
 
-/** Show each input's affordable maximum, tint the unaffordable slider range and,
- * when over Budget, put the message at the change that caused it (see
- * `overspendBlame`). Returns the Technology whose card should carry the
- * message instead, if any. */
-function renderProductionLimits(
+interface ProductionLimit {
+  id: string;
+  input: ProductionInput;
+  max: number;
+  value: number;
+}
+
+// Each production input's affordable maximum alongside its planned value.
+function productionLimits(
   state: GameState,
   plan: PlayerPlan,
-  overBudget: boolean,
-): TechnologyId | undefined {
-  const limits = Object.entries(PRODUCTION_INPUTS).map(([id, input]) => ({
+): ProductionLimit[] {
+  return Object.entries(PRODUCTION_INPUTS).map(([id, input]) => ({
     id,
     input,
     max: affordableHectares(state, plan, input, CONFIG),
     value: plan[input],
   }));
-  const blame = overspendBlame({
-    overBudget,
-    lastChange: lastPlanChange,
-    overInputs: limits.filter((l) => l.value > l.max).map((l) => l.input),
-    selectedTechnologies: plan.purchaseTechnologies ?? [],
-  });
+}
+
+/** Show a control's inline error, linked to it by aria-describedby, or clear
+ * it when `message` is undefined. */
+function renderFieldError(
+  controlId: string,
+  message: string | undefined,
+): void {
+  const error = el<HTMLElement>(`${controlId}-error`);
+  error.hidden = message === undefined;
+  // Hidden text still counts in aria-describedby, so clear it as well.
+  error.textContent = message ?? "";
+  el<HTMLInputElement>(controlId).setAttribute(
+    "aria-invalid",
+    String(message !== undefined),
+  );
+}
+
+/** Show each input's affordable maximum, tint the unaffordable slider range and
+ * put the overspend message at the blamed inputs (see `overspendBlame`). */
+function renderProductionLimits(
+  limits: readonly ProductionLimit[],
+  blamed: readonly ProductionInput[],
+): void {
   for (const { id, input, max } of limits) {
     text(`${id}-affordable`, `Up to ${hectares(max)} affordable`);
     const range = Number(el<HTMLInputElement>(`${id}-slider`).max);
@@ -367,16 +389,13 @@ function renderProductionLimits(
       "--affordable",
       String(range > 0 ? Math.min(1, max / range) : 1),
     );
-    const shown = blame.inputs.includes(input);
-    const message = el<HTMLElement>(`${id}-error`);
-    message.hidden = !shown;
-    // Hidden text still counts in aria-describedby, so clear it as well.
-    message.textContent = shown
-      ? `Over Budget: at most ${hectares(max)} is affordable with the rest of this plan.`
-      : "";
-    el<HTMLInputElement>(id).setAttribute("aria-invalid", String(shown));
+    renderFieldError(
+      id,
+      blamed.includes(input)
+        ? `Over Budget: at most ${hectares(max)} is affordable with the rest of this plan.`
+        : undefined,
+    );
   }
-  return blame.technology;
 }
 
 function renderOutlook(state: GameState, plan: PlayerPlan): void {
