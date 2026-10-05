@@ -12,7 +12,10 @@ Below the 840 px breakpoint a compact commit bar is pinned to the bottom of the
 viewport. While planning it shows the ordinary food balance, Budget after the
 plan and Resolve harvest; while allocating it shows Storage kept, the
 next-Year Budget and Finish year (both values read "—" while the Storage entry
-is invalid). The values update live. Its button mirrors the in-page commit
+is invalid). The values update live. The bar is compact: tight line spacing, no
+decorative arrow in its button, and the button on its own row when space runs
+short, so at 320 px with doubled text it stays near a third of a 900 px
+viewport. Its button mirrors the in-page commit
 button exactly: the same label (including the shortfall warning text), warning
 style and disabled state, and it commits the same decision. The page reserves
 the bar's measured height as bottom padding and scroll padding, so the last
