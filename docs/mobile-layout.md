@@ -2,7 +2,9 @@
 
 The Field journal interface retains all eight layout regression combinations
 below. On small screens, the current production or allocation decision appears
-before a compact landscape; Collapse replaces the planning controls. Sliders,
+before a compact landscape; Collapse replaces the planning controls. Within the
+plan, Technologies follow production and precede the spending summary and
+Resolve harvest at every width, so the commit button closes the whole plan. Sliders,
 exact number inputs, forecasts, Technology cards and report cells wrap to the
 available width. Additional browser checks cover mobile dark mode, reduced
 motion and unavailable audio. See [Field journal manual checks](field-journal-ui.md)
@@ -23,7 +25,8 @@ The browser regression in `tests/e2e/layout.spec.js` passed at 320, 390, 760, an
 that page scroll width does not exceed viewport width on fresh, allocation,
 completed-report, Owned-Technology, and Collapse screens. They also check that
 Technology fields have positive width, remain inside the viewport, and do not
-overlap. The test operates labelled inputs and buttons through a seeded run.
+overlap, and that Technologies appear below production and above the spending
+summary and Resolve harvest. The test operates labelled inputs and buttons through a seeded run.
 Fresh-screen screenshots at 390 and 1280 px were visually inspected on
 9 September 2026: mobile details are readable and the desktop country/content
 columns remain side by side.
