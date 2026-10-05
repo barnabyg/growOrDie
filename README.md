@@ -29,7 +29,8 @@ hectares under the default configuration. Each Turn has two decisions:
 1. **Plan production and investment.** Cultivation costs seeds each year;
    fertilizer adds cost and multiplies Yield on the chosen hectares. Preparing
    land costs money once and makes it available for future cultivation.
-   Technologies are one-off purchases whose benefits start next Turn. The
+   Technologies are one-off purchases whose benefits start next Turn; click
+   anywhere on a Technology card to select it. The
    preview includes mandatory upkeep for retained food and blocks unaffordable
    commitments. Select **Resolve harvest** to commit the plan. If the ordinary
    forecast falls short of Consumption, the button turns to a warning such as

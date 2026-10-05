@@ -14,6 +14,14 @@ the food outlook, then Technologies, then the spending summary and Resolve
 harvest. Every investment is visible, and reachable by keyboard, before the
 Year is committed.
 
+Each Technology card shows its name and cost on one line and a single benefit
+line derived from configuration, such as "50% less Storage upkeep". A status
+line appears only when it differs from the default: Owned, Selected, or the
+coins still needed, such as "Need 1,800 coins more". The whole card is the
+click target; a real checkbox inside it keeps keyboard and screen-reader
+access, with the name as its label and cost, benefit and status as its
+description. Owned cards cannot be toggled.
+
 Production sliders and exact number inputs stay in sync. Shortcuts cultivate or
 fertilize all available land; the first-year suggestion selects both. Later
 Years open with the previous Year's cultivation and fertilization, derived from
@@ -114,7 +122,11 @@ set `$env:PORT='0'` before starting and open the printed address.
    the inline message should disappear.
 3. Check that Technologies sit between production and the spending summary,
    and that tabbing from the production controls reaches every Technology
-   before Resolve harvest. Select a Technology. Its cost should change spending
+   before Resolve harvest. Each card should show name and cost on one line,
+   one benefit line, and no status until it is selected, unaffordable or
+   Owned. Click the card's padding or benefit text to select a Technology; it
+   should read Selected, and cards the remaining Budget cannot cover should
+   show the coins still needed. Its cost should change spending
    but its benefit should not change this year's forecast. Resolve an affordable
    plan: the event and actual food totals should appear, while one note marks
    the header as opening values. Reload
@@ -181,7 +193,11 @@ milestones, Collapse, mobile dark mode, reduced motion, unavailable audio, and
 the four-resource header with its opening-values note and at most two visible
 mentions of the current Year at 390 and 1,280 px. `tests/header.test.ts` covers
 the header text, Population change and status. `tests/format.test.ts` covers
-units, rates and plurals; `tests/e2e/copy.spec.js` fails if raw identifiers or
+units, rates and plurals; `tests/technology.test.ts` covers Technology benefit
+lines under default and tuned configuration and the card status rules, and the
+journal browser suite checks whole-card toggling, locked Owned cards, the
+checkbox's accessible name and description, and AA contrast of cost and status
+text in light and dark mode; `tests/e2e/copy.spec.js` fails if raw identifiers or
 Turn wording appear on plan, allocation, report, chronicle or Collapse screens.
 `tests/e2e/layout.spec.js` also checks that shortcut actions render as bordered
 chips with AA contrast in light and dark mode, distinct hover and dashed

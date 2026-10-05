@@ -36,7 +36,7 @@ for (const width of [320, 390, 760, 1280]) {
         for (const row of await page.locator(".tech-row:visible").all()) {
           const boxes = await row
             .locator(
-              "input, label, .tech-cost, .tech-effect, .tech-owned:visible",
+              "input, .tech-name, .tech-cost, .tech-benefit, .tech-status:visible",
             )
             .evaluateAll((nodes) =>
               nodes.map((node) => {
@@ -91,7 +91,7 @@ for (const width of [320, 390, 760, 1280]) {
       await fits();
       await page.locator("#allocate-btn").click();
       await expect(page.locator("#report")).toBeVisible();
-      await expect(page.locator("#tech-irrigation-owned")).toBeVisible();
+      await expect(page.locator("#tech-irrigation-status")).toHaveText("Owned");
       await fits();
       await page.locator("#plan-hectares").fill("0");
       await page.locator("#confirm-btn").click();

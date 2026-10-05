@@ -18,6 +18,7 @@ import { economyRates } from "./economy.js";
 import { carriedPlan } from "./carryover.js";
 import { CONFIG } from "./config.js";
 import { eventSummary } from "./simulation.js";
+import { technologyBenefit, technologyStatus } from "./technology.js";
 import {
   coinRate,
   coins,
@@ -132,41 +133,6 @@ function renderPlan(state: GameState): void {
   el<HTMLElement>("plan-fert-yield").textContent = fmtRate(
     CONFIG.fertilizerYieldMultiplier,
   );
-  const effects: Record<TechnologyId, string> = {
-    irrigation: `Drought Yield loss ×${fmtRate(CONFIG.irrigationDroughtLossMultiplier)}`,
-    highYieldSeeds: `Base Yield ×${fmtRate(CONFIG.highYieldSeedsYieldMultiplier)}`,
-    granary: `Storage upkeep ×${fmtRate(CONFIG.granaryUpkeepMultiplier)}`,
-    tradeRoutes: `Export price ×${fmtRate(CONFIG.tradeRoutesPriceMultiplier)}`,
-    landSurvey: `Land preparation cost ×${fmtRate(CONFIG.landSurveyCostMultiplier)}`,
-    fertilizerWorks: `Fertilizer cost ×${fmtRate(CONFIG.fertilizerWorksCostMultiplier)}`,
-  };
-  const benefit = (multiplier: number, subject: string) => {
-    const percent = Math.round(Math.abs(multiplier - 1) * 100);
-    return `${percent}% ${multiplier <= 1 ? "less" : "more"} ${subject}`;
-  };
-  const benefits: Record<TechnologyId, string> = {
-    irrigation: benefit(
-      CONFIG.irrigationDroughtLossMultiplier,
-      "Yield lost to drought",
-    ),
-    highYieldSeeds: benefit(
-      CONFIG.highYieldSeedsYieldMultiplier,
-      "food per hectare",
-    ),
-    granary: benefit(CONFIG.granaryUpkeepMultiplier, "Storage upkeep"),
-    tradeRoutes: benefit(
-      CONFIG.tradeRoutesPriceMultiplier,
-      "Export income per ton",
-    ),
-    landSurvey: benefit(
-      CONFIG.landSurveyCostMultiplier,
-      "land preparation cost",
-    ),
-    fertilizerWorks: benefit(
-      CONFIG.fertilizerWorksCostMultiplier,
-      "fertilizer cost",
-    ),
-  };
   text("plan-seed-price", coinRate(CONFIG.seedCostPerHectare, "ha"));
   el<HTMLElement>("first-plan").hidden =
     state.year !== 1 || save.eventLog.length > 0;
@@ -203,16 +169,11 @@ function renderPlan(state: GameState): void {
   const owned = new Set(state.ownedTechnologies);
   for (const id of TECHNOLOGY_IDS) {
     const checkbox = el<HTMLInputElement>(`tech-${id}`);
-    const row = checkbox.closest(".tech-row");
-    const cost = row?.querySelector(".tech-cost");
-    const effect = row?.querySelector(".tech-effect");
-    if (cost) cost.textContent = exactCoins(CONFIG.technologyCosts[id]);
-    if (effect) effect.textContent = effects[id];
-    text(`tech-${id}-benefit`, benefits[id]);
+    text(`tech-${id}-cost`, exactCoins(CONFIG.technologyCosts[id]));
+    text(`tech-${id}-benefit`, technologyBenefit(id, CONFIG));
     // Owned Technologies are locked in; unowned ones start unchecked each Turn.
     checkbox.checked = owned.has(id);
     checkbox.disabled = owned.has(id);
-    el<HTMLElement>(`tech-${id}-owned`).hidden = !owned.has(id);
   }
 
   updatePlanPreview(state);
@@ -318,23 +279,18 @@ function updatePlanPreview(state: GameState): void {
   renderProductionLimits(state, plan, complete && !costs.affordable);
   for (const id of TECHNOLOGY_IDS) {
     const checkbox = el<HTMLInputElement>(`tech-${id}`);
-    const owned = state.ownedTechnologies.includes(id);
-    const shortfall = CONFIG.technologyCosts[id] - Math.max(0, remaining);
-    const unaffordable = !owned && !checkbox.checked && shortfall > 1e-8;
+    const status = technologyStatus({
+      owned: state.ownedTechnologies.includes(id),
+      selected: checkbox.checked,
+      shortfall: CONFIG.technologyCosts[id] - Math.max(0, remaining),
+    });
     const row = checkbox.closest(".tech-row");
-    row?.classList.toggle("selected", checkbox.checked && !owned);
-    row?.classList.toggle("owned", owned);
-    row?.classList.toggle("unaffordable", unaffordable);
-    text(
-      `tech-${id}-status`,
-      owned
-        ? ""
-        : checkbox.checked
-          ? "Selected · starts next Year"
-          : unaffordable
-            ? `Need ${exactCoins(shortfall)} more`
-            : "Available · starts next Year",
-    );
+    for (const kind of ["selected", "owned", "unaffordable"] as const) {
+      row?.classList.toggle(kind, status.kind === kind);
+    }
+    const statusEl = el<HTMLElement>(`tech-${id}-status`);
+    statusEl.textContent = status.text;
+    statusEl.hidden = status.text === "";
   }
   renderOutlook(state, plan);
   renderResolveButton(state, plan);

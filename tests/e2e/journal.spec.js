@@ -371,7 +371,7 @@ test("Technology cards and landmarks respect next-Turn timing", async ({
   await page.locator("#confirm-btn").click();
   await page.locator("#allocate-btn").click();
   await page.locator("#fertilize-all-btn").click();
-  await expect(page.locator("#tech-highYieldSeeds-owned")).toBeVisible();
+  await expect(page.locator("#tech-highYieldSeeds-status")).toHaveText("Owned");
   await expect(page.locator("#landmark-irrigation")).not.toHaveAttribute(
     "display",
     "none",
@@ -410,6 +410,116 @@ test("keyboard reaches every Technology before Resolve harvest, and Technologies
   await expect(page.locator("#allocation")).toBeVisible();
   await expect(page.locator("#technologies")).toBeHidden();
 });
+
+const techCard = (page, id) =>
+  page.locator(".tech-row").filter({ has: page.locator(`#tech-${id}`) });
+
+test("Technology cards are concise and toggle from anywhere except when Owned", async ({
+  page,
+}) => {
+  await fixture(page, {
+    state: { budgetCoins: 4000, ownedTechnologies: ["granary"] },
+  });
+  const irrigation = techCard(page, "irrigation");
+  await expect(irrigation.locator(".tech-name")).toHaveText("Irrigation");
+  await expect(irrigation.locator(".tech-cost")).toHaveText("2,000 coins");
+  await expect(irrigation.locator(".tech-benefit")).toHaveText(
+    "50% less Yield lost to drought",
+  );
+  for (const row of await page.locator(".tech-row").all()) {
+    await expect(row.locator(".tech-benefit")).toHaveCount(1);
+    await expect(row).not.toContainText("starts next");
+  }
+  // Affordable, unselected cards carry no status line.
+  await expect(page.locator("#tech-irrigation-status")).toBeHidden();
+  const checkbox = page.getByRole("checkbox", {
+    name: "Irrigation",
+    exact: true,
+  });
+  await expect(checkbox).toHaveAccessibleDescription(
+    /2,000 coins.*50% less Yield lost to drought/,
+  );
+
+  // 800 coins of seeds leave 3,200: High-yield seeds leaves 200 for the rest.
+  await techCard(page, "highYieldSeeds").locator(".tech-benefit").click();
+  await expect(page.locator("#tech-highYieldSeeds")).toBeChecked();
+  await expect(page.locator("#tech-highYieldSeeds-status")).toHaveText(
+    "Selected",
+  );
+  await expect(page.locator("#tech-irrigation-status")).toHaveText(
+    "Need 1,800 coins more",
+  );
+  await expect(irrigation).toHaveClass(/unaffordable/);
+  await techCard(page, "highYieldSeeds").locator(".tech-cost").click();
+  await expect(page.locator("#tech-highYieldSeeds")).not.toBeChecked();
+  await expect(page.locator("#tech-highYieldSeeds-status")).toBeHidden();
+
+  // Clicking the card's padding (top-left corner) toggles it as well.
+  await irrigation.click({ position: { x: 4, y: 4 } });
+  await expect(checkbox).toBeChecked();
+  await checkbox.press("Space");
+  await expect(checkbox).not.toBeChecked();
+
+  const granary = techCard(page, "granary");
+  await expect(page.locator("#tech-granary-status")).toHaveText("Owned");
+  // Playwright treats a disabled control's label as disabled; force a real click.
+  await granary.locator(".tech-benefit").click({ force: true });
+  await expect(page.locator("#tech-granary")).toBeChecked();
+  await expect(page.locator("#tech-granary")).toBeDisabled();
+  await expect(page.locator("#plan-tech-cost")).toHaveText("0 coins");
+});
+
+for (const colorScheme of ["light", "dark"]) {
+  test(`Technology cost and status text meet WCAG AA contrast in ${colorScheme} mode`, async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ colorScheme });
+    const page = await context.newPage();
+    await fixture(page, {
+      state: { budgetCoins: 4000, ownedTechnologies: ["granary"] },
+    });
+    await page.locator("#tech-highYieldSeeds").check();
+    await expect(page.locator("#tech-irrigation-status")).toHaveText(/^Need/);
+    const ratios = await page.evaluate(() => {
+      const luminance = (value) => {
+        const [r, g, b] = value
+          .match(/[\d.]+/g)
+          .slice(0, 3)
+          .map((c) => {
+            const s = Number(c) / 255;
+            return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+          });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const backdrop = (node) => {
+        for (let n = node; n; n = n.parentElement) {
+          const bg = getComputedStyle(n).backgroundColor;
+          if (bg !== "rgba(0, 0, 0, 0)") return bg;
+        }
+        return getComputedStyle(document.body).backgroundColor;
+      };
+      return [
+        "#tech-irrigation-cost",
+        "#tech-irrigation-status",
+        "#tech-highYieldSeeds-cost",
+        "#tech-highYieldSeeds-status",
+        "#tech-granary-cost",
+        "#tech-granary-status",
+      ].map((selector) => {
+        const node = document.querySelector(selector);
+        const [hi, lo] = [
+          luminance(getComputedStyle(node).color),
+          luminance(backdrop(node)),
+        ].sort((x, y) => y - x);
+        return { selector, ratio: (hi + 0.05) / (lo + 0.05) };
+      });
+    });
+    for (const { selector, ratio } of ratios) {
+      expect(ratio, selector).toBeGreaterThanOrEqual(4.5);
+    }
+    await context.close();
+  });
+}
 
 test("Collapse replaces planning and supports a confirmed restart without losing history on cancellation", async ({
   page,
