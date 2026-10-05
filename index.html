@@ -305,26 +305,68 @@
         gap: 1.25rem;
       }
       #save-notice {
-        grid-column: 1 / -1;
         color: var(--danger);
         border-color: var(--danger);
       }
-      /* The chronicle continues the country column; the last row absorbs any
-         extra height so the two left panels stay together. */
+      /* Desktop placement. The chronicle continues the country column beside
+         the decision; the last row absorbs any extra height so the two left
+         panels stay together. While planning, the latest Year report spans
+         both columns above them, so neither column is left mostly empty;
+         after Collapse it stays in the decision column under the summary.
+         Below 840 px main is a flex column ordered by the rules further down. */
       main {
+        grid-template-areas:
+          "country decision"
+          "history decision";
         grid-template-rows: auto 1fr;
-        grid-auto-flow: row dense;
       }
       main:has(> #save-notice:not([hidden])) {
+        grid-template-areas:
+          "notice notice"
+          "country decision"
+          "history decision";
         grid-template-rows: auto auto 1fr;
       }
-      .country,
-      .history-section {
-        grid-column: 1;
+      main:has(> .content > #report:not([hidden])):not(
+          :has(> .content > #collapse-summary:not([hidden]))
+        ) {
+        grid-template-areas:
+          "report report"
+          "country decision"
+          "history decision";
+        grid-template-rows: auto auto 1fr;
       }
-      .content {
-        grid-column: 2;
-        grid-row: span 2;
+      main:has(> #save-notice:not([hidden])):has(
+          > .content > #report:not([hidden])
+        ):not(:has(> .content > #collapse-summary:not([hidden]))) {
+        grid-template-areas:
+          "notice notice"
+          "report report"
+          "country decision"
+          "history decision";
+        grid-template-rows: auto auto auto 1fr;
+      }
+      #save-notice {
+        grid-area: notice;
+      }
+      .country {
+        grid-area: country;
+      }
+      .history-section {
+        grid-area: history;
+      }
+      .content,
+      .content > section {
+        grid-area: decision;
+      }
+      .content > #report {
+        grid-area: report;
+      }
+      main:has(> .content > #collapse-summary:not([hidden])) #report {
+        grid-area: auto;
+      }
+      main:not(:has(> .content > #collapse-summary:not([hidden]))) > .content {
+        display: contents;
       }
       .country-heading {
         display: flex;
@@ -1759,11 +1801,11 @@
         <section id="production" aria-labelledby="plan-title">
           <div class="section-heading">
             <h2 id="plan-title">Plan — Year <span id="plan-year"></span></h2>
-          </div>
-          <div class="first-plan" id="first-plan">
-            <button type="button" class="quiet" id="suggest-plan-btn">
-              Try cultivating &amp; fertilizing all prepared land
-            </button>
+            <div class="first-plan" id="first-plan">
+              <button type="button" class="quiet" id="suggest-plan-btn">
+                Try cultivating &amp; fertilizing all prepared land
+              </button>
+            </div>
           </div>
           <div class="planning-grid">
             <div class="production-fields">

@@ -116,28 +116,37 @@ test("loading shows the village without animating, while later changes still ani
     .toContain("country-green");
 });
 
-test("on desktop the chronicle continues the country column beside the decision", async ({
+test("on desktop the chronicle continues the country column and no column is left mostly empty", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await fixture(page);
   // The chronicle sits directly beneath the country, level with the right
-  // column; screens with one decision panel leave no large empty column.
-  const columns = async (screen, { balanced }) => {
+  // column. While planning, the latest Year report spans both columns above
+  // them; after Collapse it follows the Collapse summary. On every screen the
+  // two columns end within 400 px of each other.
+  const columns = async (screen, { wideReport }) => {
     const box = await page.evaluate(() => {
       const rect = (selector) =>
         document.querySelector(selector).getBoundingClientRect();
-      const visible = [
-        ...document.querySelectorAll("main > .content > section"),
-      ]
-        .filter((node) => node.getClientRects().length > 0)
+      const country = rect("main > .country");
+      const right = [...document.querySelectorAll("main section")]
+        .filter(
+          (node) =>
+            node.getClientRects().length > 0 &&
+            !node.parentElement.closest("section") &&
+            node.getBoundingClientRect().left > country.right,
+        )
         .map((node) => node.getBoundingClientRect());
+      const report = document.querySelector("#report");
       return {
-        country: rect("main > .country"),
+        country,
         history: rect("main > .history-section"),
-        rightTop: Math.min(...visible.map((r) => r.top)),
-        rightLeft: Math.min(...visible.map((r) => r.left)),
-        rightBottom: Math.max(...visible.map((r) => r.bottom)),
+        report: report.hidden ? null : report.getBoundingClientRect(),
+        rightTop: Math.min(...right.map((r) => r.top)),
+        rightLeft: Math.min(...right.map((r) => r.left)),
+        rightRight: Math.max(...right.map((r) => r.right)),
+        rightBottom: Math.max(...right.map((r) => r.bottom)),
       };
     });
     const message = `${screen}: ${JSON.stringify(box)}`;
@@ -145,20 +154,26 @@ test("on desktop the chronicle continues the country column beside the decision"
     expect(box.history.top - box.country.bottom, message).toBeLessThan(25);
     expect(Math.abs(box.country.top - box.rightTop), message).toBeLessThan(1);
     expect(box.history.right, message).toBeLessThan(box.rightLeft);
-    if (balanced)
-      expect(
-        Math.abs(box.history.bottom - box.rightBottom),
-        message,
-      ).toBeLessThan(400);
+    if (wideReport) {
+      expect(box.report.left, message).toBe(box.country.left);
+      expect(Math.abs(box.report.right - box.rightRight), message).toBeLessThan(
+        1,
+      );
+      expect(box.report.bottom, message).toBeLessThan(box.country.top);
+    }
+    expect(
+      Math.abs(box.history.bottom - box.rightBottom),
+      message,
+    ).toBeLessThan(400);
   };
-  await columns("plan", { balanced: false });
+  await columns("plan", { wideReport: false });
   await page.locator("#suggest-plan-btn").click();
   await page.locator("#confirm-btn").click();
   await expect(page.locator("#allocation")).toBeVisible();
-  await columns("allocation", { balanced: true });
+  await columns("allocation", { wideReport: false });
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#report")).toBeVisible();
-  await columns("report", { balanced: false });
+  await columns("report", { wideReport: true });
   await page.locator("#plan-hectares").fill("0");
   await page.locator("#confirm-btn").click();
   await page.locator("#allocate-btn").click();
@@ -172,5 +187,6 @@ test("on desktop the chronicle continues the country column beside the decision"
     await page.locator("#allocate-btn").click();
   }
   await expect(page.locator("#collapse-summary")).toBeVisible();
-  await columns("Collapse", { balanced: true });
+  await expect(page.locator("#report")).toBeVisible();
+  await columns("Collapse", { wideReport: false });
 });

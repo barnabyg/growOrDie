@@ -99,7 +99,11 @@ Harvest, Consumption, Surplus and export price during allocation; Population,
 peak, Storage and Budget in the Year report. Completed reports put detailed
 accounting behind an expandable disclosure.
 Previous years remain in the Country chronicle, which continues the country
-column beneath the landscape on desktop. It is a compact table of Year, Event,
+column beneath the landscape on desktop. While planning, the latest Year report
+spans both desktop columns above the country and the plan, and the first-year
+suggestion sits beside the plan heading, so neither column is left mostly
+empty; after Collapse the report follows the Collapse summary. Small screens
+keep their order. It is a compact table of Year, Event,
 Harvest, Population change and the Budget carried forward, newest Year first.
 Famine Years are labelled in text (Partial famine, Total famine, plus Collapse)
 with a warning sign as well as colour. Legacy summary-only entries show their
@@ -284,7 +288,8 @@ chips with AA contrast in light and dark mode, distinct hover and dashed
 disabled states, and targets of at least 24 px (fine pointer) or 44 px (coarse
 pointer). `tests/e2e/country.spec.js` checks that legend swatches match the
 drawn land and weather tint, faded houses are explained, a reload starts no
-landscape transitions, and the desktop chronicle sits beneath the country;
+landscape transitions, and the desktop chronicle sits beneath the country,
+with columns that end within 400 px of each other on every screen;
 `tests/landscape.test.ts` covers the house counts. `tests/e2e/panels.spec.js`
 checks that no tinted container sits inside another on the plan, allocation,
 report and Collapse screens in light and dark mode, that no eyebrow labels

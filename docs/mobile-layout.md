@@ -58,9 +58,12 @@ pinned bar should follow every production and Storage change, match the
 in-page button's label, colour and disabled state, and never hide the input
 being edited or the How to play footer. At 1280 px and normal
 text size, expect the country beside the planning panels, with the Country
-chronicle directly beneath the country instead of an empty left column.
+chronicle directly beneath the country instead of an empty left column. While
+planning after a completed Year, the Year report spans both columns above the
+country and the plan; after Collapse it stays beneath the Collapse summary.
 `tests/e2e/country.spec.js` checks that arrangement on the plan, allocation,
-report and Collapse screens.
+report and Collapse screens, and that the two columns end within 400 px of each
+other on every one of them.
 
 Automated enlarged-text checks set the root font size to 32 px; they do not
 emulate every browser's text-only zoom setting. Physical mobile devices and other
