@@ -1,5 +1,6 @@
 import { createLandscape, renderLandscape } from "./landscape.js";
 import { foodOutlook } from "./outlook.js";
+import { resourceHeader } from "./header.js";
 import { GameSound } from "./sound.js";
 import { beginTurn, finishTurn, productionCosts } from "./turn.js";
 import { economyRates } from "./economy.js";
@@ -91,45 +92,15 @@ function renderSaveStatus(): void {
   el<HTMLButtonElement>("collapse-restart-btn").disabled = persistenceBlocked();
 }
 
-function renderStats(state: GameState): void {
-  el<HTMLSpanElement>("stat-year").textContent = String(state.year);
-  el<HTMLSpanElement>("stat-population").textContent = fmt(state.population);
-  el<HTMLSpanElement>("stat-score").textContent = fmt(state.highestPopulation);
-  el<HTMLSpanElement>("stat-storage").textContent =
-    `${fmt(state.storageTons)} t`;
-  el<HTMLSpanElement>("stat-budget").textContent =
-    `${fmt(state.budgetCoins)} coins`;
-  el<HTMLSpanElement>("stat-price").textContent =
-    `${state.worldPrice.toFixed(2)} /t`;
-  const opening = save.pendingTurn ? "Opening " : "";
-  text("population-label", `${opening}Population`);
-  text("storage-label", `${opening}Storage`);
-  text("budget-label", `${opening}Budget`);
-  text("price-label", `${opening}World price`);
-}
-
-function renderRhythm(): void {
-  const active = save.pendingTurn
-    ? "allocate"
-    : save.state.collapsed
-      ? "report"
-      : "plan";
-  for (const step of ["plan", "allocate", "report"]) {
-    const node = el<HTMLElement>(`step-${step}`);
-    if (step === active) node.setAttribute("aria-current", "step");
-    else node.removeAttribute("aria-current");
-  }
-  const latest = save.eventLog.at(-1);
-  text(
-    "turn-status",
-    save.state.collapsed
-      ? "Run complete · start a new country when you're ready"
-      : save.pendingTurn
-        ? `Year ${save.state.year} Harvest committed · choose Storage to finish`
-        : latest
-          ? `Year ${latest.year} complete · plan Year ${save.state.year}`
-          : "Your first Year · plan a Harvest to feed your people",
-  );
+function renderStats(): void {
+  const header = resourceHeader(save);
+  text("stat-year", header.year);
+  text("stat-population", header.population);
+  text("stat-population-change", header.populationChange);
+  text("stat-storage", header.storage);
+  text("stat-budget", header.budget);
+  el<HTMLElement>("stats-note").hidden = !header.opening;
+  text("turn-status", header.status);
 }
 
 function renderPlan(state: GameState): void {
@@ -585,7 +556,7 @@ function render(): void {
   const latest = save.eventLog.at(-1)?.result;
   if (latest) renderReport(latest);
   else el<HTMLElement>("report").hidden = true;
-  renderStats(save.state);
+  renderStats();
   renderPlan(save.state);
   renderCountry(
     save.state,
@@ -599,7 +570,6 @@ function render(): void {
   renderCollapse(save.state);
   renderEventLog();
   renderSaveStatus();
-  renderRhythm();
 }
 
 function renderCountry(state: GameState, preview?: PlayerPlan): void {
@@ -624,12 +594,12 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
     population,
   );
   const caption = preview
-    ? `Year ${state.year} plan preview: ${fmt(cultivated ?? 0)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%).${preview.preparedHectares > 0 ? ` ${fmt(preview.preparedHectares)} new ha available next Turn.` : ""}`
+    ? `Plan preview: ${fmt(cultivated ?? 0)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%).${preview.preparedHectares > 0 ? ` ${fmt(preview.preparedHectares)} new ha available next Turn.` : ""}`
     : cultivated === undefined
       ? year === undefined
         ? "No harvest resolved yet."
         : `Year ${year}: cultivation was not recorded in this legacy save.`
-      : `Year ${year}: ${fmt(cultivated)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%). Latest harvest.`;
+      : `${save.pendingTurn ? "This Year" : `Year ${year}`}: ${fmt(cultivated)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%). Latest harvest.`;
   el<HTMLElement>("country-caption").textContent = caption;
   el<SVGElement>("country-svg").setAttribute("aria-label", caption);
   text("country-mode", preview ? "Plan preview" : "Latest Harvest");

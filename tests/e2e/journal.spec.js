@@ -62,7 +62,7 @@ test("a live forecast makes the initial shortfall visible and previews do not al
   await page.locator("#plan-hectares").fill("125");
   await expect(page.locator("#plan-hectares-slider")).toHaveValue("125");
   await expect(page.locator("#country-caption")).toContainText(
-    "plan preview: 125",
+    "Plan preview: 125",
   );
   await page.locator("#plan-prep").fill("100");
   await expect(page.locator("#plan-error")).toBeVisible();
@@ -83,11 +83,7 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
   );
   await page.locator("#confirm-btn").click();
   await expect(page.locator("#allocation-event-title")).toHaveText("Flood");
-  await expect(page.locator("#budget-label")).toHaveText("Opening Budget");
-  await expect(page.locator("#step-allocate")).toHaveAttribute(
-    "aria-current",
-    "step",
-  );
+  await expect(page.locator("#stats-note")).toBeVisible();
   await expect(page.locator("#allocation-title")).toBeFocused();
   await expect(page.locator("#allocation-retained")).toContainText(
     "500 t of surviving old food must stay",
@@ -118,7 +114,7 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
   await expect(page.locator("#report-title")).toBeFocused();
   await expect(page.locator("#stat-budget")).toHaveText("14,200 coins");
   await expect(page.locator("#report-storage-summary")).toHaveText("600 t");
-  await expect(page.locator("#budget-label")).toHaveText("Budget");
+  await expect(page.locator("#stats-note")).toBeHidden();
 });
 
 test("Technology cards and landmarks respect next-Turn timing", async ({
@@ -169,10 +165,7 @@ test("Collapse replaces planning and supports a confirmed restart without losing
   await expect(page.locator("#production")).toBeHidden();
   await expect(page.locator("#technologies")).toBeHidden();
   await expect(page.locator("#collapse-summary")).toBeVisible();
-  await expect(page.locator("#step-report")).toHaveAttribute(
-    "aria-current",
-    "step",
-  );
+  await expect(page.locator("#turn-status")).toHaveText(/^Run complete/);
   const collapsed = await stored(page);
   page.once("dialog", (dialog) => dialog.dismiss());
   await page.locator("#collapse-restart-btn").click();
@@ -205,7 +198,7 @@ test("a doubling celebrates a Milestone and advances the next population goal", 
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#milestone-banner")).toBeVisible();
   await expect(page.locator("#milestone-banner")).toContainText("×2");
-  await expect(page.locator("#stat-score")).toHaveText("2,048");
+  await expect(page.locator("#milestone-caption")).toContainText("Score 2,048");
   await expect(page.locator("#milestone-target")).toHaveText("4,000 people");
   await page.reload();
   await expect(page.locator("#milestone-target")).toHaveText("4,000 people");
@@ -249,3 +242,61 @@ test("mobile puts decisions before the landscape, respects reduced motion, and t
   );
   expect(errors).toEqual([]);
 });
+
+// Counts "Year <n>" mentions in text currently rendered inside the viewport.
+const visibleYearMentions = (page, year) =>
+  page.evaluate((year) => {
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+    );
+    const parts = [];
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const parent = node.parentElement;
+      if (!node.textContent.trim() || !parent?.checkVisibility()) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      const box = range.getBoundingClientRect();
+      if (box.bottom <= 0 || box.top >= innerHeight || box.width === 0) {
+        continue;
+      }
+      parts.push(node.textContent.trim());
+    }
+    return (
+      parts.join(" ").match(new RegExp(`\\bYear\\s+${year}\\b`, "g")) ?? []
+    ).length;
+  }, year);
+
+for (const width of [390, 1280]) {
+  test(`the ${width}px header shows four resources, one opening note and the Year at most twice`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await fixture(page);
+    const labels = page.locator(".stats .stat .label");
+    const primary = ["Year", "Population", "Storage", "Budget"];
+    await expect(labels).toHaveText(primary);
+    await expect(page.locator("#stat-population-change")).toHaveText("");
+    await expect(page.locator(".turn-steps")).toHaveCount(0);
+    await expect(page.locator("#milestone-caption")).toContainText(
+      "Score 1,000",
+    );
+    expect(await visibleYearMentions(page, 1)).toBeLessThanOrEqual(2);
+    await page.locator("#suggest-plan-btn").click();
+    await page.locator("#confirm-btn").click();
+    await expect(page.locator("#stats-note")).toBeVisible();
+    await expect(page.locator("#stats-note")).toHaveText(/Opening values/);
+    await expect(labels).toHaveText(primary);
+    await expect(page.locator("#allocation-price")).toBeVisible();
+    await page.evaluate(() => scrollTo(0, 0));
+    expect(await visibleYearMentions(page, 1)).toBeLessThanOrEqual(2);
+    await page.locator("#allocate-btn").click();
+    await expect(page.locator("#stats-note")).toBeHidden();
+    await expect(page.locator("#stat-population")).toHaveText("1,050");
+    await expect(page.locator("#stat-population-change")).toHaveText(
+      "+50 last Year",
+    );
+    await page.evaluate(() => scrollTo(0, 0));
+    expect(await visibleYearMentions(page, 2)).toBeLessThanOrEqual(2);
+  });
+}

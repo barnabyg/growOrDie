@@ -23,8 +23,14 @@ hectares; they do not introduce separate fields to manage. Editing production
 shows a labelled planning preview. Allocation and completed reports show the
 actual resolved year; older saves without cultivation data say Unknown.
 
-During allocation, the resource header explicitly labels the opening values.
-The allocation panel shows actual Population, Consumption and surplus, then
+The resource header answers where you are and what you have: Year, Population
+with the latest Year's change, Storage and Budget. A one-line status describes
+the next action; there is no step indicator, because the turn has only two
+decisions and the active panel already shows which one is due. Score sits with
+the Milestone meter and the export price with the allocation results. Headings
+and captions avoid repeating the current Year, so it appears at most twice on
+screen. During allocation, one "Opening values" note marks the header values as
+this Year's opening resources. The allocation panel shows actual Population, Consumption and surplus, then
 previews retained Storage, exports, income, upkeep and the next Budget. Invalid
 storage entries hide those totals until corrected. Completed reports lead with
 the outcome and put detailed accounting behind an expandable disclosure.
@@ -57,7 +63,8 @@ set `$env:PORT='0'` before starting and open the printed address.
    Reset preparation to zero before continuing.
 3. Select a Technology. Its cost should change spending but its benefit should
    not change this year's forecast. Resolve an affordable plan: the event and
-   actual food totals should appear, while header values say Opening. Reload
+   actual food totals should appear, while one note marks the header as opening
+   values. Reload
    during allocation; the event and storage limits should remain identical.
    Finish the year: the Technology becomes Owned, its landmark appears, and the
    following year's forecast includes its benefit.
@@ -96,8 +103,10 @@ location.reload();
 ordinary, drought and flood events, including tuned configuration, owned
 Technology and delayed purchases. `tests/e2e/journal.spec.js` checks controls,
 forecasts without save mutations, allocation accounting and reloads, purchase
-timing, landmarks, milestones, Collapse, mobile dark mode, reduced motion and
-unavailable audio. Existing game, persistence and layout checks remain in place.
+timing, landmarks, milestones, Collapse, mobile dark mode, reduced motion,
+unavailable audio, and the four-resource header with its opening-values note
+and at most two visible mentions of the current Year at 390 and 1,280 px.
+`tests/header.test.ts` covers the header text, Population change and status. Existing game, persistence and layout checks remain in place.
 Run `npm.cmd run verify` for the canonical full gate.
 
 Browser automation checks behavior and layout, but cannot judge sound quality or

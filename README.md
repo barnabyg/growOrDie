@@ -59,8 +59,11 @@ actual cultivation and weather. Parcels and settlement buildings are visual
 representations of the aggregate state, not extra regions or rules. Owned
 Technologies add landmarks. The next doubling Milestone has a population meter.
 
-After resolving, the header labels opening resources separately from the actual
-outcome. Allocation shows food kept, automatic Export income, upkeep, and the
+The header shows the Year, Population with its latest change, Storage and
+Budget, plus a one-line status saying what to do next. Score appears beside the
+Milestone meter; the export price appears during allocation. After resolving, a
+single **Opening values** note marks the header as this Year's opening resources,
+separate from the actual outcome. Allocation shows food kept, automatic Export income, upkeep, and the
 next-Year Budget together. **Keep minimum** respects surviving old food; **Keep
 maximum** respects the affordable range. Finishing the Year highlights population
 changes, with detailed accounting under **Harvest, Event & Budget details**.
