@@ -121,6 +121,42 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
   await expect(page.locator("#budget-label")).toHaveText("Budget");
 });
 
+test("the next Year carries the previous plan forward and Resolve warns about a forecast shortfall", async ({
+  page,
+}) => {
+  await fixture(page);
+  const confirm = page.locator("#confirm-btn");
+  await expect(confirm).toHaveText("Resolve with 200 t shortfall");
+  await expect(confirm).toHaveClass(/warning/);
+  await expect(confirm).toBeEnabled();
+  await page.locator("#suggest-plan-btn").click();
+  await expect(confirm).toHaveText("Resolve harvest");
+  await expect(confirm).not.toHaveClass(/warning/);
+  await confirm.click();
+  await page.locator("#store-min-btn").click();
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#stat-year")).toHaveText("2");
+  await expect(page.locator("#first-plan")).toBeHidden();
+  await expect(page.locator("#plan-hectares")).toHaveValue("400");
+  await expect(page.locator("#plan-fertilizer")).toHaveValue("400");
+  await expect(page.locator("#plan-fertilizer-slider")).toHaveValue("400");
+  await expect(page.locator("#plan-prep")).toHaveValue("0");
+  await expect(confirm).toHaveText("Resolve harvest");
+  await expect(confirm).not.toHaveClass(/warning/);
+  await page.locator("#plan-fertilizer").fill("0");
+  await expect(page.locator("#forecast-balance")).toHaveText(
+    "250 t shortfall before Events",
+  );
+  await expect(confirm).toHaveText("Resolve with 250 t shortfall");
+  await expect(confirm).toHaveClass(/warning/);
+  await expect(confirm).toBeEnabled();
+  await page.reload();
+  await expect(page.locator("#plan-fertilizer")).toHaveValue("400");
+  await page.locator("#plan-fertilizer").fill("0");
+  await confirm.click();
+  await expect(page.locator("#allocation")).toBeVisible();
+});
+
 test("Technology cards and landmarks respect next-Turn timing", async ({
   page,
 }) => {

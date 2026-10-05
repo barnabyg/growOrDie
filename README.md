@@ -31,7 +31,12 @@ hectares under the default configuration. Each Turn has two decisions:
    land costs money once and makes it available for future cultivation.
    Technologies are one-off purchases whose benefits start next Turn. The
    preview includes mandatory upkeep for retained food and blocks unaffordable
-   commitments. Select **Resolve harvest** to commit the plan.
+   commitments. Select **Resolve harvest** to commit the plan. If the ordinary
+   forecast falls short of Consumption, the button turns to a warning such as
+   **Resolve with 250 t shortfall**; resolving is still allowed.
+   From Year 2, cultivation and fertilization start at the previous Year's
+   values, reduced if needed to fit prepared land and the Budget (fertilizer is
+   dropped before cultivation). Preparation and Technologies start at zero.
 2. **Allocate the actual Surplus.** The game reveals one Event, Harvest,
    Consumption/Famine, available Surplus, and the applicable Export price.
    Choose how much food to keep within the affordable Storage range, then

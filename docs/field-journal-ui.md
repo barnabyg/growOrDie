@@ -10,7 +10,14 @@ external assets or services are required.
 ## Playing
 
 Production sliders and exact number inputs stay in sync. Shortcuts cultivate or
-fertilize all available land; the first-year suggestion selects both. Spending
+fertilize all available land; the first-year suggestion selects both. Later
+Years open with the previous Year's cultivation and fertilization, derived from
+the latest saved outcome and clamped to prepared land and the Budget left after
+mandatory upkeep (fertilizer is reduced before cultivation). Legacy
+summary-only history keeps the old default: cultivate all, fertilize none.
+When the ordinary forecast shows a shortfall, Resolve harvest switches to a
+warning style that states it, for example "Resolve with 250 t shortfall".
+Spending
 and the food outlook update before resolving. The outlook compares ordinary,
 drought and flood harvests against Consumption, including opening Storage and
 food destroyed by floods. It uses only Technology already owned at the start of
@@ -45,8 +52,10 @@ existing progress, use a disposable browser profile or a new loopback origin:
 set `$env:PORT='0'` before starting and open the printed address.
 
 1. Start a fresh game. Cultivating 400 ha without fertilizer forecasts 800 t
-   against 1,000 t Consumption: a 200 t shortfall. Choose the first-year
-   suggestion. Cultivation and fertilization should both read 400 ha, spending
+   against 1,000 t Consumption: a 200 t shortfall, and the warning-styled
+   button reads "Resolve with 200 t shortfall". Choose the first-year
+   suggestion; the button returns to "Resolve harvest". Cultivation and
+   fertilization should both read 400 ha, spending
    should be 2,000 coins and ordinary surplus should be 600 t. Expand weather
    scenarios: drought should yield 800 t with a 200 t shortfall; flood should
    yield 960 t with a 40 t shortfall.
@@ -65,6 +74,11 @@ set `$env:PORT='0'` before starting and open the printed address.
    prepare zero and buy no Technology. Retain 200 t. The preview and saved report
    should agree: export 400 t, income 4,000 coins, upkeep 200 coins, next Budget
    10,000 coins and Population 1,050. Reload and check the report and chronicle.
+   Year 2 should open with 400 ha cultivated and fertilized, preparation and
+   Technologies at zero, and a plain "Resolve harvest" button. Setting
+   fertilizer to 0 should show "Resolve with 50 t shortfall" in the warning
+   style (800 t plus 200 t Storage against 1,050 t); the button stays enabled.
+   Restore 400 ha and edit inputs to check the label updates live.
 5. Use seed 29 with opening Storage of 2,000 t. The same production plan should
    reveal a flood: 500 t destroyed, 960 t harvested and 1,460 t surplus. Minimum
    retention should be 500 t. Entering 499 should disable confirmation and hide
@@ -94,7 +108,9 @@ location.reload();
 
 `tests/outlook.test.ts` compares forecasts with real simulation outcomes under
 ordinary, drought and flood events, including tuned configuration, owned
-Technology and delayed purchases. `tests/e2e/journal.spec.js` checks controls,
+Technology and delayed purchases. `tests/carryover.test.ts` covers the carried
+plan's derivation, clamping and legacy fallback. `tests/e2e/journal.spec.js`
+checks the carried plan and shortfall warning, controls,
 forecasts without save mutations, allocation accounting and reloads, purchase
 timing, landmarks, milestones, Collapse, mobile dark mode, reduced motion and
 unavailable audio. Existing game, persistence and layout checks remain in place.

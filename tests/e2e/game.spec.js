@@ -252,6 +252,9 @@ test("history preserves earlier outcomes and legacy summaries without inventing 
   await page.reload();
   await expect(page.locator("#report")).toBeHidden();
   await expect(page.locator("#event-log details")).toHaveCount(0);
+  // A summary-only entry records no plan, so the default plan is not replaced.
+  await expect(page.locator("#plan-hectares")).toHaveValue("400");
+  await expect(page.locator("#plan-fertilizer")).toHaveValue("0");
   await resolveHarvest(page);
   await page.locator("#allocate-btn").click();
   const first = (await saved(page)).eventLog[1];
