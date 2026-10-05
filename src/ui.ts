@@ -6,6 +6,7 @@ import {
 } from "./landscape.js";
 import { foodBarLayout, foodOutlook } from "./outlook.js";
 import { resourceHeader } from "./header.js";
+import { outcomeHeadline, populationChange } from "./outcome.js";
 import { GameSound } from "./sound.js";
 import {
   affordableHectares,
@@ -454,38 +455,26 @@ function renderAllocation(): void {
   if (!pending) return;
   const { report } = pending.result;
   el<HTMLElement>("allocation-year").textContent = String(report.year);
+  const headline = outcomeHeadline(report);
+  text("allocation-outcome-lead", headline.lead);
+  text("allocation-famine", headline.context);
+  el<HTMLElement>("event-reveal").classList.toggle("famine", headline.famine);
   el<HTMLElement>("allocation-event").textContent = eventSummary(report);
-  const events = {
-    none: ["An ordinary year", "sun"],
-    drought: ["Drought", "sun"],
-    flood: ["Flood", "rain"],
-    priceShock: ["An Export price shock", "trade"],
+  const eventIcons = {
+    none: "sun",
+    drought: "sun",
+    flood: "rain",
+    priceShock: "trade",
   };
-  text("allocation-event-title", events[report.event][0] ?? "");
   el<SVGUseElement>("allocation-event-icon").setAttribute(
     "href",
-    `#icon-${events[report.event][1]}`,
+    `#icon-${eventIcons[report.event]}`,
   );
-  el<HTMLElement>("event-reveal").classList.toggle(
-    "famine",
-    report.famine !== "none",
-  );
-  text(
-    "allocation-outcome",
-    report.famine === "none"
-      ? "Your people are fed"
-      : report.famine === "total"
-        ? "No food. Total Famine."
-        : "Famine: food falls short",
-  );
-  const change = report.populationEnd - report.populationStart;
-  text(
-    "allocation-population-change",
-    `Population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} (${change >= 0 ? "+" : ""}${fmt(change)})`,
-  );
+  text("allocation-population-change", populationChange(report));
   el<HTMLElement>("allocation-harvest").textContent = tons(report.harvestTons);
-  el<HTMLElement>("allocation-consumption").textContent =
-    `${tons(report.consumptionTons)} needed · ${famineLabel(report.famine)}`;
+  el<HTMLElement>("allocation-consumption").textContent = tons(
+    report.consumptionTons,
+  );
   el<HTMLElement>("allocation-surplus").textContent = tons(
     Math.max(0, report.availableFoodTons - report.consumptionTons),
   );
@@ -583,9 +572,9 @@ function renderReport(result: TurnResult): void {
     report.availableFoodTons,
   );
 
-  const famineEl = el<HTMLElement>("report-famine");
-  famineEl.textContent = famineLabel(report.famine);
-  famineEl.classList.toggle("famine", report.famine !== "none");
+  const headline = outcomeHeadline(report);
+  text("report-outcome-lead", headline.lead);
+  text("report-famine", headline.context);
 
   const milestoneLevel = report.milestoneLevel;
   const milestoneEl = el<HTMLElement>("milestone-banner");
@@ -597,19 +586,11 @@ function renderReport(result: TurnResult): void {
     milestoneEl.hidden = true;
   }
 
-  const delta = report.populationEnd - report.populationStart;
-  text(
-    "report-headline",
-    delta >= 0 ? `${fmt(delta)} more people` : `${fmt(-delta)} people lost`,
-  );
-  text(
-    "report-population-summary",
-    `Population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} · peak ${fmt(state.highestPopulation)}`,
-  );
+  text("report-population-summary", populationChange(report));
+  text("report-peak", fmt(state.highestPopulation));
   text("report-storage-summary", tons(state.storageTons));
   text("report-budget-summary", coins(state.budgetCoins));
-  el<HTMLElement>("report-pop-change").textContent =
-    `${fmt(report.populationStart)} → ${fmt(report.populationEnd)} (${delta >= 0 ? "+" : ""}${fmt(delta)})`;
+  el<HTMLElement>("report-pop-change").textContent = populationChange(report);
 
   el<HTMLElement>("report-seeds").textContent =
     `-${coins(report.seedCostCoins)}`;

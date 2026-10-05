@@ -239,7 +239,7 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
     "1,460 t Surplus",
   );
   await page.locator("#confirm-btn").click();
-  await expect(page.locator("#allocation-event-title")).toHaveText("Flood");
+  await expect(page.locator("#allocation-event")).toContainText("Flood");
   await expect(page.locator("#stats-note")).toBeVisible();
   await expect(page.locator("#allocation-title")).toBeFocused();
   await expect(page.locator("#allocation-retained")).toContainText(
@@ -312,6 +312,71 @@ test("allocation defaults to the minimum Storage and previews both extremes", as
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#stat-budget")).toHaveText("12,200 coins");
   await expect(page.locator("#report-storage-summary")).toHaveText("0 t");
+});
+
+test("each outcome screen has one headline led by the key number and a readable stat row", async ({
+  page,
+}) => {
+  const fontSize = async (id) =>
+    Number.parseFloat(
+      await page
+        .locator(id)
+        .evaluate((node) => getComputedStyle(node).fontSize),
+    );
+  await fixture(page);
+  await page.locator("#suggest-plan-btn").click();
+  await page.locator("#confirm-btn").click();
+  await expect(page.locator("#allocation-title")).toBeFocused();
+  await expect(page.locator("#allocation-outcome-lead")).toHaveText(
+    "+50 people",
+  );
+  await expect(page.locator("#allocation-famine")).toHaveText("No famine");
+  await expect(page.locator("#allocation-population-change")).toHaveText(
+    "1,000 → 1,050 (+50)",
+  );
+  // The Event is stated once, as supporting context.
+  await expect(page.locator("#allocation-event")).toHaveText("No event");
+  await expect(page.locator("#allocation")).not.toContainText(
+    /ordinary year|people are fed/i,
+  );
+  await expect(page.locator("#allocation h3")).toHaveCount(0);
+  expect(await fontSize("#allocation-outcome-lead")).toBeGreaterThanOrEqual(24);
+  const statSize = await fontSize("#allocation-harvest");
+  expect(statSize).toBeGreaterThanOrEqual(16);
+  expect(await fontSize("#allocation-population-change")).toBe(statSize);
+
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#report-title")).toBeFocused();
+  await expect(page.locator("#report-outcome-lead")).toHaveText("+50 people");
+  await expect(page.locator("#report-famine")).toHaveText("No famine");
+  await expect(page.locator("#report-population-summary")).toHaveText(
+    "1,000 → 1,050 (+50)",
+  );
+  await expect(page.locator("#report-budget-summary")).toHaveText(
+    "12,200 coins",
+  );
+  for (const id of [
+    "#report-population-summary",
+    "#report-storage-summary",
+    "#report-budget-summary",
+  ]) {
+    expect(await fontSize(id)).toBe(statSize);
+  }
+
+  // Famine leads with the shortfall in tons and names it in words.
+  await fixture(page);
+  await page.locator("#plan-hectares").fill("300");
+  await page.locator("#plan-fertilizer").fill("0");
+  await page.locator("#confirm-btn").click();
+  await expect(page.locator("#allocation-outcome-lead")).toHaveText(
+    "400 t shortfall",
+  );
+  await expect(page.locator("#allocation-famine")).toHaveText("Partial famine");
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#report-outcome-lead")).toHaveText(
+    "400 t shortfall",
+  );
+  await expect(page.locator("#report-famine")).toHaveText("Partial famine");
 });
 
 test("the next Year carries the previous plan forward and Resolve warns about a forecast shortfall", async ({
