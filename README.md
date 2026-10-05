@@ -61,9 +61,11 @@ Technologies add landmarks. The next doubling Milestone has a population meter.
 
 After resolving, the header labels opening resources separately from the actual
 outcome. Allocation shows food kept, automatic Export income, upkeep, and the
-next-Year Budget together. **Keep minimum** respects surviving old food; **Keep
-maximum** respects the affordable range. Finishing the Year highlights population
-changes, with detailed accounting under **Harvest, Event & Budget details**.
+next-Year Budget together. Allocation opens at the minimum Storage, so surplus
+is exported unless you choose to keep it. **Keep minimum** respects surviving
+old food; **Keep maximum** respects the affordable range. Each shows the food it
+keeps and the resulting next-Year Budget before you choose. Finishing the Year
+highlights population changes, with detailed accounting under **Harvest, Event & Budget details**.
 Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
 with a run summary and a confirmed **Start a new run** action. On mobile, the
 current decision appears before a compact landscape. Optional synthesized sound

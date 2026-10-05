@@ -124,6 +124,7 @@ test("granary discounts the selected retention and charges exactly the preview",
   });
   await resolveHarvest(page);
   await expect(page.locator("#plan-store")).toHaveAttribute("max", "600");
+  await page.locator("#store-max-btn").click();
   await expect(page.locator("#allocation-preview")).toContainText(
     "Upkeep 300 coins",
   );
@@ -495,6 +496,7 @@ test("purchased economy technologies change rates only in the following year", a
   await expect(page.locator("#plan-upkeep-price")).toHaveText("1");
   await resolveHarvest(page);
   await expect(page.locator("#allocation-price")).toHaveText("10.00 coins/t");
+  await page.locator("#store-max-btn").click();
   await expect(page.locator("#allocation-preview")).toContainText(
     "Upkeep 600 coins",
   );
