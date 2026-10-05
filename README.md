@@ -47,7 +47,10 @@ provides money instead. Storage has no capacity limit.
 
 The Field journal interface pairs sliders with exact number inputs. **All prepared**
 and **All cultivated** are shortcuts; the first-Year suggestion fills both without
-committing the plan. Live food and Budget meters show the tradeoffs. Expand
+committing the plan. Live food and Budget meters show the tradeoffs. Each
+production input shows the most hectares affordable with the rest of the plan,
+marks the unaffordable part of its slider, and explains an overspend beside the
+field that caused it. Expand
 **Weather scenarios** for ordinary, Drought, and Flood food balances. These are
 possible outcomes, not a forecast of the hidden Event; they include opening
 Storage, Flood losses, and currently owned Technologies. Purchases and newly

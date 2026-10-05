@@ -73,6 +73,71 @@ test("a live forecast makes the initial shortfall visible and previews do not al
   expect(await stored(page)).toBe(before);
 });
 
+test("production inputs show the affordable maximum and an inline overspend message", async ({
+  page,
+}) => {
+  await fixture(page);
+  await page.locator("#suggest-plan-btn").click();
+  await expect(page.locator("#plan-hectares-affordable")).toHaveText(
+    "Up to 400 ha affordable",
+  );
+  await expect(page.locator("#plan-fertilizer-affordable")).toHaveText(
+    "Up to 400 ha affordable",
+  );
+  await expect(page.locator("#plan-prep-affordable")).toHaveText(
+    "Up to 33 ha affordable",
+  );
+  const prepSlider = page.locator("#plan-prep-slider");
+  const affordableShare = (id) =>
+    page
+      .locator(`#${id}-range`)
+      .evaluate((node) => node.style.getPropertyValue("--affordable"));
+  expect(Number(await affordableShare("plan-prep"))).toBeCloseTo(33 / 1600, 5);
+  expect(Number(await affordableShare("plan-hectares"))).toBe(1);
+  await expect(page.locator("#plan-prep-error")).toBeHidden();
+
+  await page.locator("#plan-prep").fill("100");
+  const inline = page.locator("#plan-prep-error");
+  await expect(inline).toBeVisible();
+  await expect(inline).toHaveText(
+    "Over Budget: at most 33 ha is affordable with the rest of this plan.",
+  );
+  await expect(page.locator("#plan-prep-affordable")).toHaveText(
+    "Up to 33 ha affordable",
+  );
+  await expect(page.locator("#plan-prep")).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
+  await expect(page.locator("#plan-prep")).toHaveAccessibleDescription(
+    /Over Budget: at most 33 ha/,
+  );
+  await expect(prepSlider).toHaveAccessibleDescription(/at most 33 ha/);
+  await expect(page.locator("#plan-hectares-error")).toBeHidden();
+  await expect(page.locator("#plan-fertilizer-error")).toBeHidden();
+  await expect(page.locator("#plan-hectares-affordable")).toHaveText(
+    "Up to 0 ha affordable",
+  );
+  await expect(page.locator("#plan-error")).toBeVisible();
+  await expect(page.locator("#confirm-btn")).toBeDisabled();
+
+  // The slider still reaches the unaffordable range.
+  await prepSlider.press("End");
+  await expect(page.locator("#plan-prep")).toHaveValue("1600");
+  await expect(inline).toBeVisible();
+
+  await page.locator("#plan-prep").fill("0");
+  await expect(inline).toBeHidden();
+  await expect(page.locator("#plan-prep")).toHaveAttribute(
+    "aria-invalid",
+    "false",
+  );
+  await expect(page.locator("#plan-prep")).not.toHaveAccessibleDescription(
+    /Over Budget/,
+  );
+  await expect(page.locator("#confirm-btn")).toBeEnabled();
+});
+
 test("the allocation slider preserves retained-food bounds and agrees with saved accounting", async ({
   page,
 }) => {
