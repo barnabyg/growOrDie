@@ -65,7 +65,8 @@ next-Year Budget together. **Keep minimum** respects surviving old food; **Keep
 maximum** respects the affordable range. Finishing the Year highlights population
 changes, with detailed accounting under **Harvest, Event & Budget details**.
 Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
-with a run summary and a confirmed **Start a new run** action. On mobile, the
+with a run summary and a confirmed **Start a new run** action; the header keeps
+the final Year played and the summary gives the run length in Years. On mobile, the
 current decision appears before a compact landscape. Optional synthesized sound
 starts off in every tab and can be muted immediately; animations respect reduced
 motion. See [interface checks](docs/field-journal-ui.md) for manual examples.

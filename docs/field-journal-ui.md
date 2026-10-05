@@ -30,6 +30,13 @@ storage entries hide those totals until corrected. Completed reports lead with
 the outcome and put detailed accounting behind an expandable disclosure.
 Previous years remain in the Country chronicle.
 
+All screens share one formatter (`src/format.ts`): money always shows coins
+with correct plurals, rates read like 10.00 coins/t or 3 coins/ha, food
+uses t and land uses ha. Famine reads No famine, Partial famine or Total
+famine, and player-facing text counts Years rather than Turns. The flood
+outlook mentions lost Storage only when some would be lost. After Collapse
+the header keeps the final Year played.
+
 Milestones track the highest Population reached. Collapse replaces production
 and Technology controls with the final outcome and a restart action. Restarting
 a progressed or pending game still requires confirmation. On small screens the
@@ -57,7 +64,8 @@ set `$env:PORT='0'` before starting and open the printed address.
    Reset preparation to zero before continuing.
 3. Select a Technology. Its cost should change spending but its benefit should
    not change this year's forecast. Resolve an affordable plan: the event and
-   actual food totals should appear, while header values say Opening. Reload
+   actual food totals should appear, while the header's Population, Storage
+   and Budget say Opening. Reload
    during allocation; the event and storage limits should remain identical.
    Finish the year: the Technology becomes Owned, its landmark appears, and the
    following year's forecast includes its benefit.
@@ -71,7 +79,9 @@ set `$env:PORT='0'` before starting and open the printed address.
    stale preview totals. Retaining 600 t should export 860 t for 8,600 coins,
    charge 600 coins upkeep and leave a next Budget of 14,200 coins.
 6. Resolve a fresh game with zero cultivation. Collapse should take focus and
-   replace planning and Technology controls. Cancel a restart and check the
+   replace planning and Technology controls. The header should still show
+   Year 1, the run length should read 1 Year and the report should say Total
+   famine. Cancel a restart and check the
    outcome remains; confirm a restart and expect Year 1 with an empty chronicle.
    Repeat cancellation while allocation is pending to check preservation there.
 7. Check 320, 390, 760 and 1,280 px widths, normal and doubled text size, and
@@ -97,7 +107,10 @@ ordinary, drought and flood events, including tuned configuration, owned
 Technology and delayed purchases. `tests/e2e/journal.spec.js` checks controls,
 forecasts without save mutations, allocation accounting and reloads, purchase
 timing, landmarks, milestones, Collapse, mobile dark mode, reduced motion and
-unavailable audio. Existing game, persistence and layout checks remain in place.
+unavailable audio. `tests/format.test.ts` covers units, rates and plurals;
+`tests/e2e/copy.spec.js` fails if raw identifiers or Turn wording appear on
+plan, allocation, report, chronicle or Collapse screens. Existing game,
+persistence and layout checks remain in place.
 Run `npm.cmd run verify` for the canonical full gate.
 
 Browser automation checks behavior and layout, but cannot judge sound quality or

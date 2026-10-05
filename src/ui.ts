@@ -5,6 +5,18 @@ import { beginTurn, finishTurn, productionCosts } from "./turn.js";
 import { economyRates } from "./economy.js";
 import { CONFIG } from "./config.js";
 import { eventSummary } from "./simulation.js";
+import {
+  coinRate,
+  coins,
+  exactCoins,
+  exactTons,
+  famineLabel,
+  formatCount as fmt,
+  formatDecimal as fmtRate,
+  hectares,
+  tons,
+  years,
+} from "./format.js";
 import type {
   GameState,
   PlayerPlan,
@@ -40,9 +52,6 @@ function el<T extends Element>(id: string): T {
   return node as unknown as T;
 }
 
-const fmt = (n: number): string => Math.round(n).toLocaleString("en-US");
-const fmtRate = (n: number): string => n.toLocaleString("en-US");
-
 // Per-turn seed derived from the run seed so a given run is reproducible.
 function turnSeed(runSeed: number, year: number): number {
   return (runSeed + year) >>> 0;
@@ -60,8 +69,10 @@ function text(id: string, value: string): void {
   el<HTMLElement>(id).textContent = value;
 }
 
-function foodBalance(tons: number): string {
-  return tons >= 0 ? `${fmt(tons)} t Surplus` : `${fmt(-tons)} t shortfall`;
+function foodBalance(balance: number): string {
+  return balance >= 0
+    ? `${tons(balance)} Surplus`
+    : `${tons(-balance)} shortfall`;
 }
 
 function focusPanel(id: string): void {
@@ -92,20 +103,23 @@ function renderSaveStatus(): void {
 }
 
 function renderStats(state: GameState): void {
-  el<HTMLSpanElement>("stat-year").textContent = String(state.year);
+  // A Collapsed run never plays its next Year, so show the final Year played.
+  el<HTMLSpanElement>("stat-year").textContent = String(
+    state.collapsed ? state.year - 1 : state.year,
+  );
   el<HTMLSpanElement>("stat-population").textContent = fmt(state.population);
   el<HTMLSpanElement>("stat-score").textContent = fmt(state.highestPopulation);
-  el<HTMLSpanElement>("stat-storage").textContent =
-    `${fmt(state.storageTons)} t`;
-  el<HTMLSpanElement>("stat-budget").textContent =
-    `${fmt(state.budgetCoins)} coins`;
-  el<HTMLSpanElement>("stat-price").textContent =
-    `${state.worldPrice.toFixed(2)} /t`;
+  el<HTMLSpanElement>("stat-storage").textContent = tons(state.storageTons);
+  el<HTMLSpanElement>("stat-budget").textContent = coins(state.budgetCoins);
+  el<HTMLSpanElement>("stat-price").textContent = coinRate(
+    state.worldPrice,
+    "t",
+    2,
+  );
   const opening = save.pendingTurn ? "Opening " : "";
   text("population-label", `${opening}Population`);
   text("storage-label", `${opening}Storage`);
   text("budget-label", `${opening}Budget`);
-  text("price-label", `${opening}World price`);
 }
 
 function renderRhythm(): void {
@@ -171,22 +185,25 @@ function renderPlan(state: GameState): void {
       "fertilizer cost",
     ),
   };
-  text("plan-seed-price", fmtRate(CONFIG.seedCostPerHectare));
+  text("plan-seed-price", coinRate(CONFIG.seedCostPerHectare, "ha"));
   el<HTMLElement>("first-plan").hidden =
     state.year !== 1 || save.eventLog.length > 0;
   el<HTMLElement>("plan-year").textContent = String(state.year);
   const maxHectares = state.preparedLandHectares;
   el<HTMLElement>("plan-max").textContent = fmt(maxHectares);
-  el<HTMLElement>("plan-fert-price").textContent = fmtRate(
+  el<HTMLElement>("plan-fert-price").textContent = coinRate(
     economyRates(state, CONFIG).fertilizer,
+    "ha",
   );
   const maxPrep = state.arableLandHectares - state.preparedLandHectares;
-  el<HTMLElement>("plan-prep-max").textContent = fmt(maxPrep);
-  el<HTMLElement>("plan-prep-price").textContent = fmtRate(
+  el<HTMLElement>("plan-prep-max").textContent = hectares(maxPrep);
+  el<HTMLElement>("plan-prep-price").textContent = coinRate(
     economyRates(state, CONFIG).preparation,
+    "ha",
   );
-  el<HTMLElement>("plan-upkeep-price").textContent = fmtRate(
+  el<HTMLElement>("plan-upkeep-price").textContent = coinRate(
     economyRates(state, CONFIG).upkeep,
+    "t",
   );
 
   const input = el<HTMLInputElement>("plan-hectares");
@@ -205,7 +222,7 @@ function renderPlan(state: GameState): void {
     const row = checkbox.closest(".tech-row");
     const cost = row?.querySelector(".tech-cost");
     const effect = row?.querySelector(".tech-effect");
-    if (cost) cost.textContent = `${fmtRate(CONFIG.technologyCosts[id])} coins`;
+    if (cost) cost.textContent = exactCoins(CONFIG.technologyCosts[id]);
     if (effect) effect.textContent = effects[id];
     text(`tech-${id}-benefit`, benefits[id]);
     // Owned Technologies are locked in; unowned ones start unchecked each Turn.
@@ -282,15 +299,15 @@ function updatePlanPreview(state: GameState): void {
   const prepCost = costs.preparation;
   const technologyCost = costs.technologies;
   const totalCost = costs.total;
-  el<HTMLElement>("plan-seed-cost").textContent = fmt(seedCost);
-  el<HTMLElement>("plan-fert-cost").textContent = fmt(fertilizerCost);
-  el<HTMLElement>("plan-prep-cost").textContent = fmt(prepCost);
-  el<HTMLElement>("plan-tech-cost").textContent = fmt(technologyCost);
-  el<HTMLElement>("plan-total-cost").textContent = fmt(totalCost);
+  el<HTMLElement>("plan-seed-cost").textContent = coins(seedCost);
+  el<HTMLElement>("plan-fert-cost").textContent = coins(fertilizerCost);
+  el<HTMLElement>("plan-prep-cost").textContent = coins(prepCost);
+  el<HTMLElement>("plan-tech-cost").textContent = coins(technologyCost);
+  el<HTMLElement>("plan-total-cost").textContent = coins(totalCost);
 
   const remaining = state.budgetCoins - totalCost;
   const remainingEl = el<HTMLElement>("plan-remaining");
-  remainingEl.textContent = `${fmt(remaining)} coins`;
+  remainingEl.textContent = coins(remaining);
   remainingEl.classList.toggle("overspend", remaining < 0);
   const complete = Object.keys(fields).every(
     (id) => el<HTMLInputElement>(id).value !== "",
@@ -298,7 +315,7 @@ function updatePlanPreview(state: GameState): void {
   el<HTMLButtonElement>("confirm-btn").disabled =
     !complete || !costs.affordable || state.collapsed || persistenceBlocked();
 
-  el<HTMLElement>("plan-upkeep-cost").textContent = fmt(costs.upkeep);
+  el<HTMLElement>("plan-upkeep-cost").textContent = coins(costs.upkeep);
   el<HTMLElement>("budget-summary").classList.toggle(
     "over-budget",
     !costs.affordable,
@@ -307,7 +324,7 @@ function updatePlanPreview(state: GameState): void {
     `${Math.min(100, (totalCost / Math.max(1, state.budgetCoins)) * 100)}%`;
   el<HTMLElement>("budget-meter").setAttribute(
     "aria-label",
-    `Planned spending ${fmt(totalCost)} coins; opening Budget ${fmt(state.budgetCoins)} coins`,
+    `Planned spending ${coins(totalCost)}; opening Budget ${coins(state.budgetCoins)}`,
   );
   const error = el<HTMLElement>("plan-error");
   error.hidden = complete && costs.affordable;
@@ -328,10 +345,10 @@ function updatePlanPreview(state: GameState): void {
       owned
         ? ""
         : checkbox.checked
-          ? "Selected · starts next Turn"
+          ? "Selected · starts next Year"
           : unaffordable
-            ? `Need ${fmtRate(shortfall)} more coins`
-            : "Available · starts next Turn",
+            ? `Need ${exactCoins(shortfall)} more`
+            : "Available · starts next Year",
     );
   }
   renderOutlook(state, plan);
@@ -350,8 +367,8 @@ function renderOutlook(state: GameState, plan: PlayerPlan): void {
     outlook.ordinary.availableFoodTons,
     outlook.consumptionTons,
   );
-  text("forecast-available", `${fmt(outlook.ordinary.availableFoodTons)} t`);
-  text("forecast-consumption", `${fmt(outlook.consumptionTons)} t`);
+  text("forecast-available", tons(outlook.ordinary.availableFoodTons));
+  text("forecast-consumption", tons(outlook.consumptionTons));
   text(
     "forecast-balance",
     `${foodBalance(outlook.ordinary.balanceTons)} before Events`,
@@ -375,18 +392,16 @@ function renderOutlook(state: GameState, plan: PlayerPlan): void {
     `Consumption ${fmt(outlook.consumptionTons)} tons`,
   );
   for (const scenario of ["ordinary", "drought", "flood"] as const) {
-    text(
-      `forecast-${scenario}-harvest`,
-      `${fmt(outlook[scenario].harvestTons)} t`,
-    );
+    text(`forecast-${scenario}-harvest`, tons(outlook[scenario].harvestTons));
     text(
       `forecast-${scenario}-balance`,
       foodBalance(outlook[scenario].balanceTons),
     );
   }
+  const floodLossTons = state.storageTons - outlook.flood.storageTons;
   text(
     "forecast-flood-note",
-    `Flood scenario includes ${fmt(state.storageTons - outlook.flood.storageTons)} t of opening Storage lost. Purchases and new land preparation take effect next Turn.`,
+    `${Math.round(floodLossTons) > 0 ? `Flood scenario includes ${tons(floodLossTons)} of opening Storage lost. ` : ""}Purchases and new land preparation take effect next Year.`,
   );
 }
 
@@ -427,14 +442,17 @@ function renderAllocation(): void {
     "allocation-population-change",
     `Population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} (${change >= 0 ? "+" : ""}${fmt(change)})`,
   );
-  el<HTMLElement>("allocation-harvest").textContent =
-    `${fmt(report.harvestTons)} t`;
+  el<HTMLElement>("allocation-harvest").textContent = tons(report.harvestTons);
   el<HTMLElement>("allocation-consumption").textContent =
-    `${fmt(report.consumptionTons)} t needed · Famine: ${report.famine}`;
-  el<HTMLElement>("allocation-surplus").textContent =
-    `${fmt(Math.max(0, report.availableFoodTons - report.consumptionTons))} t`;
-  el<HTMLElement>("allocation-price").textContent =
-    `${report.exportPriceCoins.toFixed(2)} coins/t`;
+    `${tons(report.consumptionTons)} needed · ${famineLabel(report.famine)}`;
+  el<HTMLElement>("allocation-surplus").textContent = tons(
+    Math.max(0, report.availableFoodTons - report.consumptionTons),
+  );
+  el<HTMLElement>("allocation-price").textContent = coinRate(
+    report.exportPriceCoins,
+    "t",
+    2,
+  );
   const input = el<HTMLInputElement>("plan-store");
   input.min = String(pending.minStoreTons);
   input.max = String(pending.maxStoreTons);
@@ -448,13 +466,13 @@ function renderAllocation(): void {
   for (const id of ["store-min-btn", "store-max-btn"]) {
     el<HTMLButtonElement>(id).disabled = input.disabled || persistenceBlocked();
   }
-  text("plan-upkeep-price", fmtRate(pending.storageUpkeepPerTon));
+  text("plan-upkeep-price", coinRate(pending.storageUpkeepPerTon, "t"));
   el<HTMLElement>("plan-store-range").textContent =
-    `${fmtRate(pending.minStoreTons)}–${fmtRate(pending.maxStoreTons)} t affordable range`;
+    `${exactTons(pending.minStoreTons)}–${exactTons(pending.maxStoreTons)} affordable range`;
   text(
     "allocation-retained",
     pending.minStoreTons > 0
-      ? `${fmtRate(pending.minStoreTons)} t of surviving old food must stay in Storage and cannot be exported.`
+      ? `${exactTons(pending.minStoreTons)} of surviving old food must stay in Storage and cannot be exported.`
       : pending.maxStoreTons === 0
         ? "No affordable Surplus remains to store. Finish the Year to record the outcome."
         : "Keeping food buffers future shortfalls; exporting funds future investment.",
@@ -487,13 +505,13 @@ function updateAllocationPreview(): void {
     return;
   }
   const { report, state } = finishTurn(pending, value, CONFIG);
-  text("allocation-stored", `${fmtRate(value)} t`);
-  text("allocation-exported", `${fmt(report.exportTons)} t`);
-  text("allocation-income", `${fmt(report.exportIncomeCoins)} coins`);
-  text("allocation-upkeep", `${fmt(report.storageUpkeepCoins)} coins`);
-  text("allocation-next-budget", `${fmt(state.budgetCoins)} coins`);
+  text("allocation-stored", exactTons(value));
+  text("allocation-exported", tons(report.exportTons));
+  text("allocation-income", coins(report.exportIncomeCoins));
+  text("allocation-upkeep", coins(report.storageUpkeepCoins));
+  text("allocation-next-budget", coins(state.budgetCoins));
   el<HTMLElement>("allocation-preview").textContent =
-    `Upkeep ${fmt(report.storageUpkeepCoins)} coins · total spending ${fmt(report.budgetSpentCoins)} coins · carry-over ${fmt(report.budgetCarryOverCoins)} coins · export ${fmt(report.exportTons)} t for ${fmt(report.exportIncomeCoins)} coins`;
+    `Upkeep ${coins(report.storageUpkeepCoins)} · total spending ${coins(report.budgetSpentCoins)} · carry-over ${coins(report.budgetCarryOverCoins)} · export ${tons(report.exportTons)} for ${coins(report.exportIncomeCoins)}`;
 }
 
 function renderReport(result: TurnResult): void {
@@ -507,16 +525,16 @@ function renderReport(result: TurnResult): void {
 
   el<HTMLElement>("report-year").textContent = String(report.year);
   el<HTMLElement>("report-event").textContent = eventSummary(report);
-  el<HTMLElement>("report-harvest").textContent =
-    `${fmt(report.harvestTons)} t`;
-  el<HTMLElement>("report-consumption").textContent =
-    `${fmt(report.consumptionTons)} t`;
-  el<HTMLElement>("report-available").textContent =
-    `${fmt(report.availableFoodTons)} t`;
+  el<HTMLElement>("report-harvest").textContent = tons(report.harvestTons);
+  el<HTMLElement>("report-consumption").textContent = tons(
+    report.consumptionTons,
+  );
+  el<HTMLElement>("report-available").textContent = tons(
+    report.availableFoodTons,
+  );
 
   const famineEl = el<HTMLElement>("report-famine");
-  famineEl.textContent =
-    report.famine === "none" ? "No Famine" : `Famine (${report.famine})`;
+  famineEl.textContent = famineLabel(report.famine);
   famineEl.classList.toggle("famine", report.famine !== "none");
 
   const milestoneLevel = report.milestoneLevel;
@@ -538,29 +556,31 @@ function renderReport(result: TurnResult): void {
     "report-population-summary",
     `Population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} · peak ${fmt(state.highestPopulation)}`,
   );
-  text("report-storage-summary", `${fmt(state.storageTons)} t`);
-  text("report-budget-summary", `${fmt(state.budgetCoins)} coins`);
+  text("report-storage-summary", tons(state.storageTons));
+  text("report-budget-summary", coins(state.budgetCoins));
   el<HTMLElement>("report-pop-change").textContent =
     `${fmt(report.populationStart)} → ${fmt(report.populationEnd)} (${delta >= 0 ? "+" : ""}${fmt(delta)})`;
 
-  el<HTMLElement>("report-seeds").textContent = `-${fmt(report.seedCostCoins)}`;
+  el<HTMLElement>("report-seeds").textContent =
+    `-${coins(report.seedCostCoins)}`;
   el<HTMLElement>("report-fertilizer").textContent =
-    `-${fmt(report.fertilizerCostCoins)}`;
+    `-${coins(report.fertilizerCostCoins)}`;
   el<HTMLElement>("report-prep").textContent =
-    `-${fmt(report.landPrepCostCoins)}`;
+    `-${coins(report.landPrepCostCoins)}`;
   el<HTMLElement>("report-upkeep").textContent =
-    `-${fmt(report.storageUpkeepCoins)}`;
+    `-${coins(report.storageUpkeepCoins)}`;
   el<HTMLElement>("report-technologies").textContent =
     report.technologiesPurchased.length > 0
-      ? `-${fmt(report.technologyCostCoins)} coins (${report.technologiesPurchased.map((id) => TECHNOLOGY_NAMES[id]).join(", ")})`
+      ? `-${coins(report.technologyCostCoins)} (${report.technologiesPurchased.map((id) => TECHNOLOGY_NAMES[id]).join(", ")})`
       : "—";
   el<HTMLElement>("report-export").textContent =
-    `${fmt(report.exportTons)} t for +${fmt(report.exportIncomeCoins)} coins`;
-  el<HTMLElement>("report-carryover").textContent =
-    `${fmt(report.budgetCarryOverCoins)}`;
+    `${tons(report.exportTons)} for +${coins(report.exportIncomeCoins)}`;
+  el<HTMLElement>("report-carryover").textContent = coins(
+    report.budgetCarryOverCoins,
+  );
   el<HTMLElement>("report-tax").textContent =
-    `+${fmt(report.budgetRevenueCoins)}`;
-  el<HTMLElement>("report-new-budget").textContent = fmt(state.budgetCoins);
+    `+${coins(report.budgetRevenueCoins)}`;
+  el<HTMLElement>("report-new-budget").textContent = coins(state.budgetCoins);
 }
 
 function renderCollapse(state: GameState): void {
@@ -570,9 +590,7 @@ function renderCollapse(state: GameState): void {
     return;
   }
   section.hidden = false;
-  const turns = state.year - 1;
-  el<HTMLElement>("collapse-length").textContent =
-    `${turns} ${turns === 1 ? "Turn" : "Turns"}`;
+  el<HTMLElement>("collapse-length").textContent = years(state.year - 1);
   el<HTMLElement>("collapse-score").textContent = fmt(state.highestPopulation);
   text("collapse-event", save.eventLog.at(-1)?.summary ?? "");
   el<HTMLElement>("collapse-cause").textContent =
@@ -624,7 +642,7 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
     population,
   );
   const caption = preview
-    ? `Year ${state.year} plan preview: ${fmt(cultivated ?? 0)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%).${preview.preparedHectares > 0 ? ` ${fmt(preview.preparedHectares)} new ha available next Turn.` : ""}`
+    ? `Year ${state.year} plan preview: ${fmt(cultivated ?? 0)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%).${preview.preparedHectares > 0 ? ` ${hectares(preview.preparedHectares)} of new land available next Year.` : ""}`
     : cultivated === undefined
       ? year === undefined
         ? "No harvest resolved yet."
@@ -635,12 +653,12 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
   text("country-mode", preview ? "Plan preview" : "Latest Harvest");
   text(
     "land-cultivated",
-    cultivated === undefined ? "Unknown" : `${fmt(cultivated)} ha`,
+    cultivated === undefined ? "Unknown" : hectares(cultivated),
   );
-  text("land-prepared", `${fmt(state.preparedLandHectares)} ha`);
+  text("land-prepared", hectares(state.preparedLandHectares));
   text(
     "land-unprepared",
-    `${fmt(state.arableLandHectares - state.preparedLandHectares)} ha`,
+    hectares(state.arableLandHectares - state.preparedLandHectares),
   );
   const level = Math.max(
     1,
@@ -683,9 +701,9 @@ function renderEventLog(): void {
       const { state, report } = entry.result;
       const details = document.createElement("details");
       const summary = document.createElement("summary");
-      summary.textContent = `Outcomes: population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} · Famine: ${report.famine}`;
+      summary.textContent = `Outcomes: population ${fmt(report.populationStart)} → ${fmt(report.populationEnd)} · ${famineLabel(report.famine)}`;
       const body = document.createElement("p");
-      body.textContent = `Harvest ${fmt(report.harvestTons)} t · Consumption ${fmt(report.consumptionTons)} t · Storage ${fmt(state.storageTons)} t · Export ${fmt(report.exportTons)} t for ${fmt(report.exportIncomeCoins)} coins · Budget ${fmt(state.budgetCoins)} coins · Score ${fmt(state.highestPopulation)}${state.collapsed ? " · Collapse" : ""}`;
+      body.textContent = `Harvest ${tons(report.harvestTons)} · Consumption ${tons(report.consumptionTons)} · Storage ${tons(state.storageTons)} · Export ${tons(report.exportTons)} for ${coins(report.exportIncomeCoins)} · Budget ${coins(state.budgetCoins)} · Score ${fmt(state.highestPopulation)}${state.collapsed ? " · Collapse" : ""}`;
       details.append(summary, body);
       item.appendChild(details);
     }

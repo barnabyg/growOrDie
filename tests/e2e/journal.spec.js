@@ -68,7 +68,7 @@ test("a live forecast makes the initial shortfall visible and previews do not al
   await expect(page.locator("#plan-error")).toBeVisible();
   await expect(page.locator("#confirm-btn")).toBeDisabled();
   await expect(page.locator("#country-caption")).toContainText(
-    "100 new ha available next Turn",
+    "100 ha of new land available next Year",
   );
   expect(await stored(page)).toBe(before);
 });
@@ -180,7 +180,7 @@ test("Collapse replaces planning and supports a confirmed restart without losing
   await page.reload();
   await expect(page.locator("#production")).toBeHidden();
   await page.locator("#report-details summary").click();
-  await expect(page.locator("#report-famine")).toHaveText("Famine (total)");
+  await expect(page.locator("#report-famine")).toHaveText("Total famine");
   await expect(page.locator("#report-available")).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#collapse-restart-btn").click();
