@@ -73,6 +73,98 @@ test("a live forecast makes the initial shortfall visible and previews do not al
   expect(await stored(page)).toBe(before);
 });
 
+const barBox = async (page, id) =>
+  page.locator(`#${id}`).evaluate((node) => {
+    const { x, width } = node.getBoundingClientRect();
+    return { x, width };
+  });
+
+test("the food forecast is one labelled bar with a Consumption marker and a visible drought outcome", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" }); // settle bar widths
+  await fixture(page);
+  const meter = page.locator("#forecast-food-meter");
+  await expect(page.getByText("Green: Harvest")).toHaveCount(0);
+  await expect(page.locator("#forecast-consumption-meter")).toHaveCount(0);
+  await expect(meter).toHaveAccessibleDescription(
+    "Available food 800 tons (Harvest 800 tons plus opening Storage 0 tons) against Consumption 1,000 tons: 200 tons shortfall before Events.",
+  );
+  await expect(page.locator("#forecast-harvest")).toHaveText("800 t");
+  await expect(page.locator("#forecast-storage")).toHaveText("0 t");
+  await expect(page.locator("#forecast-consumption")).toHaveText("1,000 t");
+  await expect(page.locator("#forecast-drought-outcome")).toBeVisible();
+  await expect(page.locator("#forecast-drought-outcome")).toHaveText(
+    "Drought: 400 t Harvest · 600 t shortfall",
+  );
+  const bar = await barBox(page, "forecast-food-meter");
+  const shortfall = await barBox(page, "forecast-shortfall-bar");
+  expect(shortfall.width / bar.width).toBeCloseTo(0.2, 1);
+  const marker = await barBox(page, "forecast-consumption-marker");
+  expect(marker.x + marker.width / 2).toBeCloseTo(bar.x + bar.width, 0);
+
+  await fixture(page, { state: { storageTons: 400 } });
+  await page.locator("#suggest-plan-btn").click();
+  await expect(meter).toHaveAccessibleDescription(
+    "Available food 2,000 tons (Harvest 1,600 tons plus opening Storage 400 tons) against Consumption 1,000 tons: 1,000 tons Surplus before Events.",
+  );
+  await expect(page.locator("#forecast-drought-outcome")).toHaveText(
+    "Drought: 800 t Harvest · 200 t Surplus",
+  );
+  await expect(
+    page.locator("details:has(.scenario-table)"),
+  ).not.toHaveAttribute("open");
+  const surplusBar = await barBox(page, "forecast-food-meter");
+  const storage = await barBox(page, "forecast-storage-bar");
+  expect(storage.width / surplusBar.width).toBeCloseTo(0.2, 1);
+  expect((await barBox(page, "forecast-shortfall-bar")).width).toBe(0);
+  const surplusMarker = await barBox(page, "forecast-consumption-marker");
+  expect(surplusMarker.x + surplusMarker.width / 2).toBeCloseTo(
+    surplusBar.x + surplusBar.width / 2,
+    0,
+  );
+});
+
+for (const colorScheme of ["light", "dark"]) {
+  test(`food bar segments and the Consumption marker meet 3:1 contrast in ${colorScheme} mode`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme });
+    await fixture(page);
+    const ratios = await page.evaluate(() => {
+      const rgb = (id, property = "background-color") =>
+        getComputedStyle(document.querySelector(id))
+          .getPropertyValue(property)
+          .match(/[\d.]+/g)
+          .slice(0, 3)
+          .map(Number);
+      const luminance = (channels) => {
+        const [r, g, b] = channels.map((value) => {
+          const c = value / 255;
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const contrast = (a, b) => {
+        const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+        return (high + 0.05) / (low + 0.05);
+      };
+      const surround = rgb(".food-outlook");
+      return Object.fromEntries(
+        [
+          "#forecast-harvest-bar",
+          "#forecast-storage-bar",
+          "#forecast-shortfall-bar",
+          "#forecast-consumption-marker",
+        ].map((id) => [id, contrast(rgb(id), surround)]),
+      );
+    });
+    for (const ratio of Object.values(ratios)) {
+      expect(ratio).toBeGreaterThanOrEqual(3);
+    }
+  });
+}
+
 test("production inputs show the affordable maximum and an inline overspend message", async ({
   page,
 }) => {

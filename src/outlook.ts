@@ -41,3 +41,22 @@ export function foodOutlook(
     ),
   };
 }
+
+/** Widths for the single food bar, as percentages of the larger of available
+ * food and Consumption: Harvest, then opening Storage, then any shortfall up to
+ * the Consumption marker. */
+export function foodBarLayout(
+  outlook: Pick<ReturnType<typeof foodOutlook>, "consumptionTons" | "ordinary">,
+) {
+  const { harvestTons, storageTons, availableFoodTons } = outlook.ordinary;
+  const scale = Math.max(1, availableFoodTons, outlook.consumptionTons);
+  const percent = (tons: number) => (tons / scale) * 100;
+  return {
+    harvestPercent: percent(harvestTons),
+    storagePercent: percent(storageTons),
+    shortfallPercent: percent(
+      Math.max(0, outlook.consumptionTons - availableFoodTons),
+    ),
+    consumptionPercent: percent(outlook.consumptionTons),
+  };
+}

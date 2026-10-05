@@ -1,5 +1,5 @@
 import { createLandscape, renderLandscape } from "./landscape.js";
-import { foodOutlook } from "./outlook.js";
+import { foodBarLayout, foodOutlook } from "./outlook.js";
 import { resourceHeader } from "./header.js";
 import { GameSound } from "./sound.js";
 import {
@@ -386,34 +386,35 @@ function renderProductionLimits(
 
 function renderOutlook(state: GameState, plan: PlayerPlan): void {
   const outlook = foodOutlook(state, plan, CONFIG);
-  const scale = Math.max(
-    1,
-    outlook.ordinary.availableFoodTons,
-    outlook.consumptionTons,
-  );
-  text("forecast-available", tons(outlook.ordinary.availableFoodTons));
-  text("forecast-consumption", tons(outlook.consumptionTons));
+  const { ordinary, drought, consumptionTons } = outlook;
+  const bar = foodBarLayout(outlook);
+  text("forecast-available", tons(ordinary.availableFoodTons));
+  text("forecast-harvest", tons(ordinary.harvestTons));
+  text("forecast-storage", tons(ordinary.storageTons));
+  text("forecast-consumption", tons(consumptionTons));
   text(
     "forecast-balance",
-    `${foodBalance(outlook.ordinary.balanceTons)} before Events`,
+    `${foodBalance(ordinary.balanceTons)} before Events`,
   );
   el<HTMLElement>("forecast-balance").classList.toggle(
     "shortfall",
-    outlook.ordinary.balanceTons < 0,
+    ordinary.balanceTons < 0,
+  );
+  text(
+    "forecast-drought-outcome",
+    `Drought: ${tons(drought.harvestTons)} Harvest · ${foodBalance(drought.balanceTons)}`,
   );
   el<HTMLElement>("forecast-harvest-bar").style.width =
-    `${(outlook.ordinary.harvestTons / scale) * 100}%`;
+    `${bar.harvestPercent}%`;
   el<HTMLElement>("forecast-storage-bar").style.width =
-    `${(outlook.ordinary.storageTons / scale) * 100}%`;
-  el<HTMLElement>("forecast-consumption-bar").style.width =
-    `${(outlook.consumptionTons / scale) * 100}%`;
-  el<HTMLElement>("forecast-food-meter").setAttribute(
-    "aria-label",
-    `Forecast Harvest ${fmt(outlook.ordinary.harvestTons)} tons plus opening Storage ${fmt(state.storageTons)} tons`,
-  );
-  el<HTMLElement>("forecast-consumption-meter").setAttribute(
-    "aria-label",
-    `Consumption ${fmt(outlook.consumptionTons)} tons`,
+    `${bar.storagePercent}%`;
+  el<HTMLElement>("forecast-shortfall-bar").style.width =
+    `${bar.shortfallPercent}%`;
+  el<HTMLElement>("forecast-consumption-marker").style.left =
+    `${bar.consumptionPercent}%`;
+  text(
+    "forecast-food-description",
+    `Available food ${fmt(ordinary.availableFoodTons)} tons (Harvest ${fmt(ordinary.harvestTons)} tons plus opening Storage ${fmt(ordinary.storageTons)} tons) against Consumption ${fmt(consumptionTons)} tons: ${fmt(Math.abs(ordinary.balanceTons))} tons ${ordinary.balanceTons >= 0 ? "Surplus" : "shortfall"} before Events.`,
   );
   for (const scenario of ["ordinary", "drought", "flood"] as const) {
     text(`forecast-${scenario}-harvest`, tons(outlook[scenario].harvestTons));
