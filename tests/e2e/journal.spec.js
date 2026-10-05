@@ -424,17 +424,22 @@ test("Collapse replaces planning and supports a confirmed restart without losing
   await expect(page.locator("#collapse-summary")).toBeVisible();
   await expect(page.locator("#turn-status")).toHaveText(/^Run complete/);
   const collapsed = await stored(page);
-  page.once("dialog", (dialog) => dialog.dismiss());
   await page.locator("#collapse-restart-btn").click();
+  await expect(page.locator("#restart-dialog")).toContainText(
+    "Its chronicle of 1 Year will be cleared.",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#collapse-restart-btn")).toBeFocused();
   expect(await stored(page)).toBe(collapsed);
   await page.reload();
   await expect(page.locator("#production")).toBeHidden();
   await page.locator("#report-details summary").click();
   await expect(page.locator("#report-famine")).toHaveText("Total famine");
   await expect(page.locator("#report-available")).toBeVisible();
-  page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#collapse-restart-btn").click();
+  await page.locator("#restart-confirm-btn").click();
   await expect(page.locator("#production")).toBeVisible();
+  await expect(page.locator("#plan-title")).toBeFocused();
   await expect(page.locator("#stat-year")).toHaveText("1");
   await expect(page.locator("#event-log li")).toHaveCount(0);
 });
@@ -479,11 +484,14 @@ test("mobile puts decisions before the landscape, respects reduced motion, and t
   const plan = await page.locator("#production").boundingBox();
   const country = await page.locator(".country").boundingBox();
   expect(plan.y).toBeLessThan(country.y);
-  await page.locator("#sound-btn").click();
-  await expect(page.locator("#sound-btn")).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  const soundButton = page.locator("#sound-btn");
+  await expect(soundButton).toHaveAccessibleName("Sound");
+  await expect(soundButton).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator("#sound-state")).toHaveText("Off");
+  await soundButton.click();
+  await expect(soundButton).toHaveAttribute("aria-pressed", "true");
+  await expect(soundButton).toHaveAccessibleName("Sound");
+  await expect(page.locator("#sound-state")).toHaveText("On");
   await page.locator("#suggest-plan-btn").click();
   await page.locator("#confirm-btn").click();
   await expect(page.locator("#event-reveal")).toHaveCSS(
@@ -492,11 +500,10 @@ test("mobile puts decisions before the landscape, respects reduced motion, and t
   );
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#stat-population")).toHaveText("1,050");
-  await page.locator("#sound-btn").click();
-  await expect(page.locator("#sound-btn")).toHaveAttribute(
-    "aria-pressed",
-    "false",
-  );
+  await soundButton.click();
+  await expect(soundButton).toHaveAttribute("aria-pressed", "false");
+  await expect(soundButton).toHaveAccessibleName("Sound");
+  await expect(page.locator("#sound-state")).toHaveText("Off");
   expect(errors).toEqual([]);
 });
 

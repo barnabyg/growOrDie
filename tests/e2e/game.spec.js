@@ -395,15 +395,18 @@ test("Restart during allocation preserves a cancelled harvest and discards it on
 }) => {
   await loadFixture(page);
   await resolveHarvest(page);
+  await page.locator("#plan-store").fill("200");
   const pending = await saved(page);
-  page.once("dialog", (dialog) => dialog.dismiss());
   await page.locator("#restart-btn").click();
+  await page.locator("#restart-cancel-btn").click();
+  await expect(page.locator("#restart-dialog")).toBeHidden();
+  await expect(page.locator("#plan-store")).toHaveValue("200");
   expect(await saved(page)).toEqual(pending);
   await page.reload();
   await expect(page.locator("#allocation")).toBeVisible();
   expect(await saved(page)).toEqual(pending);
-  page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#restart-btn").click();
+  await page.locator("#restart-confirm-btn").click();
   await expect(page.locator("#allocation")).toBeHidden();
   await expect(page.locator("#production")).toBeVisible();
   const restarted = await saved(page);
@@ -414,6 +417,51 @@ test("Restart during allocation preserves a cancelled harvest and discards it on
   await page.reload();
   await expect(page.locator("#allocation")).toBeHidden();
   expect(await saved(page)).toEqual(restarted);
+});
+
+test("Restart sits apart from routine controls and confirms in an accessible in-page dialog", async ({
+  page,
+}) => {
+  const nativeDialogs = [];
+  page.on("dialog", (dialog) => {
+    nativeDialogs.push(dialog.message());
+    void dialog.dismiss();
+  });
+  await loadFixture(page);
+  await resolveHarvest(page);
+  const pending = await saved(page);
+  const opener = page.locator("#restart-btn");
+  await expect(page.locator(".masthead #restart-btn")).toHaveCount(0);
+  await expect(opener).toHaveClass(/danger/);
+  await opener.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "Restart this run?" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveAccessibleDescription(
+    "Your current run (Year 1, Population 1,000) will be replaced by a new run starting at Year 1. The Harvest awaiting allocation will be discarded. This cannot be undone.",
+  );
+  await expect(page.locator("#restart-cancel-btn")).toBeFocused();
+  const focusInDialog = () =>
+    page.evaluate(() =>
+      document
+        .getElementById("restart-dialog")
+        .contains(document.activeElement),
+    );
+  for (const key of ["Tab", "Tab", "Tab", "Shift+Tab", "Shift+Tab"]) {
+    await page.keyboard.press(key);
+    expect(await focusInDialog()).toBe(true);
+  }
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(opener).toBeFocused();
+  await expect(page.locator("#allocation")).toBeVisible();
+  expect(await saved(page)).toEqual(pending);
+  await opener.click();
+  await page.locator("#restart-confirm-btn").click();
+  await expect(dialog).toBeHidden();
+  await expect(page.locator("#stat-year")).toHaveText("1");
+  await expect(opener).toBeFocused();
+  expect(nativeDialogs).toEqual([]);
 });
 
 test("storage affordability cannot spend beyond the remaining production budget", async ({
@@ -599,8 +647,8 @@ test("total famine finishes once, remains collapsed on reload, and restart clear
     "Total famine",
   );
   await expect(page.locator("#collapse-summary")).toBeVisible();
-  page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#restart-btn").click();
+  await page.locator("#restart-confirm-btn").click();
   await expect(page.locator("#stat-year")).toHaveText("1");
   await expect(page.locator("#collapse-summary")).toBeHidden();
   await expect(page.locator("#confirm-btn")).toBeEnabled();

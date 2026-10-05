@@ -6,6 +6,7 @@ import {
 } from "./landscape.js";
 import { foodBarLayout, foodOutlook } from "./outlook.js";
 import { resourceHeader } from "./header.js";
+import { restartWarning } from "./restart.js";
 import { GameSound } from "./sound.js";
 import {
   affordableHectares,
@@ -815,16 +816,49 @@ function confirmAllocation(): void {
   focusPanel(save.state.collapsed ? "collapse-summary" : "report");
 }
 
-function restart(): void {
+// The button that opened the Restart dialog; focus returns there when it closes.
+let restartOpener: HTMLButtonElement | undefined;
+
+function restart(event: MouseEvent): void {
   if (persistenceBlocked()) return;
+  restartOpener = event.currentTarget as HTMLButtonElement;
+  text("restart-warning", restartWarning(save));
+  const dialog = el<HTMLDialogElement>("restart-dialog");
+  dialog.returnValue = "";
+  dialog.showModal();
+  // Keeping the run is the safe default.
+  el<HTMLButtonElement>("restart-cancel-btn").focus();
+}
+
+// Escape and "Keep playing" leave the run, including a pending allocation,
+// untouched; only "Restart run" replaces it.
+function closeRestartDialog(): void {
+  const opener = restartOpener;
+  restartOpener = undefined;
   if (
-    !window.confirm(
-      "Restart from the beginning? Your current run will be lost.",
-    )
-  )
-    return;
-  restartCandidate = newSave();
-  retryPersistence();
+    el<HTMLDialogElement>("restart-dialog").returnValue === "restart" &&
+    !persistenceBlocked()
+  ) {
+    restartCandidate = newSave();
+    retryPersistence();
+  }
+  if (persistenceBlocked()) el<HTMLButtonElement>("retry-save-btn").focus();
+  else if (opener?.checkVisibility() && !opener.disabled) opener.focus();
+  else focusPanel("production");
+}
+
+// Keep Tab and Shift+Tab cycling between the dialog's two actions.
+function trapRestartFocus(event: KeyboardEvent): void {
+  if (event.key !== "Tab") return;
+  const first = el<HTMLButtonElement>("restart-cancel-btn");
+  const last = el<HTMLButtonElement>("restart-confirm-btn");
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 }
 
 function retryPersistence(): void {
@@ -921,7 +955,7 @@ function init(): void {
       "aria-pressed",
       String(sound.enabled),
     );
-    text("sound-label", sound.enabled ? "Sound on" : "Sound off");
+    text("sound-state", sound.enabled ? "On" : "Off");
     void sound.play("growth");
   });
   el<HTMLButtonElement>("allocate-btn").addEventListener(
@@ -934,6 +968,9 @@ function init(): void {
     "click",
     restart,
   );
+  const restartDialog = el<HTMLDialogElement>("restart-dialog");
+  restartDialog.addEventListener("close", closeRestartDialog);
+  restartDialog.addEventListener("keydown", trapRestartFocus);
   render();
   settleLandscape(el<SVGSVGElement>("country-svg"));
 }
