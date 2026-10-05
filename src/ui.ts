@@ -1,4 +1,9 @@
-import { createLandscape, renderLandscape } from "./landscape.js";
+import {
+  createLandscape,
+  renderLandscape,
+  settleLandscape,
+  villageHouses,
+} from "./landscape.js";
 import { foodBarLayout, foodOutlook } from "./outlook.js";
 import { resourceHeader } from "./header.js";
 import { GameSound } from "./sound.js";
@@ -692,8 +697,12 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
         ? "No harvest resolved yet."
         : `Year ${year}: cultivation was not recorded in this legacy save.`
       : `${save.pendingTurn ? "This Year" : `Year ${year}`}: ${fmt(cultivated)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%). Latest harvest.`;
-  el<HTMLElement>("country-caption").textContent = caption;
-  el<SVGElement>("country-svg").setAttribute("aria-label", caption);
+  const village =
+    villageHouses(population, state.highestPopulation).faded > 0
+      ? `${caption} Faded houses show Population lost since its peak.`
+      : caption;
+  el<HTMLElement>("country-caption").textContent = village;
+  el<SVGElement>("country-svg").setAttribute("aria-label", village);
   text("country-mode", preview ? "Plan preview" : "Latest Harvest");
   text(
     "land-cultivated",
@@ -926,6 +935,7 @@ function init(): void {
     restart,
   );
   render();
+  settleLandscape(el<SVGSVGElement>("country-svg"));
 }
 
 init();

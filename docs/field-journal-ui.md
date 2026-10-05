@@ -44,9 +44,15 @@ is linked to it for assistive technology, and the summary error remains.
 
 The country shows cultivated, prepared and unprepared shares, weather, a growing
 village and owned Technology landmarks. Its parcels illustrate aggregate
-hectares; they do not introduce separate fields to manage. Editing production
-shows a labelled planning preview. Allocation and completed reports show the
-actual resolved year; older saves without cultivation data say Unknown.
+hectares; they do not introduce separate fields to manage. Each legend swatch
+is drawn like its land: striped crops (tinted by drought or flood), bare
+prepared soil, and pale land with a tree for unprepared hectares. Each house
+stands for up to 500 people; faded houses show Population lost since its peak,
+and the caption says so when any appear. Loading or reloading shows the saved
+country without animating; later changes still animate unless reduced motion is
+set. Editing production shows a labelled planning preview. Allocation and
+completed reports show the actual resolved year; older saves without
+cultivation data say Unknown.
 
 The resource header answers where you are and what you have: Year, Population
 with the latest Year's change, Storage and Budget. A one-line status describes
@@ -62,7 +68,8 @@ that must stay), and Keep minimum and Keep maximum each show their Storage and
 next Budget. Invalid
 storage entries hide those totals until corrected. Completed reports lead with
 the outcome and put detailed accounting behind an expandable disclosure.
-Previous years remain in the Country chronicle.
+Previous years remain in the Country chronicle, which continues the country
+column beneath the landscape on desktop.
 
 All screens share one formatter (`src/format.ts`): money always shows coins
 with correct plurals, rates read like 10.00 coins/t or 3 coins/ha, food
@@ -139,7 +146,9 @@ set `$env:PORT='0'` before starting and open the printed address.
    Repeat cancellation while allocation is pending to check preservation there.
 7. Check 320, 390, 760 and 1,280 px widths, normal and doubled text size, and
    light/dark appearance. Expect wrapping without horizontal scrolling. With
-   reduced motion enabled, expect no reveal or landscape animation. Enable
+   reduced motion enabled, expect no reveal or landscape animation. Reloading
+   any screen should show the correct village immediately, without houses
+   fading out. Compare each legend swatch with the parcels it names. Enable
    sound, complete a year and mute it; sound should be optional and should not
    block play when browser audio is unavailable. Shortcut actions should look
    like rounded, outlined chips: tinted on hover, a gold ring on keyboard focus,
@@ -177,7 +186,11 @@ Turn wording appear on plan, allocation, report, chronicle or Collapse screens.
 `tests/e2e/layout.spec.js` also checks that shortcut actions render as bordered
 chips with AA contrast in light and dark mode, distinct hover and dashed
 disabled states, and targets of at least 24 px (fine pointer) or 44 px (coarse
-pointer). Existing game, persistence and layout checks remain in place.
+pointer). `tests/e2e/country.spec.js` checks that legend swatches match the
+drawn land and weather tint, faded houses are explained, a reload starts no
+landscape transitions, and the desktop chronicle sits beneath the country;
+`tests/landscape.test.ts` covers the house counts. Existing game, persistence
+and layout checks remain in place.
 Run `npm.cmd run verify` for the canonical full gate.
 
 Browser automation checks behavior and layout, but cannot judge sound quality or
