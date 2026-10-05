@@ -64,6 +64,31 @@ export function createLandscape(svg: SVGSVGElement): void {
   }
 }
 
+const VILLAGE_HOUSES = 8;
+const PEOPLE_PER_HOUSE = 500;
+
+/** Village houses for the current Population. Faded houses stand for
+ * Population lost below the run's peak (Score). */
+export function villageHouses(
+  population: number,
+  highestPopulation: number,
+): { occupied: number; faded: number } {
+  const houses = (people: number) =>
+    Math.min(VILLAGE_HOUSES, Math.max(0, Math.ceil(people / PEOPLE_PER_HOUSE)));
+  const occupied = houses(population);
+  return {
+    occupied,
+    faded: Math.max(0, houses(highestPopulation) - occupied),
+  };
+}
+
+/** Ends the first render. The landscape starts with transitions disabled so a
+ * load or reload shows the saved country without animating. */
+export function settleLandscape(svg: SVGSVGElement): void {
+  svg.getBoundingClientRect();
+  svg.classList.remove("landscape-settling");
+}
+
 export function renderLandscape(
   svg: SVGSVGElement,
   state: GameState,
@@ -96,13 +121,15 @@ export function renderLandscape(
   svg.classList.toggle("weather-drought", event === "drought");
   svg.classList.toggle("weather-flood", event === "flood");
   svg.classList.toggle("collapsed", state.collapsed);
-  const houses = Math.min(8, Math.max(0, Math.ceil(population / 500)));
-  const built = Math.max(
-    houses,
-    Math.min(8, Math.ceil(state.highestPopulation / 500)),
+  const { occupied, faded } = villageHouses(
+    population,
+    state.highestPopulation,
   );
   svg.querySelectorAll(".village-house").forEach((house, i) => {
-    house.setAttribute("opacity", i < houses ? "1" : i < built ? "0.2" : "0");
+    house.setAttribute(
+      "opacity",
+      i < occupied ? "1" : i < occupied + faded ? "0.2" : "0",
+    );
   });
   for (const id of state.ownedTechnologies) {
     svg.querySelector(`#landmark-${id}`)?.removeAttribute("display");

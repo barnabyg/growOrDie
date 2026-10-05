@@ -35,7 +35,10 @@ fertilized hectares, and Irrigation, then resolve and allocate the harvest.
 Check the report and Owned indicator. Resolve subsequent years with zero
 cultivation until Collapse. Expect readable labels, costs, effects, reports, and
 buttons without horizontal page scrolling or clipped text. At 1280 px and normal
-text size, expect the country beside the planning panels.
+text size, expect the country beside the planning panels, with the Country
+chronicle directly beneath the country instead of an empty left column.
+`tests/e2e/country.spec.js` checks that arrangement on the plan, allocation,
+report and Collapse screens.
 
 Automated enlarged-text checks set the root font size to 32 px; they do not
 emulate every browser's text-only zoom setting. Physical mobile devices and other

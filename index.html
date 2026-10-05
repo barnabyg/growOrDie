@@ -279,9 +279,22 @@
         color: var(--danger);
         border-color: var(--danger);
       }
-      .country {
-        position: sticky;
-        top: 1rem;
+      /* The chronicle continues the country column; the last row absorbs any
+         extra height so the two left panels stay together. */
+      main {
+        grid-template-rows: auto 1fr;
+        grid-auto-flow: row dense;
+      }
+      main:has(> #save-notice:not([hidden])) {
+        grid-template-rows: auto auto 1fr;
+      }
+      .country,
+      .history-section {
+        grid-column: 1;
+      }
+      .content {
+        grid-column: 2;
+        grid-row: span 2;
       }
       .country-heading {
         display: flex;
@@ -338,13 +351,19 @@
           opacity 0.4s ease,
           fill 0.4s ease;
       }
-      #country-green {
+      #country-svg.landscape-settling * {
+        transition: none;
+      }
+      #country-green,
+      .crop-swatch {
         fill: var(--accent);
       }
-      #country-green.drought {
+      #country-green.drought,
+      .country:has(#country-green.drought) .crop-swatch {
         fill: #a97142;
       }
-      #country-green.flood {
+      #country-green.flood,
+      .country:has(#country-green.flood) .crop-swatch {
         fill: #5b8ec4;
       }
       .weather-cracks {
@@ -392,17 +411,10 @@
       }
       .swatch {
         display: inline-block;
-        width: 0.5rem;
-        height: 0.5rem;
-        margin-right: 0.25rem;
-        background: var(--land);
-        border-radius: 2px;
-      }
-      .swatch.prepared {
-        background: var(--prepared);
-      }
-      .swatch.cultivated {
-        background: var(--accent);
+        width: 1.5rem;
+        height: 1rem;
+        margin-right: 0.3rem;
+        vertical-align: middle;
       }
       .milestone-progress {
         margin-top: 1.2rem;
@@ -1204,6 +1216,7 @@
         </div>
         <svg
           id="country-svg"
+          class="landscape-settling"
           viewBox="0 0 520 385"
           role="img"
           aria-label="Your country"
@@ -1315,19 +1328,29 @@
         <p class="country-caption" id="country-caption"></p>
         <div class="land-legend">
           <div>
-            <span class="swatch cultivated"></span>Cultivated<strong
-              id="land-cultivated"
-            ></strong>
+            <svg
+              class="swatch cultivated"
+              viewBox="0 0 40 26"
+              aria-hidden="true"
+            >
+              <rect class="crop-swatch" width="40" height="26" rx="4" />
+              <rect width="40" height="26" rx="4" fill="url(#crop-rows)" /></svg
+            >Cultivated<strong id="land-cultivated"></strong>
           </div>
           <div>
-            <span class="swatch prepared"></span>Prepared<strong
-              id="land-prepared"
-            ></strong>
+            <svg class="swatch prepared" viewBox="0 0 40 26" aria-hidden="true">
+              <rect class="prepared-field" width="40" height="26" rx="4" /></svg
+            >Prepared<strong id="land-prepared"></strong>
           </div>
           <div>
-            <span class="swatch"></span>Unprepared<strong
-              id="land-unprepared"
-            ></strong>
+            <svg
+              class="swatch unprepared"
+              viewBox="0 0 40 26"
+              aria-hidden="true"
+            >
+              <rect class="unprepared-field" width="40" height="26" rx="4" />
+              <use href="#land-tree" x="13" y="2" width="14" height="22" /></svg
+            >Unprepared<strong id="land-unprepared"></strong>
           </div>
         </div>
         <div class="milestone-progress">
@@ -1344,6 +1367,11 @@
           <p class="preview" id="milestone-caption"></p>
         </div>
         <p class="country-technologies" id="country-technologies"></p>
+      </section>
+      <section class="history-section">
+        <h2>Country chronicle</h2>
+        <p id="empty-history">Your first Harvest will begin the story.</p>
+        <ul id="event-log" class="event-log"></ul>
       </section>
       <div class="content">
         <section id="collapse-summary" hidden aria-labelledby="collapse-title">
@@ -1895,11 +1923,6 @@
               ></span>
             </div>
           </div>
-        </section>
-        <section class="history-section">
-          <h2>Country chronicle</h2>
-          <p id="empty-history">Your first Harvest will begin the story.</p>
-          <ul id="event-log" class="event-log"></ul>
         </section>
       </div>
     </main>

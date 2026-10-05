@@ -19,16 +19,23 @@ These scenarios describe possible outcomes, rather than predicting the event.
 
 The country shows cultivated, prepared and unprepared shares, weather, a growing
 village and owned Technology landmarks. Its parcels illustrate aggregate
-hectares; they do not introduce separate fields to manage. Editing production
-shows a labelled planning preview. Allocation and completed reports show the
-actual resolved year; older saves without cultivation data say Unknown.
+hectares; they do not introduce separate fields to manage. Each legend swatch
+is drawn like its land: striped crops (tinted by drought or flood), bare
+prepared soil, and pale land with a tree for unprepared hectares. Each house
+stands for up to 500 people; faded houses show Population lost since its peak,
+and the caption says so when any appear. Loading or reloading shows the saved
+country without animating; later changes still animate unless reduced motion is
+set. Editing production shows a labelled planning preview. Allocation and
+completed reports show the actual resolved year; older saves without
+cultivation data say Unknown.
 
 During allocation, the resource header explicitly labels the opening values.
 The allocation panel shows actual Population, Consumption and surplus, then
 previews retained Storage, exports, income, upkeep and the next Budget. Invalid
 storage entries hide those totals until corrected. Completed reports lead with
 the outcome and put detailed accounting behind an expandable disclosure.
-Previous years remain in the Country chronicle.
+Previous years remain in the Country chronicle, which continues the country
+column beneath the landscape on desktop.
 
 Milestones track the highest Population reached. Collapse replaces production
 and Technology controls with the final outcome and a restart action. Restarting
@@ -76,7 +83,9 @@ set `$env:PORT='0'` before starting and open the printed address.
    Repeat cancellation while allocation is pending to check preservation there.
 7. Check 320, 390, 760 and 1,280 px widths, normal and doubled text size, and
    light/dark appearance. Expect wrapping without horizontal scrolling. With
-   reduced motion enabled, expect no reveal or landscape animation. Enable
+   reduced motion enabled, expect no reveal or landscape animation. Reloading
+   any screen should show the correct village immediately, without houses
+   fading out. Compare each legend swatch with the parcels it names. Enable
    sound, complete a year and mute it; sound should be optional and should not
    block play when browser audio is unavailable.
 
@@ -97,7 +106,11 @@ ordinary, drought and flood events, including tuned configuration, owned
 Technology and delayed purchases. `tests/e2e/journal.spec.js` checks controls,
 forecasts without save mutations, allocation accounting and reloads, purchase
 timing, landmarks, milestones, Collapse, mobile dark mode, reduced motion and
-unavailable audio. Existing game, persistence and layout checks remain in place.
+unavailable audio. `tests/e2e/country.spec.js` checks that legend swatches
+match the drawn land and weather tint, faded houses are explained, a reload
+starts no landscape transitions, and the desktop chronicle sits beneath the
+country; `tests/landscape.test.ts` covers the house counts. Existing game,
+persistence and layout checks remain in place.
 Run `npm.cmd run verify` for the canonical full gate.
 
 Browser automation checks behavior and layout, but cannot judge sound quality or

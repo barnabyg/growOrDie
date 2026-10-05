@@ -56,8 +56,8 @@ prepared land improve future Turns only.
 The illustrated country distinguishes prepared, cultivated, and unprepared land.
 Changing production shows a labelled plan preview; a committed Harvest shows the
 actual cultivation and weather. Parcels and settlement buildings are visual
-representations of the aggregate state, not extra regions or rules. Owned
-Technologies add landmarks. The next doubling Milestone has a population meter.
+representations of the aggregate state, not extra regions or rules. Faded houses
+show Population lost since its peak. Owned Technologies add landmarks. The next doubling Milestone has a population meter.
 
 After resolving, the header labels opening resources separately from the actual
 outcome. Allocation shows food kept, automatic Export income, upkeep, and the
