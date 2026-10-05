@@ -68,7 +68,34 @@ for (const width of [320, 390, 760, 1280]) {
           }
         }
       };
+      // Below the mobile breakpoint a pinned commit bar spans the viewport
+      // bottom during planning and allocation; it is absent after Collapse.
+      const commitBar = async (shown) => {
+        const bar = page.locator("#commit-bar");
+        if (!shown) {
+          await expect(bar).toBeHidden();
+          return;
+        }
+        await expect(bar).toBeVisible();
+        const box = await bar.evaluate((node) => {
+          const rect = node.getBoundingClientRect();
+          return {
+            left: rect.left,
+            right: rect.right,
+            bottom: rect.bottom,
+            height: rect.height,
+            scrolls: node.scrollWidth > node.clientWidth,
+          };
+        });
+        expect(box.left).toBe(0);
+        expect(box.right).toBeLessThanOrEqual(width);
+        expect(box.bottom).toBeCloseTo(900, 0);
+        expect(box.height).toBeLessThan(900 / 2);
+        expect(box.scrolls).toBe(false);
+      };
+      const mobile = width <= 840;
       await fits();
+      await commitBar(mobile);
       // Technologies are part of the plan: they precede spending and Resolve.
       const top = (selector) =>
         page.locator(selector).evaluate((n) => n.getBoundingClientRect().top);
@@ -89,10 +116,12 @@ for (const width of [320, 390, 760, 1280]) {
       await page.locator("#confirm-btn").click();
       await expect(page.locator("#allocation")).toBeVisible();
       await fits();
+      await commitBar(mobile);
       await page.locator("#allocate-btn").click();
       await expect(page.locator("#report")).toBeVisible();
       await expect(page.locator("#tech-irrigation-owned")).toBeVisible();
       await fits();
+      await commitBar(mobile);
       await page.locator("#plan-hectares").fill("0");
       await page.locator("#confirm-btn").click();
       await page.locator("#allocate-btn").click();
@@ -108,6 +137,7 @@ for (const width of [320, 390, 760, 1280]) {
       }
       await expect(page.locator("#collapse-summary")).toBeVisible();
       await fits();
+      await commitBar(false);
     });
   }
 }

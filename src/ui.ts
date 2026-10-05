@@ -338,6 +338,21 @@ function updatePlanPreview(state: GameState): void {
   }
   renderOutlook(state, plan);
   renderResolveButton(state, plan);
+  if (!save.pendingTurn) {
+    const balance = foodOutlook(state, plan, CONFIG).ordinary.balanceTons;
+    renderCommitBar("confirm-btn", [
+      {
+        label: "Food",
+        value: foodBalance(balance),
+        alert: balance < 0 ? "shortfall" : undefined,
+      },
+      {
+        label: "Budget after plan",
+        value: coins(remaining),
+        alert: remaining < 0 ? "overspend" : undefined,
+      },
+    ]);
+  }
   if (!save.pendingTurn && !state.collapsed) {
     renderCountry(
       state,
@@ -446,6 +461,34 @@ function renderResolveButton(state: GameState, plan: PlayerPlan): void {
   );
 }
 
+interface CommitBarValue {
+  label: string;
+  value: string;
+  alert?: "shortfall" | "overspend" | undefined;
+}
+
+/** Fill the mobile pinned bar (shown by CSS below the breakpoint) with two
+ * summary values, and mirror the in-page commit button it stands in for:
+ * its label, disabled state and shortfall warning. Hidden after Collapse. */
+function renderCommitBar(
+  sourceId: "confirm-btn" | "allocate-btn",
+  values: readonly [CommitBarValue, CommitBarValue],
+): void {
+  el<HTMLElement>("commit-bar").hidden = save.state.collapsed;
+  values.forEach(({ label, value, alert }, i) => {
+    text(`commit-bar-label-${i}`, label);
+    const valueEl = el<HTMLElement>(`commit-bar-value-${i}`);
+    valueEl.textContent = value;
+    valueEl.classList.remove("shortfall", "overspend");
+    if (alert) valueEl.classList.add(alert);
+  });
+  const source = el<HTMLButtonElement>(sourceId);
+  const button = el<HTMLButtonElement>("commit-bar-btn");
+  button.disabled = source.disabled;
+  button.classList.toggle("warning", source.classList.contains("warning"));
+  text("commit-bar-action", source.textContent?.trim() ?? "");
+}
+
 function renderAllocation(): void {
   const pending = save.pendingTurn;
   el<HTMLElement>("allocation").hidden = !pending;
@@ -552,6 +595,10 @@ function updateAllocationPreview(): void {
     el<HTMLElement>("allocation-preview").textContent =
       "Choose storage within the affordable range.";
     text("allocation-error", "Choose Storage within the affordable range.");
+    renderCommitBar("allocate-btn", [
+      { label: "Storage kept", value: "—" },
+      { label: "Next-year Budget", value: "—" },
+    ]);
     return;
   }
   const { report, state } = finishTurn(pending, value, CONFIG);
@@ -562,6 +609,10 @@ function updateAllocationPreview(): void {
   text("allocation-next-budget", coins(state.budgetCoins));
   el<HTMLElement>("allocation-preview").textContent =
     `Upkeep ${coins(report.storageUpkeepCoins)} · total spending ${coins(report.budgetSpentCoins)} · carry-over ${coins(report.budgetCarryOverCoins)} · export ${tons(report.exportTons)} for ${coins(report.exportIncomeCoins)}`;
+  renderCommitBar("allocate-btn", [
+    { label: "Storage kept", value: exactTons(value) },
+    { label: "Next-year Budget", value: coins(state.budgetCoins) },
+  ]);
 }
 
 function renderReport(result: TurnResult): void {
@@ -929,6 +980,19 @@ function init(): void {
     confirmAllocation,
   );
   el<HTMLButtonElement>("confirm-btn").addEventListener("click", confirmPlan);
+  el<HTMLButtonElement>("commit-bar-btn").addEventListener("click", () => {
+    if (save.pendingTurn) confirmAllocation();
+    else confirmPlan();
+  });
+  // Reserve the pinned bar's height (0 while CSS hides it) so it never covers
+  // the end of the page or an input scrolled into view.
+  const commitBar = el<HTMLElement>("commit-bar");
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty(
+      "--commit-bar-height",
+      `${commitBar.offsetHeight}px`,
+    );
+  }).observe(commitBar);
   el<HTMLButtonElement>("restart-btn").addEventListener("click", restart);
   el<HTMLButtonElement>("collapse-restart-btn").addEventListener(
     "click",

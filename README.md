@@ -82,7 +82,10 @@ highlights population changes, with detailed accounting under **Harvest, Event &
 Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
 with a run summary and a confirmed **Start a new run** action; the header keeps
 the final Year played and the summary gives the run length in Years. On mobile, the
-current decision appears before a compact landscape. Optional synthesized sound
+current decision appears before a compact landscape, and a bar pinned to the
+bottom of the screen keeps the food balance, Budget after the plan and
+**Resolve harvest** in view while planning (Storage kept, next-Year Budget and
+**Finish year** while allocating). Optional synthesized sound
 starts off in every tab and can be muted immediately; animations respect reduced
 motion. See [interface checks](docs/field-journal-ui.md) for manual examples.
 
