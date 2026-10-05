@@ -31,7 +31,12 @@ hectares under the default configuration. Each Turn has two decisions:
    land costs money once and makes it available for future cultivation.
    Technologies are one-off purchases whose benefits start next Turn. The
    preview includes mandatory upkeep for retained food and blocks unaffordable
-   commitments. Select **Resolve harvest** to commit the plan.
+   commitments. Select **Resolve harvest** to commit the plan. If the ordinary
+   forecast falls short of Consumption, the button turns to a warning such as
+   **Resolve with 250 t shortfall**; resolving is still allowed.
+   From Year 2, cultivation and fertilization start at the previous Year's
+   values, reduced if needed to fit prepared land and the Budget (fertilizer is
+   dropped before cultivation). Preparation and Technologies start at zero.
 2. **Allocate the actual Surplus.** The game reveals one Event, Harvest,
    Consumption/Famine, available Surplus, and the applicable Export price.
    Choose how much food to keep within the affordable Storage range, then
@@ -47,7 +52,12 @@ provides money instead. Storage has no capacity limit.
 
 The Field journal interface pairs sliders with exact number inputs. **All prepared**
 and **All cultivated** are shortcuts; the first-Year suggestion fills both without
-committing the plan. Live food and Budget meters show the tradeoffs. Expand
+committing the plan. Live food and Budget meters show the tradeoffs: one food bar
+shows Harvest and opening Storage against a Consumption marker, shading any
+shortfall, and the Drought outcome is always shown beneath it. Each
+production input shows the most hectares affordable with the rest of the plan,
+marks the unaffordable part of its slider, and explains an overspend beside the
+field that caused it. Expand
 **Weather scenarios** for ordinary, Drought, and Flood food balances. These are
 possible outcomes, not a forecast of the hidden Event; they include opening
 Storage, Flood losses, and currently owned Technologies. Purchases and newly
@@ -59,13 +69,19 @@ actual cultivation and weather. Parcels and settlement buildings are visual
 representations of the aggregate state, not extra regions or rules. Owned
 Technologies add landmarks. The next doubling Milestone has a population meter.
 
-After resolving, the header labels opening resources separately from the actual
-outcome. Allocation shows food kept, automatic Export income, upkeep, and the
-next-Year Budget together. **Keep minimum** respects surviving old food; **Keep
-maximum** respects the affordable range. Finishing the Year highlights population
-changes, with detailed accounting under **Harvest, Event & Budget details**.
+The header shows the Year, Population with its latest change, Storage and
+Budget, plus a one-line status saying what to do next. Score appears beside the
+Milestone meter; the export price appears during allocation. After resolving, a
+single **Opening values** note marks the header as this Year's opening resources,
+separate from the actual outcome. Allocation shows food kept, automatic Export income, upkeep, and the
+next-Year Budget together. Allocation opens at the minimum Storage, so surplus
+is exported unless you choose to keep it. **Keep minimum** respects surviving
+old food; **Keep maximum** respects the affordable range. Each shows the food it
+keeps and the resulting next-Year Budget before you choose. Finishing the Year
+highlights population changes, with detailed accounting under **Harvest, Event & Budget details**.
 Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
-with a run summary and a confirmed **Start a new run** action. On mobile, the
+with a run summary and a confirmed **Start a new run** action; the header keeps
+the final Year played and the summary gives the run length in Years. On mobile, the
 current decision appears before a compact landscape. Optional synthesized sound
 starts off in every tab and can be muted immediately; animations respect reduced
 motion. See [interface checks](docs/field-journal-ui.md) for manual examples.

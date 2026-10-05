@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CONFIG } from "../src/config.js";
-import { foodOutlook } from "../src/outlook.js";
+import { foodBarLayout, foodOutlook } from "../src/outlook.js";
 import { createNewGame, resolveTurn } from "../src/simulation.js";
 import type { PlayerPlan } from "../src/types.js";
 
@@ -81,5 +81,49 @@ describe("food outlook", () => {
         result.report.availableFoodTons,
       );
     }
+  });
+});
+
+describe("food bar layout", () => {
+  it("scales a surplus to available food with Consumption marked inside it", () => {
+    const state = { ...createNewGame(CONFIG), storageTons: 400 };
+    const bar = foodBarLayout(foodOutlook(state, plan, CONFIG));
+    expect(bar).toEqual({
+      harvestPercent: 80,
+      storagePercent: 20,
+      shortfallPercent: 0,
+      consumptionPercent: 50,
+    });
+  });
+
+  it("shades the gap up to the Consumption marker when food falls short", () => {
+    const state = { ...createNewGame(CONFIG), storageTons: 100 };
+    const bar = foodBarLayout(
+      foodOutlook(state, { ...plan, fertilizedHectares: 0 }, CONFIG),
+    );
+    expect(bar).toEqual({
+      harvestPercent: 80,
+      storagePercent: 10,
+      shortfallPercent: 10,
+      consumptionPercent: 100,
+    });
+  });
+
+  it("stays finite when there is no food and no Consumption", () => {
+    const bar = foodBarLayout({
+      consumptionTons: 0,
+      ordinary: {
+        harvestTons: 0,
+        storageTons: 0,
+        availableFoodTons: 0,
+        balanceTons: 0,
+      },
+    });
+    expect(bar).toEqual({
+      harvestPercent: 0,
+      storagePercent: 0,
+      shortfallPercent: 0,
+      consumptionPercent: 0,
+    });
   });
 });
