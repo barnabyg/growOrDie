@@ -45,15 +45,6 @@ describe("where an overspend message is shown", () => {
         selectedTechnologies: [],
       }),
     ).toEqual({ inputs: [...overInputs], technology: undefined });
-    // Deselecting a Technology leaves no card to blame.
-    expect(
-      overspendBlame({
-        overBudget: true,
-        lastChange: "granary",
-        overInputs,
-        selectedTechnologies: [],
-      }),
-    ).toEqual({ inputs: [...overInputs], technology: undefined });
     expect(
       overspendBlame({
         overBudget: true,
@@ -62,5 +53,16 @@ describe("where an overspend message is shown", () => {
         selectedTechnologies: [],
       }),
     ).toEqual({ inputs: [...overInputs], technology: undefined });
+  });
+
+  it("blames no card when the last change deselected a Technology", () => {
+    expect(
+      overspendBlame({
+        overBudget: true,
+        lastChange: "granary",
+        overInputs: ["cultivatedHectares"],
+        selectedTechnologies: ["irrigation"],
+      }),
+    ).toEqual({ inputs: ["cultivatedHectares"], technology: undefined });
   });
 });

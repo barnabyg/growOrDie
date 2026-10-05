@@ -1,8 +1,7 @@
+// Where the plan's inline overspend message belongs: at the change that took
+// the plan over Budget. Pure, so the rules run under vitest without the DOM.
 import type { ProductionInput } from "./turn.js";
 import type { TechnologyId } from "./types.js";
-
-/** Where the plan's inline overspend message belongs: at the change that took
- * the plan over Budget. */
 
 /** The plan control the player changed most recently. */
 export type PlanChange = ProductionInput | TechnologyId;
