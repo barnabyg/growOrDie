@@ -111,3 +111,140 @@ for (const width of [320, 390, 760, 1280]) {
     });
   }
 }
+
+const shortcutChips = {
+  plan: ["suggest-plan-btn", "cultivate-all-btn", "fertilize-all-btn"],
+  allocation: ["store-min-btn", "store-max-btn"],
+};
+
+const chipStyles = (page, ids) =>
+  page.evaluate((chipIds) => {
+    const channels = (value) =>
+      value
+        .match(/[\d.]+/g)
+        .slice(0, 3)
+        .map(Number);
+    const luminance = (value) => {
+      const [r, g, b] = channels(value).map((c) => {
+        const s = c / 255;
+        return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const contrast = (a, b) => {
+      const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+      return (hi + 0.05) / (lo + 0.05);
+    };
+    const backdrop = (node) => {
+      for (let n = node.parentElement; n; n = n.parentElement) {
+        const bg = getComputedStyle(n).backgroundColor;
+        if (bg !== "rgba(0, 0, 0, 0)") return bg;
+      }
+      return getComputedStyle(document.body).backgroundColor;
+    };
+    return chipIds.map((id) => {
+      const node = document.getElementById(id);
+      const style = getComputedStyle(node);
+      const behind = backdrop(node);
+      return {
+        id,
+        height: node.getBoundingClientRect().height,
+        borderStyle: style.borderTopStyle,
+        borderWidth: Number.parseFloat(style.borderTopWidth),
+        borderRadius: style.borderTopLeftRadius,
+        background: style.backgroundColor,
+        color: style.color,
+        opacity: style.opacity,
+        cursor: style.cursor,
+        textContrast: contrast(style.color, behind),
+        borderContrast: contrast(style.borderTopColor, behind),
+      };
+    });
+  }, ids);
+
+for (const pointer of ["fine", "coarse"]) {
+  for (const colorScheme of ["light", "dark"]) {
+    test(`shortcut chips are bounded controls with a ${pointer} pointer in ${colorScheme} mode`, async ({
+      browser,
+    }) => {
+      const context = await browser.newContext({
+        colorScheme,
+        ...(pointer === "coarse"
+          ? {
+              hasTouch: true,
+              isMobile: true,
+              viewport: { width: 390, height: 900 },
+            }
+          : {}),
+      });
+      const page = await context.newPage();
+      await page.addInitScript(() => {
+        Math.random = () => 5 / 0x7fffffff;
+      });
+      await page.goto(origin);
+      expect(
+        await page.evaluate(
+          (p) => matchMedia(`(pointer: ${p})`).matches,
+          pointer,
+        ),
+      ).toBe(true);
+      const minHeight = pointer === "coarse" ? 44 : 24;
+      const [primary, secondary] = await page.evaluate(() =>
+        ["confirm-btn", "restart-btn"].map((id) => {
+          const style = getComputedStyle(document.getElementById(id));
+          return {
+            background: style.backgroundColor,
+            borderRadius: style.borderTopLeftRadius,
+          };
+        }),
+      );
+      const checkChips = async (ids) => {
+        for (const chip of await chipStyles(page, ids)) {
+          expect(chip.borderStyle, chip.id).toBe("solid");
+          expect(chip.borderWidth, chip.id).toBeGreaterThanOrEqual(1);
+          expect(chip.height, chip.id).toBeGreaterThanOrEqual(minHeight);
+          expect(chip.textContrast, chip.id).toBeGreaterThanOrEqual(4.5);
+          expect(chip.borderContrast, chip.id).toBeGreaterThanOrEqual(3);
+          expect(chip.background, chip.id).not.toBe(primary.background);
+          expect(chip.borderRadius, chip.id).not.toBe(secondary.borderRadius);
+        }
+      };
+      await checkChips(shortcutChips.plan);
+
+      const chip = page.locator("#cultivate-all-btn");
+      const [resting] = await chipStyles(page, ["cultivate-all-btn"]);
+      if (pointer === "fine") {
+        await chip.hover();
+        const [hovered] = await chipStyles(page, ["cultivate-all-btn"]);
+        expect(hovered.background).not.toBe(resting.background);
+        await page.mouse.move(0, 0);
+      }
+      await chip.evaluate((node) => {
+        node.disabled = true;
+      });
+      const [disabled] = await chipStyles(page, ["cultivate-all-btn"]);
+      expect(disabled.borderStyle).toBe("dashed");
+      expect(disabled.opacity).toBe("1");
+      expect(disabled.cursor).toBe("not-allowed");
+      expect(disabled.color).not.toBe(resting.color);
+      expect(disabled.textContrast).toBeGreaterThanOrEqual(4.5);
+      await chip.evaluate((node) => {
+        node.disabled = false;
+      });
+
+      await page.locator("#suggest-plan-btn").click();
+      await page.locator("#confirm-btn").click();
+      await expect(page.locator("#allocation")).toBeVisible();
+      await expect(page.locator("#store-max-btn")).toBeEnabled();
+      await checkChips(shortcutChips.allocation);
+      const outcomes = ["store-min-outcome", "store-max-outcome"];
+      for (const id of outcomes) {
+        await expect(page.locator(`#${id}`)).not.toBeEmpty();
+      }
+      for (const outcome of await chipStyles(page, outcomes)) {
+        expect(outcome.textContrast, outcome.id).toBeGreaterThanOrEqual(4.5);
+      }
+      await context.close();
+    });
+  }
+}
