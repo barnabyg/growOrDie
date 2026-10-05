@@ -17,6 +17,8 @@
         --green: light-dark(#41612d, #a8c883);
         --green-ink: light-dark(#fffaf0, #182410);
         --gold: light-dark(#9b6a1d, #e1bf76);
+        /* Gold dark enough for small text on --bg and --panel (WCAG AA). */
+        --gold-ink: light-dark(#845917, #e1bf76);
         --danger: light-dark(#a23c28, #efa28d);
         --track: light-dark(#e0ddc7, #363e2a);
         --land: light-dark(#d8d8b7, #3a4b30);
@@ -51,7 +53,7 @@
       summary,
       input[type="range"],
       input[type="checkbox"],
-      label[for^="tech-"] {
+      .tech-row {
         cursor: pointer;
       }
       button {
@@ -794,6 +796,9 @@
         border-radius: 10px;
         font-size: 0.85rem;
       }
+      .tech-row:not(.owned, .selected):hover {
+        border-color: var(--muted);
+      }
       .tech-row > .icon {
         color: var(--gold);
         margin-top: 0.15rem;
@@ -801,31 +806,33 @@
       .tech-row input {
         margin-top: 0.2rem;
       }
+      /* Name and cost share a line; the cost wraps below when space runs out. */
+      .tech-heading {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: baseline;
+        column-gap: 0.5rem;
+      }
       .tech-name {
-        grid-column: 3;
         font-weight: 600;
         min-width: 0;
       }
-      .tech-cost,
+      .tech-heading,
       .tech-benefit,
-      .tech-effect,
-      .tech-owned,
       .tech-status {
         grid-column: 3;
         min-width: 0;
       }
       .tech-cost {
-        color: var(--gold);
+        min-width: 0;
+        color: var(--gold-ink);
         font-size: 0.8rem;
+        font-weight: 600;
       }
       .tech-benefit {
         font-size: 0.8rem;
       }
-      .tech-effect {
-        color: var(--muted);
-        font-size: 0.7rem;
-      }
-      .tech-owned,
       .tech-status {
         color: var(--green);
         font-size: 0.75rem;
@@ -837,6 +844,10 @@
       .tech-row.owned {
         background: var(--panel);
       }
+      .tech-row.owned,
+      .tech-row.owned input {
+        cursor: default;
+      }
       .tech-row.unaffordable .tech-status {
         color: var(--danger);
       }
@@ -846,33 +857,60 @@
         margin-bottom: 1rem;
         animation: reveal 0.25s ease-out;
       }
-      .event-title {
-        display: flex;
-        gap: 0.65rem;
-        align-items: center;
+      /* One outcome headline led by the key number, shared by allocation and the Year report. */
+      .outcome-headline {
+        margin: 0.75rem 0 0.4rem;
       }
-      .event-title > .icon {
-        width: 2.2rem;
-        height: 2.2rem;
+      .outcome-lead {
+        display: block;
+        font:
+          600 1.8rem/1.2 Georgia,
+          serif;
+        color: var(--green);
+        font-variant-numeric: tabular-nums;
+      }
+      .famine .outcome-lead {
+        color: var(--danger);
+      }
+      .outcome-context {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .outcome-event {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 0.4rem 0 0;
+        font-size: 0.95rem;
+      }
+      .outcome-event > .icon {
+        flex: none;
+        width: 1.5rem;
+        height: 1.5rem;
         color: var(--gold);
       }
-      .event-title h3 {
-        margin: 0;
-        font-size: 1.45rem;
+      /* Shared stat row: labelled figures at a readable size. */
+      .stat-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+        margin: 1rem 0;
       }
-      #allocation-event {
-        font-size: 0.85rem;
+      .stat-row > div {
+        flex: 1 1 auto;
+        min-width: 6.5rem;
+      }
+      .stat-row dt {
+        font-size: 0.8rem;
         color: var(--muted);
       }
-      .outcome-title {
-        font:
-          600 1.6rem/1.2 Georgia,
-          serif;
-        margin-top: 0.8rem;
-        color: var(--green);
-      }
-      .famine .outcome-title {
-        color: var(--danger);
+      .stat-row dd {
+        margin: 0.1rem 0 0;
+        font-size: 1.15rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        overflow-wrap: anywhere;
       }
       .result-grid {
         display: grid;
@@ -891,9 +929,6 @@
       }
       .result-grid .label {
         display: block;
-      }
-      #allocation-surplus {
-        color: var(--green);
       }
       .allocation-choice {
         border-top: 1px solid var(--border);
@@ -937,34 +972,6 @@
       }
       #report h2 {
         margin: 0.15rem 0 0;
-      }
-      #report-headline {
-        font:
-          600 1.8rem/1.2 Georgia,
-          serif;
-        color: var(--green);
-        margin: 0.75rem 0 0.3rem;
-      }
-      #report.famine #report-headline {
-        color: var(--danger);
-      }
-      #report-population-summary {
-        margin: 0;
-        font-size: 0.85rem;
-      }
-      .report-highlights {
-        display: flex;
-        gap: 0.5rem 1.25rem;
-        flex-wrap: wrap;
-        margin: 0.8rem 0;
-        font-size: 0.8rem;
-      }
-      .famine-banner {
-        color: var(--green);
-        font-size: 0.8rem;
-      }
-      .famine-banner.famine {
-        color: var(--danger);
       }
       .milestone-banner {
         margin: 0.9rem 0;
@@ -1134,8 +1141,7 @@
       }
       @media (pointer: coarse) {
         button,
-        summary,
-        label[for^="tech-"] {
+        summary {
           min-height: 44px;
         }
         input[type="range"] {
@@ -1496,13 +1502,28 @@
               </h2>
             </div>
           </div>
-          <p id="report-headline"></p>
-          <p id="report-population-summary"></p>
-          <div class="report-highlights">
-            <span>Storage: <strong id="report-storage-summary"></strong></span
-            ><span>Budget: <strong id="report-budget-summary"></strong></span>
-          </div>
-          <span class="famine-banner" id="report-famine"></span>
+          <p class="outcome-headline" id="report-headline">
+            <span class="outcome-lead" id="report-outcome-lead"></span
+            ><span class="outcome-context" id="report-famine"></span>
+          </p>
+          <dl class="stat-row">
+            <div>
+              <dt>Population</dt>
+              <dd id="report-population-summary"></dd>
+            </div>
+            <div>
+              <dt>Peak</dt>
+              <dd id="report-peak"></dd>
+            </div>
+            <div>
+              <dt>Storage</dt>
+              <dd id="report-storage-summary"></dd>
+            </div>
+            <div>
+              <dt>Budget</dt>
+              <dd id="report-budget-summary"></dd>
+            </div>
+          </dl>
           <div class="milestone-banner" id="milestone-banner" hidden></div>
           <details id="report-details">
             <summary>Harvest, Event &amp; Budget details</summary>
@@ -1788,113 +1809,140 @@
               landscape.
             </p>
             <div class="technology-grid">
-              <div class="tech-row">
+              <label class="tech-row">
                 <svg class="icon" aria-hidden="true">
                   <use href="#icon-droplet" /></svg
                 ><input
                   type="checkbox"
                   id="tech-irrigation"
-                  aria-describedby="tech-irrigation-benefit"
-                /><label for="tech-irrigation" class="tech-name"
-                  >Irrigation</label
-                ><span class="tech-cost"></span
+                  aria-labelledby="tech-irrigation-name"
+                  aria-describedby="tech-irrigation-cost tech-irrigation-benefit tech-irrigation-status"
+                /><span class="tech-heading"
+                  ><span class="tech-name" id="tech-irrigation-name"
+                    >Irrigation</span
+                  ><span
+                    class="tech-cost"
+                    id="tech-irrigation-cost"
+                  ></span></span
                 ><span class="tech-benefit" id="tech-irrigation-benefit"></span
-                ><span class="tech-effect"></span
-                ><span class="tech-owned" id="tech-irrigation-owned" hidden
-                  >Owned</span
-                ><span class="tech-status" id="tech-irrigation-status"></span>
-              </div>
-              <div class="tech-row">
+                ><span
+                  class="tech-status"
+                  id="tech-irrigation-status"
+                  hidden
+                ></span>
+              </label>
+              <label class="tech-row">
                 <svg class="icon" aria-hidden="true">
                   <use href="#icon-leaf" /></svg
                 ><input
                   type="checkbox"
                   id="tech-highYieldSeeds"
-                  aria-describedby="tech-highYieldSeeds-benefit"
-                /><label for="tech-highYieldSeeds" class="tech-name"
-                  >High-yield seeds</label
-                ><span class="tech-cost"></span
+                  aria-labelledby="tech-highYieldSeeds-name"
+                  aria-describedby="tech-highYieldSeeds-cost tech-highYieldSeeds-benefit tech-highYieldSeeds-status"
+                /><span class="tech-heading"
+                  ><span class="tech-name" id="tech-highYieldSeeds-name"
+                    >High-yield seeds</span
+                  ><span
+                    class="tech-cost"
+                    id="tech-highYieldSeeds-cost"
+                  ></span></span
                 ><span
                   class="tech-benefit"
                   id="tech-highYieldSeeds-benefit"
                 ></span
-                ><span class="tech-effect"></span
-                ><span class="tech-owned" id="tech-highYieldSeeds-owned" hidden
-                  >Owned</span
                 ><span
                   class="tech-status"
                   id="tech-highYieldSeeds-status"
+                  hidden
                 ></span>
-              </div>
-              <div class="tech-row">
+              </label>
+              <label class="tech-row">
                 <svg class="icon" aria-hidden="true">
                   <use href="#icon-barn" /></svg
                 ><input
                   type="checkbox"
                   id="tech-granary"
-                  aria-describedby="tech-granary-benefit"
-                /><label for="tech-granary" class="tech-name">Granary</label
-                ><span class="tech-cost"></span
+                  aria-labelledby="tech-granary-name"
+                  aria-describedby="tech-granary-cost tech-granary-benefit tech-granary-status"
+                /><span class="tech-heading"
+                  ><span class="tech-name" id="tech-granary-name">Granary</span
+                  ><span class="tech-cost" id="tech-granary-cost"></span></span
                 ><span class="tech-benefit" id="tech-granary-benefit"></span
-                ><span class="tech-effect"></span
-                ><span class="tech-owned" id="tech-granary-owned" hidden
-                  >Owned</span
-                ><span class="tech-status" id="tech-granary-status"></span>
-              </div>
-              <div class="tech-row">
+                ><span
+                  class="tech-status"
+                  id="tech-granary-status"
+                  hidden
+                ></span>
+              </label>
+              <label class="tech-row">
                 <svg class="icon" aria-hidden="true">
                   <use href="#icon-trade" /></svg
                 ><input
                   type="checkbox"
                   id="tech-tradeRoutes"
-                  aria-describedby="tech-tradeRoutes-benefit"
-                /><label for="tech-tradeRoutes" class="tech-name"
-                  >Trade routes</label
-                ><span class="tech-cost"></span
+                  aria-labelledby="tech-tradeRoutes-name"
+                  aria-describedby="tech-tradeRoutes-cost tech-tradeRoutes-benefit tech-tradeRoutes-status"
+                /><span class="tech-heading"
+                  ><span class="tech-name" id="tech-tradeRoutes-name"
+                    >Trade routes</span
+                  ><span
+                    class="tech-cost"
+                    id="tech-tradeRoutes-cost"
+                  ></span></span
                 ><span class="tech-benefit" id="tech-tradeRoutes-benefit"></span
-                ><span class="tech-effect"></span
-                ><span class="tech-owned" id="tech-tradeRoutes-owned" hidden
-                  >Owned</span
-                ><span class="tech-status" id="tech-tradeRoutes-status"></span>
-              </div>
-              <div class="tech-row">
+                ><span
+                  class="tech-status"
+                  id="tech-tradeRoutes-status"
+                  hidden
+                ></span>
+              </label>
+              <label class="tech-row">
                 <svg class="icon" aria-hidden="true">
                   <use href="#icon-survey" /></svg
                 ><input
                   type="checkbox"
                   id="tech-landSurvey"
-                  aria-describedby="tech-landSurvey-benefit"
-                /><label for="tech-landSurvey" class="tech-name"
-                  >Land survey</label
-                ><span class="tech-cost"></span
+                  aria-labelledby="tech-landSurvey-name"
+                  aria-describedby="tech-landSurvey-cost tech-landSurvey-benefit tech-landSurvey-status"
+                /><span class="tech-heading"
+                  ><span class="tech-name" id="tech-landSurvey-name"
+                    >Land survey</span
+                  ><span
+                    class="tech-cost"
+                    id="tech-landSurvey-cost"
+                  ></span></span
                 ><span class="tech-benefit" id="tech-landSurvey-benefit"></span
-                ><span class="tech-effect"></span
-                ><span class="tech-owned" id="tech-landSurvey-owned" hidden
-                  >Owned</span
-                ><span class="tech-status" id="tech-landSurvey-status"></span>
-              </div>
-              <div class="tech-row">
+                ><span
+                  class="tech-status"
+                  id="tech-landSurvey-status"
+                  hidden
+                ></span>
+              </label>
+              <label class="tech-row">
                 <svg class="icon" aria-hidden="true">
                   <use href="#icon-fertilizer" /></svg
                 ><input
                   type="checkbox"
                   id="tech-fertilizerWorks"
-                  aria-describedby="tech-fertilizerWorks-benefit"
-                /><label for="tech-fertilizerWorks" class="tech-name"
-                  >Fertilizer works</label
-                ><span class="tech-cost"></span
+                  aria-labelledby="tech-fertilizerWorks-name"
+                  aria-describedby="tech-fertilizerWorks-cost tech-fertilizerWorks-benefit tech-fertilizerWorks-status"
+                /><span class="tech-heading"
+                  ><span class="tech-name" id="tech-fertilizerWorks-name"
+                    >Fertilizer works</span
+                  ><span
+                    class="tech-cost"
+                    id="tech-fertilizerWorks-cost"
+                  ></span></span
                 ><span
                   class="tech-benefit"
                   id="tech-fertilizerWorks-benefit"
                 ></span
-                ><span class="tech-effect"></span
-                ><span class="tech-owned" id="tech-fertilizerWorks-owned" hidden
-                  >Owned</span
                 ><span
                   class="tech-status"
                   id="tech-fertilizerWorks-status"
+                  hidden
                 ></span>
-              </div>
+              </label>
             </div>
           </section>
           <div class="budget-summary" id="budget-summary">
@@ -1961,34 +2009,39 @@
             <span class="eyebrow">Actual outcome</span>
           </div>
           <div class="event-reveal" id="event-reveal">
-            <div class="event-title">
+            <p class="outcome-headline" id="allocation-outcome">
+              <span class="outcome-lead" id="allocation-outcome-lead"></span
+              ><span class="outcome-context" id="allocation-famine"></span>
+            </p>
+            <p class="outcome-event">
               <svg class="icon" aria-hidden="true">
                 <use id="allocation-event-icon" href="#icon-sun" />
               </svg>
-              <h3 id="allocation-event-title">Harvest Event</h3>
-            </div>
-            <p id="allocation-event"></p>
-            <p class="outcome-title" id="allocation-outcome"></p>
-            <p id="allocation-population-change" class="preview"></p>
+              <span id="allocation-event"></span>
+            </p>
           </div>
-          <div class="result-grid">
+          <dl class="stat-row">
             <div>
-              <span class="label">Harvest</span
-              ><strong id="allocation-harvest"></strong>
+              <dt>Population</dt>
+              <dd id="allocation-population-change"></dd>
             </div>
             <div>
-              <span class="label">Consumption</span
-              ><strong id="allocation-consumption"></strong>
+              <dt>Harvest</dt>
+              <dd id="allocation-harvest"></dd>
             </div>
             <div>
-              <span class="label">Actual Surplus</span
-              ><strong id="allocation-surplus"></strong>
+              <dt>Consumption</dt>
+              <dd id="allocation-consumption"></dd>
             </div>
             <div>
-              <span class="label">Export price</span
-              ><strong id="allocation-price"></strong>
+              <dt>Actual Surplus</dt>
+              <dd id="allocation-surplus"></dd>
             </div>
-          </div>
+            <div>
+              <dt>Export price</dt>
+              <dd id="allocation-price"></dd>
+            </div>
+          </dl>
           <div class="allocation-choice">
             <div class="field-heading">
               <label for="plan-store">Keep in Storage</label

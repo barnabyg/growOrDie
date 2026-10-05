@@ -29,7 +29,8 @@ hectares under the default configuration. Each Turn has two decisions:
 1. **Plan production and investment.** Cultivation costs seeds each year;
    fertilizer adds cost and multiplies Yield on the chosen hectares. Preparing
    land costs money once and makes it available for future cultivation.
-   Technologies are one-off purchases whose benefits start next Turn. The
+   Technologies are one-off purchases whose benefits start next Turn; click
+   anywhere on a Technology card to select it. The
    preview includes mandatory upkeep for retained food and blocks unaffordable
    commitments. Select **Resolve harvest** to commit the plan. If the ordinary
    forecast falls short of Consumption, the button turns to a warning such as
@@ -77,8 +78,11 @@ separate from the actual outcome. Allocation shows food kept, automatic Export i
 next-Year Budget together. Allocation opens at the minimum Storage, so surplus
 is exported unless you choose to keep it. **Keep minimum** respects surviving
 old food; **Keep maximum** respects the affordable range. Each shows the food it
-keeps and the resulting next-Year Budget before you choose. Finishing the Year
-highlights population changes, with detailed accounting under **Harvest, Event & Budget details**.
+keeps and the resulting next-Year Budget before you choose. Allocation and the
+Year report each lead with one headline: the Population change (such as
+**+50 people**), or the shortfall in tons during Famine, followed by the Famine
+outcome in words. The Event appears once beneath it, and the other figures share
+one readable stat row. Detailed accounting is under **Harvest, Event & Budget details**.
 Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
 with a run summary and a confirmed **Start a new run** action. The summary
 states the cause using the final Year's Harvest, stored food and Consumption,
