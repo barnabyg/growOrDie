@@ -98,7 +98,7 @@ for (const collapsed of [false, true]) {
     await page.locator("#allocate-btn").click();
     await expect(page.locator("#stat-year")).toHaveText(yearAfter);
     await expect(page.locator("#report")).toBeVisible();
-    await expect(page.locator("#event-log li")).toHaveCount(1);
+    await expect(page.locator("#event-log tbody tr")).toHaveCount(1);
     await expect(page.locator("#confirm-btn")).toBeDisabled();
     if (collapsed) {
       await expect(page.locator("#production")).toBeHidden();
@@ -141,7 +141,7 @@ for (const collapsed of [false, true]) {
     });
     await page.locator("#retry-save-btn").click();
     await expect(page.locator("#stat-year")).toHaveText("1");
-    await expect(page.locator("#event-log li")).toHaveCount(0);
+    await expect(page.locator("#event-log tbody tr")).toHaveCount(0);
     await page.reload();
     await expect(page.locator("#stat-year")).toHaveText("1");
     expect(errors).toEqual([]);
