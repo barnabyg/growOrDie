@@ -158,6 +158,30 @@ test("Technology cards and landmarks respect next-Turn timing", async ({
   await expect(page.locator("#tech-highYieldSeeds")).toBeDisabled();
 });
 
+test("keyboard reaches every Technology before Resolve harvest, and Technologies hide during allocation", async ({
+  page,
+}) => {
+  await fixture(page);
+  const technologies = await page
+    .locator("#technologies input[type=checkbox]")
+    .evaluateAll((inputs) => inputs.map((input) => input.id));
+  expect(technologies.length).toBeGreaterThan(0);
+  const reached = [];
+  await page.locator("#plan-prep").focus();
+  for (let i = 0; i < 100; i++) {
+    await page.keyboard.press("Tab");
+    const id = await page.evaluate(() => document.activeElement?.id);
+    if (id === "confirm-btn") break;
+    if (technologies.includes(id)) reached.push(id);
+  }
+  await expect(page.locator("#confirm-btn")).toBeFocused();
+  expect(reached).toEqual(technologies);
+  await page.locator("#suggest-plan-btn").click();
+  await page.locator("#confirm-btn").click();
+  await expect(page.locator("#allocation")).toBeVisible();
+  await expect(page.locator("#technologies")).toBeHidden();
+});
+
 test("Collapse replaces planning and supports a confirmed restart without losing history on cancellation", async ({
   page,
 }) => {

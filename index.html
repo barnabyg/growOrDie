@@ -650,6 +650,14 @@
         margin-top: 0.75rem;
         padding-block: 0.85rem;
       }
+      #technologies {
+        margin-top: 1rem;
+        padding: 1rem 0 0;
+        border: 0;
+        border-top: 1px solid var(--border);
+        border-radius: 0;
+        background: none;
+      }
       .technology-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -980,9 +988,6 @@
         .country {
           position: static;
           order: 4;
-        }
-        #technologies {
-          order: 5;
         }
         .history-section {
           order: 6;
@@ -1636,6 +1641,125 @@
               </details>
             </section>
           </div>
+          <section id="technologies" aria-labelledby="technologies-title">
+            <div class="section-heading">
+              <h3 id="technologies-title">Technologies</h3>
+              <span class="label">One-off · effects next Turn</span>
+            </div>
+            <p class="preview">
+              Invest in your country's future. Owned Technologies appear in the
+              landscape.
+            </p>
+            <div class="technology-grid">
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-droplet" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-irrigation"
+                  aria-describedby="tech-irrigation-benefit"
+                /><label for="tech-irrigation" class="tech-name"
+                  >Irrigation</label
+                ><span class="tech-cost"></span
+                ><span class="tech-benefit" id="tech-irrigation-benefit"></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-irrigation-owned" hidden
+                  >Owned</span
+                ><span class="tech-status" id="tech-irrigation-status"></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-leaf" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-highYieldSeeds"
+                  aria-describedby="tech-highYieldSeeds-benefit"
+                /><label for="tech-highYieldSeeds" class="tech-name"
+                  >High-yield seeds</label
+                ><span class="tech-cost"></span
+                ><span
+                  class="tech-benefit"
+                  id="tech-highYieldSeeds-benefit"
+                ></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-highYieldSeeds-owned" hidden
+                  >Owned</span
+                ><span
+                  class="tech-status"
+                  id="tech-highYieldSeeds-status"
+                ></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-barn" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-granary"
+                  aria-describedby="tech-granary-benefit"
+                /><label for="tech-granary" class="tech-name">Granary</label
+                ><span class="tech-cost"></span
+                ><span class="tech-benefit" id="tech-granary-benefit"></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-granary-owned" hidden
+                  >Owned</span
+                ><span class="tech-status" id="tech-granary-status"></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-trade" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-tradeRoutes"
+                  aria-describedby="tech-tradeRoutes-benefit"
+                /><label for="tech-tradeRoutes" class="tech-name"
+                  >Trade routes</label
+                ><span class="tech-cost"></span
+                ><span class="tech-benefit" id="tech-tradeRoutes-benefit"></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-tradeRoutes-owned" hidden
+                  >Owned</span
+                ><span class="tech-status" id="tech-tradeRoutes-status"></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-survey" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-landSurvey"
+                  aria-describedby="tech-landSurvey-benefit"
+                /><label for="tech-landSurvey" class="tech-name"
+                  >Land survey</label
+                ><span class="tech-cost"></span
+                ><span class="tech-benefit" id="tech-landSurvey-benefit"></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-landSurvey-owned" hidden
+                  >Owned</span
+                ><span class="tech-status" id="tech-landSurvey-status"></span>
+              </div>
+              <div class="tech-row">
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-fertilizer" /></svg
+                ><input
+                  type="checkbox"
+                  id="tech-fertilizerWorks"
+                  aria-describedby="tech-fertilizerWorks-benefit"
+                /><label for="tech-fertilizerWorks" class="tech-name"
+                  >Fertilizer works</label
+                ><span class="tech-cost"></span
+                ><span
+                  class="tech-benefit"
+                  id="tech-fertilizerWorks-benefit"
+                ></span
+                ><span class="tech-effect"></span
+                ><span class="tech-owned" id="tech-fertilizerWorks-owned" hidden
+                  >Owned</span
+                ><span
+                  class="tech-status"
+                  id="tech-fertilizerWorks-status"
+                ></span>
+              </div>
+            </div>
+          </section>
           <div class="budget-summary" id="budget-summary">
             <div class="budget-values">
               <span>Plan spending<strong id="plan-total-cost"></strong></span
@@ -1780,121 +1904,6 @@
               <use href="#icon-arrow" />
             </svg>
           </button>
-        </section>
-        <section id="technologies" aria-labelledby="technologies-title">
-          <div class="section-heading">
-            <h2 id="technologies-title">Technologies</h2>
-            <span class="label">One-off · effects next Turn</span>
-          </div>
-          <p class="preview">
-            Invest in your country's future. Owned Technologies appear in the
-            landscape.
-          </p>
-          <div class="technology-grid">
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-droplet" /></svg
-              ><input
-                type="checkbox"
-                id="tech-irrigation"
-                aria-describedby="tech-irrigation-benefit"
-              /><label for="tech-irrigation" class="tech-name">Irrigation</label
-              ><span class="tech-cost"></span
-              ><span class="tech-benefit" id="tech-irrigation-benefit"></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-irrigation-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-irrigation-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-leaf" /></svg
-              ><input
-                type="checkbox"
-                id="tech-highYieldSeeds"
-                aria-describedby="tech-highYieldSeeds-benefit"
-              /><label for="tech-highYieldSeeds" class="tech-name"
-                >High-yield seeds</label
-              ><span class="tech-cost"></span
-              ><span
-                class="tech-benefit"
-                id="tech-highYieldSeeds-benefit"
-              ></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-highYieldSeeds-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-highYieldSeeds-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-barn" /></svg
-              ><input
-                type="checkbox"
-                id="tech-granary"
-                aria-describedby="tech-granary-benefit"
-              /><label for="tech-granary" class="tech-name">Granary</label
-              ><span class="tech-cost"></span
-              ><span class="tech-benefit" id="tech-granary-benefit"></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-granary-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-granary-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-trade" /></svg
-              ><input
-                type="checkbox"
-                id="tech-tradeRoutes"
-                aria-describedby="tech-tradeRoutes-benefit"
-              /><label for="tech-tradeRoutes" class="tech-name"
-                >Trade routes</label
-              ><span class="tech-cost"></span
-              ><span class="tech-benefit" id="tech-tradeRoutes-benefit"></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-tradeRoutes-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-tradeRoutes-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-survey" /></svg
-              ><input
-                type="checkbox"
-                id="tech-landSurvey"
-                aria-describedby="tech-landSurvey-benefit"
-              /><label for="tech-landSurvey" class="tech-name"
-                >Land survey</label
-              ><span class="tech-cost"></span
-              ><span class="tech-benefit" id="tech-landSurvey-benefit"></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-landSurvey-owned" hidden
-                >Owned</span
-              ><span class="tech-status" id="tech-landSurvey-status"></span>
-            </div>
-            <div class="tech-row">
-              <svg class="icon" aria-hidden="true">
-                <use href="#icon-fertilizer" /></svg
-              ><input
-                type="checkbox"
-                id="tech-fertilizerWorks"
-                aria-describedby="tech-fertilizerWorks-benefit"
-              /><label for="tech-fertilizerWorks" class="tech-name"
-                >Fertilizer works</label
-              ><span class="tech-cost"></span
-              ><span
-                class="tech-benefit"
-                id="tech-fertilizerWorks-benefit"
-              ></span
-              ><span class="tech-effect"></span
-              ><span class="tech-owned" id="tech-fertilizerWorks-owned" hidden
-                >Owned</span
-              ><span
-                class="tech-status"
-                id="tech-fertilizerWorks-status"
-              ></span>
-            </div>
-          </div>
         </section>
         <section class="history-section">
           <h2>Country chronicle</h2>

@@ -9,6 +9,11 @@ external assets or services are required.
 
 ## Playing
 
+The plan reads top to bottom: production (cultivate, fertilize, prepare) and
+the food outlook, then Technologies, then the spending summary and Resolve
+harvest. Every investment is visible, and reachable by keyboard, before the
+Year is committed.
+
 Production sliders and exact number inputs stay in sync. Shortcuts cultivate or
 fertilize all available land; the first-year suggestion selects both. Spending
 and the food outlook update before resolving. The outlook compares ordinary,
@@ -55,8 +60,10 @@ set `$env:PORT='0'` before starting and open the printed address.
    With the suggested plan, preparing 100 ha should show overspending and disable
    Resolve. The preparation note should say the new land is available next year.
    Reset preparation to zero before continuing.
-3. Select a Technology. Its cost should change spending but its benefit should
-   not change this year's forecast. Resolve an affordable plan: the event and
+3. Check that Technologies sit between production and the spending summary,
+   and that tabbing from the production controls reaches every Technology
+   before Resolve harvest. Select a Technology. Its cost should change spending
+   but its benefit should not change this year's forecast. Resolve an affordable plan: the event and
    actual food totals should appear, while header values say Opening. Reload
    during allocation; the event and storage limits should remain identical.
    Finish the year: the Technology becomes Owned, its landmark appears, and the
@@ -96,7 +103,8 @@ location.reload();
 ordinary, drought and flood events, including tuned configuration, owned
 Technology and delayed purchases. `tests/e2e/journal.spec.js` checks controls,
 forecasts without save mutations, allocation accounting and reloads, purchase
-timing, landmarks, milestones, Collapse, mobile dark mode, reduced motion and
+timing, Technology placement and keyboard order within the plan, landmarks,
+milestones, Collapse, mobile dark mode, reduced motion and
 unavailable audio. Existing game, persistence and layout checks remain in place.
 Run `npm.cmd run verify` for the canonical full gate.
 
