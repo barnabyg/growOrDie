@@ -151,14 +151,9 @@
       p {
         margin: 0.6rem 0;
       }
-      .label,
-      .eyebrow {
+      .label {
         font-size: 0.75rem;
         color: var(--muted);
-      }
-      .eyebrow {
-        text-transform: uppercase;
-        letter-spacing: 0.09em;
       }
       .value,
       output {
@@ -500,19 +495,13 @@
         flex-wrap: wrap;
       }
       .first-plan {
-        background: var(--bg);
-        border-radius: 8px;
-        padding: 0.75rem;
-        font-size: 0.8rem;
         margin-bottom: 1rem;
-      }
-      .first-plan p {
-        margin: 0;
       }
       .plan-field {
         margin-top: 1rem;
       }
       .planning-grid {
+        container-type: inline-size;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
         gap: 1rem;
@@ -624,11 +613,22 @@
       button.quiet:has(> .choice-outcome) {
         border-radius: 1rem;
       }
+      /* Panels are flat: subsections are grouped by headings and dividers,
+         never by a tinted box inside the panel. */
       .food-outlook {
-        padding: 0.8rem;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: var(--bg);
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: none;
+      }
+      /* Stacked beneath the production fields (one grid column), the outlook
+         gets a divider like the other plan subsections. */
+      @container (width < 29rem) {
+        .food-outlook {
+          padding-top: 1rem;
+          border-top: 1px solid var(--border);
+        }
       }
       .food-outlook h3 {
         font-size: 1.15rem;
@@ -659,11 +659,11 @@
         margin: 0.55rem 0 0.4rem;
         overflow: visible;
       }
-      /* Segments and the marker are separated by --bg gaps, so each one only
-         needs 3:1 non-text contrast against the outlook background. */
+      /* Segments and the marker are separated by --panel gaps, so each one
+         only needs 3:1 non-text contrast against the panel background. */
       #forecast-storage-bar,
       #forecast-shortfall-bar {
-        box-shadow: inset 2px 0 0 var(--bg);
+        box-shadow: inset 2px 0 0 var(--panel);
       }
       #forecast-harvest-bar,
       .key-harvest {
@@ -683,7 +683,7 @@
         width: 3px;
         transform: translateX(-50%);
         background: var(--text);
-        box-shadow: 0 0 0 2px var(--bg);
+        box-shadow: 0 0 0 2px var(--panel);
         border-radius: 1px;
       }
       .forecast-key {
@@ -788,7 +788,8 @@
         font-size: 1.05rem;
         font-weight: 600;
       }
-      .preview {
+      .preview,
+      .helper {
         font-size: 0.75rem;
         color: var(--muted);
       }
@@ -838,7 +839,6 @@
         align-content: start;
         align-items: start;
         padding: 0.85rem;
-        background: var(--bg);
         border: 1px solid var(--border);
         border-radius: 10px;
         font-size: 0.85rem;
@@ -887,9 +887,6 @@
       .tech-row.selected {
         border-color: var(--green);
         box-shadow: inset 0 0 0 1px var(--green);
-      }
-      .tech-row.owned {
-        background: var(--panel);
       }
       .tech-row.owned,
       .tech-row.owned input {
@@ -987,9 +984,8 @@
       }
       .allocation-totals {
         margin-top: 1rem;
-        padding: 0.9rem;
-        border-radius: 8px;
-        background: var(--bg);
+        padding-top: 0.65rem;
+        border-top: 1px solid var(--border);
       }
       .allocation-totals p {
         margin: 0.25rem 0;
@@ -1023,10 +1019,9 @@
       .milestone-banner {
         margin: 0.9rem 0;
         padding: 0.9rem;
-        background: var(--bg);
         border: 1px solid var(--gold);
         border-radius: 8px;
-        color: var(--gold);
+        color: var(--gold-ink);
         font-size: 1rem;
         animation: reveal 0.35s ease-out;
       }
@@ -1463,7 +1458,6 @@
       <section class="country" aria-labelledby="country-title">
         <div class="country-heading">
           <h2 id="country-title">Your country</h2>
-          <span class="eyebrow" id="country-mode">Plan preview</span>
         </div>
         <svg
           id="country-svg"
@@ -1646,7 +1640,6 @@
           <svg class="icon collapse-symbol" aria-hidden="true">
             <use href="#icon-collapse" />
           </svg>
-          <p class="eyebrow">Your run has ended</p>
           <h2 id="collapse-title">Collapse</h2>
           <p id="collapse-cause"></p>
           <p id="collapse-event"></p>
@@ -1671,12 +1664,9 @@
             <svg class="icon" aria-hidden="true">
               <use href="#icon-people" />
             </svg>
-            <div>
-              <span class="eyebrow">Year complete</span>
-              <h2 id="report-title">
-                Year report — Year <span id="report-year"></span>
-              </h2>
-            </div>
+            <h2 id="report-title">
+              Year report — Year <span id="report-year"></span>
+            </h2>
           </div>
           <p class="outcome-headline" id="report-headline">
             <span class="outcome-lead" id="report-outcome-lead"></span
@@ -1769,13 +1759,8 @@
         <section id="production" aria-labelledby="plan-title">
           <div class="section-heading">
             <h2 id="plan-title">Plan — Year <span id="plan-year"></span></h2>
-            <span class="eyebrow">Production &amp; investment</span>
           </div>
           <div class="first-plan" id="first-plan">
-            <p>
-              Feed your people before growing your country. Fertilizer increases
-              Yield; weather can still reduce it.
-            </p>
             <button type="button" class="quiet" id="suggest-plan-btn">
               Try cultivating &amp; fertilizing all prepared land
             </button>
@@ -1894,10 +1879,7 @@
               </div>
             </div>
             <section class="food-outlook" aria-labelledby="forecast-title">
-              <div class="section-heading">
-                <h3 id="forecast-title">Can you feed everyone?</h3>
-                <span class="label">Before Events · estimate</span>
-              </div>
+              <h3 id="forecast-title">Can you feed everyone?</h3>
               <div class="meter-label">
                 <span>Harvest + opening Storage</span
                 ><strong id="forecast-available"></strong>
@@ -1938,7 +1920,6 @@
                 aria-live="polite"
               ></p>
               <p class="drought-outcome" id="forecast-drought-outcome"></p>
-              <p class="preview">The Event is unknown until you resolve.</p>
               <details>
                 <summary>Weather scenarios</summary>
                 <table class="scenario-table">
@@ -1978,12 +1959,8 @@
           <section id="technologies" aria-labelledby="technologies-title">
             <div class="section-heading">
               <h3 id="technologies-title">Technologies</h3>
-              <span class="label">One-off · effects next Year</span>
+              <span class="helper">One-off · effects start next Year</span>
             </div>
-            <p class="preview">
-              Invest in your country's future. Owned Technologies appear in the
-              landscape.
-            </p>
             <div class="technology-grid">
               <label class="tech-row">
                 <svg class="icon" aria-hidden="true">
@@ -2164,10 +2141,6 @@
                 </tr>
               </table>
             </details>
-            <p class="preview">
-              Includes mandatory upkeep for retained food. Choose Storage after
-              the Harvest.
-            </p>
             <p id="plan-error" role="alert" hidden></p>
           </div>
           <button type="button" id="confirm-btn" class="commit-button">
@@ -2182,7 +2155,6 @@
             <h2 id="allocation-title">
               Allocate harvest · Year <span id="allocation-year"></span>
             </h2>
-            <span class="eyebrow">Actual outcome</span>
           </div>
           <div class="event-reveal" id="event-reveal">
             <p class="outcome-headline" id="allocation-outcome">
@@ -2252,8 +2224,8 @@
                 ></span>
               </button>
             </div>
-            <p class="preview" id="plan-store-range"></p>
-            <p class="preview" id="allocation-retained"></p>
+            <p class="field-detail field-limit" id="plan-store-range"></p>
+            <p class="helper" id="allocation-retained"></p>
             <p id="allocation-error" role="alert" hidden></p>
             <div class="allocation-totals" id="allocation-totals">
               <p>Keep <strong id="allocation-stored"></strong> for next year</p>
@@ -2267,10 +2239,6 @@
               </p>
             </div>
             <p class="sr-only" id="allocation-preview" aria-live="polite"></p>
-            <p class="preview">
-              Only the remaining new Harvest is exported. This Harvest is
-              committed; reloading resumes this decision.
-            </p>
           </div>
           <button type="button" id="allocate-btn" class="commit-button">
             Finish year<svg class="icon" aria-hidden="true">
@@ -2314,9 +2282,23 @@
           Population.
         </p>
         <p>
-          Progress saves after resolving the Harvest and finishing the Year.
-          Reloading preserves a committed Event. Sound is optional and starts
-          off; motion follows your device's reduced-motion preference.
+          Feed your people before growing your country: fertilizing cultivated
+          land raises Yield, though weather can still reduce it. The food
+          outlook is an estimate; the Event is rolled when you resolve the
+          Harvest. Plan spending includes the mandatory upkeep for surviving old
+          food that must stay in Storage; you choose how much new food to keep
+          after the Harvest.
+        </p>
+        <p>
+          Technologies are one-off purchases whose effects start the next Year.
+          Owned Technologies appear as landmarks in your country.
+        </p>
+        <p>
+          Only new Harvest can be exported; food in Storage never leaves the
+          country. Progress saves after resolving the Harvest and finishing the
+          Year. A resolved Harvest is committed: Reloading resumes the
+          allocation with the same Event. Sound is optional and starts off;
+          motion follows your device's reduced-motion preference.
         </p>
       </details>
       <div class="run-reset">

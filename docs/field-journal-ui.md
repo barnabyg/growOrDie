@@ -9,6 +9,17 @@ external assets or services are required.
 
 ## Playing
 
+Panels are flat: each one is a single panel level whose subsections (food
+outlook, Technologies, spending, allocation totals) are grouped by headings and
+dividers rather than by tinted boxes, and Technology cards and the Milestone
+banner are outlined, not filled. Headings carry no eyebrow labels that repeat
+them. Each panel keeps at most one short helper line, marked `.helper`: the
+Technologies timing ("One-off · effects start next Year") in the plan and the
+Storage guidance in allocation. The general explanations (fertilizer and
+weather, the forecast being an estimate until the Event is rolled, mandatory
+Storage upkeep in plan spending, Technology timing and landmarks, export of new
+Harvest only, and reloading a committed Harvest) live in How to play.
+
 The plan reads top to bottom: production (cultivate, fertilize, prepare) and
 the food outlook, then Technologies, then the spending summary and Resolve
 harvest. Every investment is visible, and reachable by keyboard, before the
@@ -56,7 +67,8 @@ hectares; they do not introduce separate fields to manage. Each legend swatch
 is drawn like its land: striped crops (tinted by drought or flood), bare
 prepared soil, and pale land with a tree for unprepared hectares. Each house
 stands for up to 500 people; faded houses show Population lost since its peak,
-and the caption says so when any appear. Loading or reloading shows the saved
+and the caption says so when any appear. The landmark line below the Milestone
+meter appears only once a Technology is owned. Loading or reloading shows the saved
 country without animating; later changes still animate unless reduced motion is
 set. Editing production shows a labelled planning preview. Allocation and
 completed reports show the actual resolved year; older saves without
@@ -212,7 +224,11 @@ set `$env:PORT='0'` before starting and open the printed address.
    a filled On tag when enabled; a screen reader should announce it as a
    pressed or not-pressed toggle button. Shortcut actions should look
    like rounded, outlined chips: tinted on hover, a gold ring on keyboard focus,
-   and a dashed grey outline when unavailable. After a few Years, the Country
+   and a dashed grey outline when unavailable. No panel should contain a
+   tinted box (Technology cards, food outlook, allocation totals and the
+   Milestone banner sit directly on the panel), no heading should carry an
+   uppercase eyebrow, and How to play should explain fertilizer, the forecast,
+   Storage upkeep, Technologies and exports. After a few Years, the Country
    chronicle table should list the newest Year first, label any Famine Year in
    text with a warning sign, and fit at 320 px; with doubled text it may scroll
    inside its own box but never widens the page.
@@ -269,7 +285,12 @@ disabled states, and targets of at least 24 px (fine pointer) or 44 px (coarse
 pointer). `tests/e2e/country.spec.js` checks that legend swatches match the
 drawn land and weather tint, faded houses are explained, a reload starts no
 landscape transitions, and the desktop chronicle sits beneath the country;
-`tests/landscape.test.ts` covers the house counts. Existing game, persistence
+`tests/landscape.test.ts` covers the house counts. `tests/e2e/panels.spec.js`
+checks that no tinted container sits inside another on the plan, allocation,
+report and Collapse screens in light and dark mode, that no eyebrow labels
+remain, that each panel shows at most one helper line while How to play covers
+the removed explanations, and that no label butts against the Cultivate field
+at 390 px in Year 2. Existing game, persistence
 and layout checks remain in place.
 Run `npm.cmd run verify` for the canonical full gate.
 

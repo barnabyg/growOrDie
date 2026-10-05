@@ -149,7 +149,7 @@ for (const colorScheme of ["light", "dark"]) {
         const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
         return (high + 0.05) / (low + 0.05);
       };
-      const surround = rgb(".food-outlook");
+      const surround = rgb("#production");
       return Object.fromEntries(
         [
           "#forecast-harvest-bar",

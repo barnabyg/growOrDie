@@ -691,7 +691,6 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
       : caption;
   el<HTMLElement>("country-caption").textContent = village;
   el<SVGElement>("country-svg").setAttribute("aria-label", village);
-  text("country-mode", preview ? "Plan preview" : "Latest Harvest");
   text(
     "land-cultivated",
     cultivated === undefined ? "Unknown" : hectares(cultivated),
@@ -724,12 +723,9 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
     "milestone-caption",
     `Population doubles at each Milestone · Score ${fmt(state.highestPopulation)}`,
   );
-  text(
-    "country-technologies",
-    state.ownedTechnologies.length
-      ? `In your landscape: ${state.ownedTechnologies.map((id) => TECHNOLOGY_NAMES[id]).join(", ")}`
-      : "Grow your settlement and add Technology landmarks.",
-  );
+  const landmarks = el<HTMLElement>("country-technologies");
+  landmarks.hidden = state.ownedTechnologies.length === 0;
+  landmarks.textContent = `In your landscape: ${state.ownedTechnologies.map((id) => TECHNOLOGY_NAMES[id]).join(", ")}`;
 }
 
 function renderEventLog(): void {
