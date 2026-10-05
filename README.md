@@ -80,8 +80,11 @@ old food; **Keep maximum** respects the affordable range. Each shows the food it
 keeps and the resulting next-Year Budget before you choose. Finishing the Year
 highlights population changes, with detailed accounting under **Harvest, Event & Budget details**.
 Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
-with a run summary and a confirmed **Start a new run** action; the header keeps
-the final Year played and the summary gives the run length in Years. On mobile, the
+with a run summary and a confirmed **Start a new run** action. The summary
+states the cause using the final Year's Harvest, stored food and Consumption,
+names the final Year's Event only when one occurred, and gives the run length in
+Years and the Score; Milestone progress is hidden. The header keeps the final
+Year played. On mobile, the
 current decision appears before a compact landscape. Optional synthesized sound
 starts off in every tab and can be muted immediately; animations respect reduced
 motion. See [interface checks](docs/field-journal-ui.md) for manual examples.
