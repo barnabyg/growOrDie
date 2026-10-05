@@ -62,13 +62,13 @@ test("a live forecast makes the initial shortfall visible and previews do not al
   await page.locator("#plan-hectares").fill("125");
   await expect(page.locator("#plan-hectares-slider")).toHaveValue("125");
   await expect(page.locator("#country-caption")).toContainText(
-    "plan preview: 125",
+    "Plan preview: 125",
   );
   await page.locator("#plan-prep").fill("100");
   await expect(page.locator("#plan-error")).toBeVisible();
   await expect(page.locator("#confirm-btn")).toBeDisabled();
   await expect(page.locator("#country-caption")).toContainText(
-    "100 new ha available next Turn",
+    "100 ha of new land available next Year",
   );
   expect(await stored(page)).toBe(before);
 });
@@ -148,11 +148,7 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
   );
   await page.locator("#confirm-btn").click();
   await expect(page.locator("#allocation-event-title")).toHaveText("Flood");
-  await expect(page.locator("#budget-label")).toHaveText("Opening Budget");
-  await expect(page.locator("#step-allocate")).toHaveAttribute(
-    "aria-current",
-    "step",
-  );
+  await expect(page.locator("#stats-note")).toBeVisible();
   await expect(page.locator("#allocation-title")).toBeFocused();
   await expect(page.locator("#allocation-retained")).toContainText(
     "500 t of surviving old food must stay",
@@ -183,7 +179,83 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
   await expect(page.locator("#report-title")).toBeFocused();
   await expect(page.locator("#stat-budget")).toHaveText("14,200 coins");
   await expect(page.locator("#report-storage-summary")).toHaveText("600 t");
-  await expect(page.locator("#budget-label")).toHaveText("Budget");
+  await expect(page.locator("#stats-note")).toBeHidden();
+});
+
+test("allocation defaults to the minimum Storage and previews both extremes", async ({
+  page,
+}) => {
+  await fixture(page);
+  await page.locator("#suggest-plan-btn").click();
+  await page.locator("#confirm-btn").click();
+  const pending = await stored(page);
+  const checkDefault = async () => {
+    await expect(page.locator("#plan-store")).toHaveValue("0");
+    await expect(page.locator("#plan-store-slider")).toHaveValue("0");
+    await expect(page.locator("#plan-store")).toHaveAttribute("max", "600");
+    await expect(page.locator("#allocation-exported")).toHaveText("600 t");
+    await expect(page.locator("#allocation-next-budget")).toHaveText(
+      "12,200 coins",
+    );
+    await expect(page.locator("#store-min-outcome")).toHaveText(
+      "0 t kept · next Budget 12,200 coins",
+    );
+    await expect(page.locator("#store-max-outcome")).toHaveText(
+      "600 t kept · next Budget 5,600 coins",
+    );
+  };
+  await checkDefault();
+  await page.locator("#store-max-btn").click();
+  await expect(page.locator("#plan-store")).toHaveValue("600");
+  await expect(page.locator("#allocation-next-budget")).toHaveText(
+    "5,600 coins",
+  );
+  await expect(page.locator("#store-min-outcome")).toHaveText(
+    "0 t kept · next Budget 12,200 coins",
+  );
+  expect(await stored(page)).toBe(pending);
+  await page.reload();
+  expect(await stored(page)).toBe(pending);
+  await checkDefault();
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#stat-budget")).toHaveText("12,200 coins");
+  await expect(page.locator("#report-storage-summary")).toHaveText("0 t");
+});
+
+test("the next Year carries the previous plan forward and Resolve warns about a forecast shortfall", async ({
+  page,
+}) => {
+  await fixture(page);
+  const confirm = page.locator("#confirm-btn");
+  await expect(confirm).toHaveText("Resolve with 200 t shortfall");
+  await expect(confirm).toHaveClass(/warning/);
+  await expect(confirm).toBeEnabled();
+  await page.locator("#suggest-plan-btn").click();
+  await expect(confirm).toHaveText("Resolve harvest");
+  await expect(confirm).not.toHaveClass(/warning/);
+  await confirm.click();
+  await page.locator("#store-min-btn").click();
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#stat-year")).toHaveText("2");
+  await expect(page.locator("#first-plan")).toBeHidden();
+  await expect(page.locator("#plan-hectares")).toHaveValue("400");
+  await expect(page.locator("#plan-fertilizer")).toHaveValue("400");
+  await expect(page.locator("#plan-fertilizer-slider")).toHaveValue("400");
+  await expect(page.locator("#plan-prep")).toHaveValue("0");
+  await expect(confirm).toHaveText("Resolve harvest");
+  await expect(confirm).not.toHaveClass(/warning/);
+  await page.locator("#plan-fertilizer").fill("0");
+  await expect(page.locator("#forecast-balance")).toHaveText(
+    "250 t shortfall before Events",
+  );
+  await expect(confirm).toHaveText("Resolve with 250 t shortfall");
+  await expect(confirm).toHaveClass(/warning/);
+  await expect(confirm).toBeEnabled();
+  await page.reload();
+  await expect(page.locator("#plan-fertilizer")).toHaveValue("400");
+  await page.locator("#plan-fertilizer").fill("0");
+  await confirm.click();
+  await expect(page.locator("#allocation")).toBeVisible();
 });
 
 test("Technology cards and landmarks respect next-Turn timing", async ({
@@ -223,6 +295,30 @@ test("Technology cards and landmarks respect next-Turn timing", async ({
   await expect(page.locator("#tech-highYieldSeeds")).toBeDisabled();
 });
 
+test("keyboard reaches every Technology before Resolve harvest, and Technologies hide during allocation", async ({
+  page,
+}) => {
+  await fixture(page);
+  const technologies = await page
+    .locator("#technologies input[type=checkbox]")
+    .evaluateAll((inputs) => inputs.map((input) => input.id));
+  expect(technologies.length).toBeGreaterThan(0);
+  const reached = [];
+  await page.locator("#plan-prep").focus();
+  for (let i = 0; i < 100; i++) {
+    await page.keyboard.press("Tab");
+    const id = await page.evaluate(() => document.activeElement?.id);
+    if (id === "confirm-btn") break;
+    if (technologies.includes(id)) reached.push(id);
+  }
+  await expect(page.locator("#confirm-btn")).toBeFocused();
+  expect(reached).toEqual(technologies);
+  await page.locator("#suggest-plan-btn").click();
+  await page.locator("#confirm-btn").click();
+  await expect(page.locator("#allocation")).toBeVisible();
+  await expect(page.locator("#technologies")).toBeHidden();
+});
+
 test("Collapse replaces planning and supports a confirmed restart without losing history on cancellation", async ({
   page,
 }) => {
@@ -234,10 +330,7 @@ test("Collapse replaces planning and supports a confirmed restart without losing
   await expect(page.locator("#production")).toBeHidden();
   await expect(page.locator("#technologies")).toBeHidden();
   await expect(page.locator("#collapse-summary")).toBeVisible();
-  await expect(page.locator("#step-report")).toHaveAttribute(
-    "aria-current",
-    "step",
-  );
+  await expect(page.locator("#turn-status")).toHaveText(/^Run complete/);
   const collapsed = await stored(page);
   page.once("dialog", (dialog) => dialog.dismiss());
   await page.locator("#collapse-restart-btn").click();
@@ -245,7 +338,7 @@ test("Collapse replaces planning and supports a confirmed restart without losing
   await page.reload();
   await expect(page.locator("#production")).toBeHidden();
   await page.locator("#report-details summary").click();
-  await expect(page.locator("#report-famine")).toHaveText("Famine (total)");
+  await expect(page.locator("#report-famine")).toHaveText("Total famine");
   await expect(page.locator("#report-available")).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#collapse-restart-btn").click();
@@ -270,7 +363,7 @@ test("a doubling celebrates a Milestone and advances the next population goal", 
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#milestone-banner")).toBeVisible();
   await expect(page.locator("#milestone-banner")).toContainText("×2");
-  await expect(page.locator("#stat-score")).toHaveText("2,048");
+  await expect(page.locator("#milestone-caption")).toContainText("Score 2,048");
   await expect(page.locator("#milestone-target")).toHaveText("4,000 people");
   await page.reload();
   await expect(page.locator("#milestone-target")).toHaveText("4,000 people");
@@ -314,3 +407,61 @@ test("mobile puts decisions before the landscape, respects reduced motion, and t
   );
   expect(errors).toEqual([]);
 });
+
+// Counts "Year <n>" mentions in text currently rendered inside the viewport.
+const visibleYearMentions = (page, year) =>
+  page.evaluate((year) => {
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+    );
+    const parts = [];
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const parent = node.parentElement;
+      if (!node.textContent.trim() || !parent?.checkVisibility()) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      const box = range.getBoundingClientRect();
+      if (box.bottom <= 0 || box.top >= innerHeight || box.width === 0) {
+        continue;
+      }
+      parts.push(node.textContent.trim());
+    }
+    return (
+      parts.join(" ").match(new RegExp(`\\bYear\\s+${year}\\b`, "g")) ?? []
+    ).length;
+  }, year);
+
+for (const width of [390, 1280]) {
+  test(`the ${width}px header shows four resources, one opening note and the Year at most twice`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await fixture(page);
+    const labels = page.locator(".stats .stat .label");
+    const primary = ["Year", "Population", "Storage", "Budget"];
+    await expect(labels).toHaveText(primary);
+    await expect(page.locator("#stat-population-change")).toHaveText("");
+    await expect(page.locator(".turn-steps")).toHaveCount(0);
+    await expect(page.locator("#milestone-caption")).toContainText(
+      "Score 1,000",
+    );
+    expect(await visibleYearMentions(page, 1)).toBeLessThanOrEqual(2);
+    await page.locator("#suggest-plan-btn").click();
+    await page.locator("#confirm-btn").click();
+    await expect(page.locator("#stats-note")).toBeVisible();
+    await expect(page.locator("#stats-note")).toHaveText(/Opening values/);
+    await expect(labels).toHaveText(primary);
+    await expect(page.locator("#allocation-price")).toBeVisible();
+    await page.evaluate(() => scrollTo(0, 0));
+    expect(await visibleYearMentions(page, 1)).toBeLessThanOrEqual(2);
+    await page.locator("#allocate-btn").click();
+    await expect(page.locator("#stats-note")).toBeHidden();
+    await expect(page.locator("#stat-population")).toHaveText("1,050");
+    await expect(page.locator("#stat-population-change")).toHaveText(
+      "+50 last Year",
+    );
+    await page.evaluate(() => scrollTo(0, 0));
+    expect(await visibleYearMentions(page, 2)).toBeLessThanOrEqual(2);
+  });
+}
