@@ -36,7 +36,8 @@ New completed Turns also retain their report and resulting state in the event
 log. The Country chronicle tables each Year's Event, Harvest, Population
 change, Famine and Budget from that report; the latest completed report is
 restored after reload, including while the next harvest awaits allocation.
-The history panel scrolls rather than growing the main page indefinitely.
+The chronicle lists every saved Year; on narrow screens or with enlarged text
+the table scrolls sideways inside its own box rather than widening the page.
 Legacy summary-only entries stay summary-only: the chronicle shows their saved
 summary and marks Harvest, Population change and Budget as Unknown.
 Malformed optional report details are discarded while their summary and the

@@ -147,7 +147,7 @@ test("a purchased technology is saved once and changes the following harvest", a
     "-3,000 coins",
   );
   await page.reload();
-  await expect(page.locator("#tech-highYieldSeeds-owned")).toBeVisible();
+  await expect(page.locator("#tech-highYieldSeeds-status")).toHaveText("Owned");
   await expect(page.locator("#tech-highYieldSeeds")).toBeDisabled();
   await resolveHarvest(page);
   await expect(page.locator("#allocation-event")).toHaveText("No event");
@@ -325,19 +325,19 @@ Object.assign(CONFIG, {
   await loadFixture(page);
   await expect(page.locator("#plan-fert-yield")).toHaveText("1.75");
   const technologies = [
-    ["irrigation", "1.5", "Drought Yield loss ×0.2"],
-    ["highYieldSeeds", "2", "Base Yield ×1.3"],
-    ["granary", "3", "Storage upkeep ×0.7"],
-    ["tradeRoutes", "4", "Export price ×1.1"],
-    ["landSurvey", "5", "Land preparation cost ×0.4"],
-    ["fertilizerWorks", "6", "Fertilizer cost ×0.6"],
+    ["irrigation", "1.5", "80% less Yield lost to drought"],
+    ["highYieldSeeds", "2", "30% more food per hectare"],
+    ["granary", "3", "30% less Storage upkeep"],
+    ["tradeRoutes", "4", "10% more Export income per ton"],
+    ["landSurvey", "5", "60% less land preparation cost"],
+    ["fertilizerWorks", "6", "40% less fertilizer cost"],
   ];
-  for (const [id, cost, effect] of technologies) {
+  for (const [id, cost, benefit] of technologies) {
     const row = page
       .locator(".tech-row")
       .filter({ has: page.locator(`#tech-${id}`) });
     await expect(row.locator(".tech-cost")).toHaveText(`${cost} coins`);
-    await expect(row.locator(".tech-effect")).toHaveText(effect);
+    await expect(row.locator(".tech-benefit")).toHaveText(benefit);
     await page.locator(`#tech-${id}`).check();
   }
   await resolveHarvest(page);
@@ -615,8 +615,9 @@ test("total famine finishes once, remains collapsed on reload, and restart clear
 }) => {
   await loadFixture(page);
   await resolveHarvest(page, { hectares: 0, fertilizer: 0 });
-  await expect(page.locator("#allocation-consumption")).toContainText(
-    "Total famine",
+  await expect(page.locator("#allocation-famine")).toHaveText("Total famine");
+  await expect(page.locator("#allocation-outcome-lead")).toHaveText(
+    "1,000 t shortfall",
   );
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#collapse-summary")).toBeVisible();
