@@ -42,7 +42,9 @@ span the viewport bottom without overflowing or taking half the screen during
 planning, allocation and the report; it must be absent at 1,280 px and after
 Collapse. `tests/e2e/commit-bar.spec.js` checks live values, mirrored disabled
 and warning states, committing from the bar, uncovered focused inputs and page
-end at 390 px. The test operates labelled inputs and buttons through a seeded run.
+end at 390 px. `tests/e2e/polish.spec.js` checks at 390 px that no label row
+touches the control below it on the plan, allocation and report screens, and
+that no visible text renders below 13 px. The test operates labelled inputs and buttons through a seeded run.
 Fresh-screen screenshots at 390 and 1280 px were visually inspected on
 9 September 2026: mobile details are readable and the desktop country/content
 columns remain side by side.

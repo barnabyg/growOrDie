@@ -108,6 +108,15 @@ Harvest, Population change and the Budget carried forward, newest Year first.
 Famine Years are labelled in text (Partial famine, Total famine, plus Collapse)
 with a warning sign as well as colour. Legacy summary-only entries show their
 recorded summary as the Event and Unknown for figures they never stored.
+Before the first Harvest the chronicle says "Your first Harvest will begin the
+story."; that line disappears as soon as a Harvest is committed, including
+while its allocation is still pending.
+
+Informational text is never smaller than 13 px at the default root size
+(`--text-small`). Serif headings and the outcome headline use lining figures,
+so "Year 1" and "+50 people" sit evenly beside the system-font figures. Number
+inputs are light wells in light mode (darker wells in dark mode) with a border
+of at least 3:1 contrast against their panel, so they read as editable.
 
 All screens share one formatter (`src/format.ts`): money always shows coins
 with correct plurals, rates read like 10.00 coins/t or 3 coins/ha, food
@@ -236,6 +245,15 @@ set `$env:PORT='0'` before starting and open the printed address.
    chronicle table should list the newest Year first, label any Famine Year in
    text with a warning sign, and fit at 320 px; with doubled text it may scroll
    inside its own box but never widens the page.
+8. On a fresh run the chronicle shows "Your first Harvest will begin the
+   story."; resolve a Harvest and the line should be gone during allocation,
+   after a reload and once the Year is finished. Check that no informational
+   text (field details, affordable maximums, legend, Technology benefits,
+   chronicle, commit bar) looks smaller than the body text's small size, that
+   "Year 1" and "+50 people" use full-height figures, and that number inputs
+   look like editable fields with a clear border in light and dark mode. At
+   390 px, no label should touch the slider or input below it on the plan,
+   allocation or report screens.
 
 For deterministic checks, use the developer console on the disposable page:
 
@@ -295,7 +313,14 @@ checks that no tinted container sits inside another on the plan, allocation,
 report and Collapse screens in light and dark mode, that no eyebrow labels
 remain, that each panel shows at most one helper line while How to play covers
 the removed explanations, and that no label butts against the Cultivate field
-at 390 px in Year 2. Existing game, persistence
+at 390 px in Year 2. `tests/e2e/polish.spec.js` checks that no visible text
+on the plan, allocation and report screens renders below 13 px at 1,280 and
+390 px, that serif text containing digits uses lining figures, that number
+inputs are not darker than their panel in light mode and have a border of at
+least 3:1 against it in light and dark mode, that no label row touches the
+next control below it at 390 px on the plan, allocation and report screens,
+and that the chronicle's empty state hides once a Harvest is committed, across
+a reload. Existing game, persistence
 and layout checks remain in place.
 Run `npm.cmd run verify` for the canonical full gate.
 
