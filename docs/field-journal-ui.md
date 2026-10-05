@@ -108,11 +108,20 @@ Population fell from 1,277 to 273, below half the starting 1,000.", or, for a
 total famine, that no one could be fed. Stored food is the opening Storage that
 survived any flood. The final Year's Event appears only when one occurred. The
 run length in Years and the Score follow; Milestone progress is hidden because
-there is nothing left to plan. Restarting
-a progressed or pending game still requires confirmation. On small screens the
+there is nothing left to plan. Restart run is a danger-styled action at the
+foot of the page, away from routine controls. It and Collapse's Start a new run
+open the same in-page confirmation dialog, which states that the current run
+(its Year and Population, any chronicle and any Harvest awaiting allocation)
+will be replaced. The dialog traps focus, opens on Keep playing, and Escape or
+Keep playing cancels without changing the run or a pending allocation. Focus
+returns to the button that opened it, or to the plan heading when that button
+is gone after a restart, or to Retry when the new run could not be saved. On
+small screens the
 current decision appears before the compact landscape. The interface follows
-the system's light/dark and reduced-motion settings. Sound starts off and can be
-enabled or muted from the header; its setting lasts for the current page only.
+the system's light/dark and reduced-motion settings. Sound starts off. The
+header's Sound toggle keeps the stable label "Sound" and shows its state with
+the icon, an On/Off tag and `aria-pressed`; its setting lasts for the current
+page only.
 
 ## Manual checks
 
@@ -184,16 +193,24 @@ set `$env:PORT='0'` before starting and open the printed address.
    `save.state.highestPopulation = 1300` and `save.state.storageTons = 73`, then
    cultivate 100 ha without fertilizer: expect "Harvest 200 t and 73 t stored
    against 1,277 t needed" and a fall from 1,277 to 273. Seed 43 with 200 t
-   Storage and the same plan adds a Flood line. Cancel a restart and check the
-   outcome remains; confirm a restart and expect Year 1 with an empty chronicle.
-   Repeat cancellation while allocation is pending to check preservation there.
+   Storage and the same plan adds a Flood line. Start a new run: an in-page
+   dialog should say the run and its chronicle of 1 Year will be replaced, with
+   focus on Keep playing. Tab and Shift+Tab should stay inside the dialog. Press
+   Escape: the outcome remains and focus returns to Start a new run. Confirm a
+   restart and expect Year 1 with an empty chronicle and focus on the plan
+   heading. Resolve a harvest, enter a Storage amount, then use Restart run at
+   the foot of the page and choose Keep playing; the allocation and the entered
+   amount should remain.
 7. Check 320, 390, 760 and 1,280 px widths, normal and doubled text size, and
    light/dark appearance. Expect wrapping without horizontal scrolling. With
    reduced motion enabled, expect no reveal or landscape animation. Reloading
    any screen should show the correct village immediately, without houses
    fading out. Compare each legend swatch with the parcels it names. Enable
    sound, complete a year and mute it; sound should be optional and should not
-   block play when browser audio is unavailable. Shortcut actions should look
+   block play when browser audio is unavailable. The Sound toggle should read
+   "Sound" in both states, with a crossed-out speaker and Off tag when muted and
+   a filled On tag when enabled; a screen reader should announce it as a
+   pressed or not-pressed toggle button. Shortcut actions should look
    like rounded, outlined chips: tinted on hover, a gold ring on keyboard focus,
    and a dashed grey outline when unavailable. After a few Years, the Country
    chronicle table should list the newest Year first, label any Famine Year in
@@ -238,7 +255,12 @@ single Event mention, shared stat sizes and focus. `tests/technology.test.ts`
 covers Technology benefit lines under default and tuned configuration and the
 card status rules, and the journal browser suite checks whole-card toggling,
 locked Owned cards, the checkbox's accessible name and description, and AA
-contrast of cost and status text in light and dark mode. `tests/format.test.ts` covers
+contrast of cost and status text in light and dark mode. `tests/restart.test.ts`
+covers the Restart dialog's warning text; `tests/e2e/game.spec.js` checks the
+dialog's placement, danger style, accessible name and description, focus
+trap, Escape, focus return and absence of native browser dialogs, and the
+journal checks cover the Sound toggle's stable name, On/Off tag and
+`aria-pressed`. `tests/format.test.ts` covers
 units, rates and plurals; `tests/e2e/copy.spec.js` fails if raw identifiers or
 Turn wording appear on plan, allocation, report, chronicle or Collapse screens.
 `tests/e2e/layout.spec.js` also checks that shortcut actions render as bordered

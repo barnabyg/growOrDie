@@ -199,6 +199,41 @@
       .run-actions button {
         font-size: 0.8rem;
       }
+      /* Sound is a toggle: a stable "Sound" label, with its state shown by the
+         icon, an On/Off tag and aria-pressed. */
+      #sound-btn[aria-pressed="true"] {
+        border-color: var(--green);
+        background: color-mix(in srgb, var(--green) 12%, var(--panel));
+      }
+      #sound-btn[aria-pressed="true"] .sound-off-icon,
+      #sound-btn[aria-pressed="false"] .sound-on-icon {
+        display: none;
+      }
+      .toggle-state {
+        border-radius: 999px;
+        padding: 0 0.45rem;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+      #sound-btn[aria-pressed="true"] .toggle-state {
+        border-color: var(--green);
+        background: var(--green);
+        color: var(--green-ink);
+      }
+      /* Destructive actions: outlined in the danger colour, filled only in the
+         confirmation dialog. */
+      button.danger {
+        background: var(--panel);
+        color: var(--danger);
+        border-color: var(--danger);
+      }
+      button.danger-fill {
+        background: var(--danger);
+        color: var(--green-ink);
+      }
       .stats {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1074,6 +1109,42 @@
         border-top: 1px solid var(--border);
         padding-top: 0.5rem;
       }
+      .run-reset {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+      }
+      .run-reset p {
+        margin: 0;
+        font-size: 0.8rem;
+      }
+      #restart-dialog {
+        max-width: min(28rem, calc(100vw - 2rem));
+        padding: 1.25rem;
+        border: 1px solid var(--danger);
+        border-radius: 12px;
+        background: var(--panel);
+        color: var(--text);
+      }
+      #restart-dialog::backdrop {
+        background: rgb(0 0 0 / 0.45);
+      }
+      #restart-dialog h2 {
+        margin: 0 0 0.5rem;
+        color: var(--danger);
+      }
+      .dialog-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
       .sr-only {
         position: absolute;
         width: 1px;
@@ -1319,6 +1390,9 @@
             d="M3 9h4l5-4v14l-5-4H3ZM16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"
           />
         </symbol>
+        <symbol id="icon-volume-off" viewBox="0 0 24 24">
+          <path d="M3 9h4l5-4v14l-5-4H3ZM16 9l6 6m0-6-6 6" />
+        </symbol>
       </defs>
     </svg>
     <header class="masthead">
@@ -1337,11 +1411,13 @@
             id="sound-btn"
             aria-pressed="false"
           >
-            <svg class="icon" aria-hidden="true">
+            <svg class="icon sound-on-icon" aria-hidden="true">
               <use href="#icon-volume" /></svg
-            ><span id="sound-label">Sound off</span></button
-          ><button type="button" class="secondary" id="restart-btn">
-            Restart run
+            ><svg class="icon sound-off-icon" aria-hidden="true">
+              <use href="#icon-volume-off" /></svg
+            >Sound<span class="toggle-state" id="sound-state" aria-hidden="true"
+              >Off</span
+            >
           </button>
         </div>
       </div>
@@ -2243,7 +2319,41 @@
           off; motion follows your device's reduced-motion preference.
         </p>
       </details>
+      <div class="run-reset">
+        <p>Start over with a new country from Year 1.</p>
+        <button type="button" class="danger" id="restart-btn">
+          Restart run
+        </button>
+      </div>
     </footer>
+    <dialog
+      id="restart-dialog"
+      aria-labelledby="restart-dialog-title"
+      aria-describedby="restart-warning"
+    >
+      <form method="dialog">
+        <h2 id="restart-dialog-title">Restart this run?</h2>
+        <p id="restart-warning"></p>
+        <div class="dialog-actions">
+          <button
+            type="submit"
+            class="secondary"
+            id="restart-cancel-btn"
+            value="cancel"
+          >
+            Keep playing
+          </button>
+          <button
+            type="submit"
+            class="danger-fill"
+            id="restart-confirm-btn"
+            value="restart"
+          >
+            Restart run
+          </button>
+        </div>
+      </form>
+    </dialog>
     <script type="module" src="./dist/ui.js"></script>
   </body>
 </html>

@@ -266,6 +266,8 @@ for (const pointer of ["fine", "coarse"]) {
       await page.locator("#confirm-btn").click();
       await expect(page.locator("#allocation")).toBeVisible();
       await expect(page.locator("#store-max-btn")).toBeEnabled();
+      // Measure resting chips: the click can leave the pointer over one.
+      await page.mouse.move(0, 0);
       await checkChips(shortcutChips.allocation);
       const outcomes = ["store-min-outcome", "store-max-outcome"];
       for (const id of outcomes) {

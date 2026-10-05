@@ -125,8 +125,8 @@ for (const collapsed of [false, true]) {
     await page.evaluate(() => {
       window.storageRecovered = false;
     });
-    page.on("dialog", (dialog) => dialog.accept());
     await page.locator("#restart-btn").click();
+    await page.locator("#restart-confirm-btn").click();
     await expect(page.locator("#save-status")).toContainText(
       "Restart was not saved",
     );

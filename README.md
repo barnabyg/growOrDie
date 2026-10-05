@@ -95,8 +95,9 @@ current decision appears before a compact landscape, and a bar pinned to the
 bottom of the screen keeps the food balance, Budget after the plan and
 **Resolve harvest** in view while planning (Storage kept, next-Year Budget and
 **Finish year** while allocating). Optional synthesized sound
-starts off in every tab and can be muted immediately; animations respect reduced
-motion. See [interface checks](docs/field-journal-ui.md) for manual examples.
+starts off in every tab; the header's **Sound** toggle shows On or Off and can
+mute it immediately. Animations respect reduced motion. See
+[interface checks](docs/field-journal-ui.md) for manual examples.
 
 Meeting Consumption grows population. A shortfall causes Famine and population
 loss; no food means total Famine. **Score** records peak population, and doubling
@@ -105,8 +106,10 @@ population, including zero; there is no fixed winning population.
 
 Progress saves after harvest commitment and allocation. Reloading during
 allocation preserves the rolled outcome. The latest report returns on reload;
-the Country chronicle summarises earlier outcomes. **Restart run** asks for
-confirmation before replacing the run, including a pending harvest. Storage
+the Country chronicle summarises earlier outcomes. **Restart run** sits at the
+foot of the page and opens an in-page dialog stating what the new run will
+replace, including the chronicle and any pending harvest. **Keep playing** or
+Escape leaves the run untouched. Storage
 failures show a warning and Retry and pause further advances. Legacy summaries
 remain readable without invented details; see [saved games and recovery](docs/saves.md).
 
