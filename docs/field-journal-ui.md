@@ -78,7 +78,9 @@ set `$env:PORT='0'` before starting and open the printed address.
    light/dark appearance. Expect wrapping without horizontal scrolling. With
    reduced motion enabled, expect no reveal or landscape animation. Enable
    sound, complete a year and mute it; sound should be optional and should not
-   block play when browser audio is unavailable.
+   block play when browser audio is unavailable. Shortcut actions should look
+   like rounded, outlined chips: tinted on hover, a gold ring on keyboard focus,
+   and a dashed grey outline when unavailable.
 
 For deterministic checks, use the developer console on the disposable page:
 
@@ -97,7 +99,11 @@ ordinary, drought and flood events, including tuned configuration, owned
 Technology and delayed purchases. `tests/e2e/journal.spec.js` checks controls,
 forecasts without save mutations, allocation accounting and reloads, purchase
 timing, landmarks, milestones, Collapse, mobile dark mode, reduced motion and
-unavailable audio. Existing game, persistence and layout checks remain in place.
+unavailable audio. `tests/e2e/layout.spec.js` also checks that shortcut actions
+render as bordered chips with AA contrast in light and dark mode, distinct hover
+and dashed disabled states, and targets of at least 24 px (fine pointer) or
+44 px (coarse pointer). Existing game, persistence and layout checks remain in
+place.
 Run `npm.cmd run verify` for the canonical full gate.
 
 Browser automation checks behavior and layout, but cannot judge sound quality or
