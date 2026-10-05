@@ -68,7 +68,7 @@ test("a live forecast makes the initial shortfall visible and previews do not al
   await expect(page.locator("#plan-error")).toBeVisible();
   await expect(page.locator("#confirm-btn")).toBeDisabled();
   await expect(page.locator("#country-caption")).toContainText(
-    "100 new ha available next Turn",
+    "100 ha of new land available next Year",
   );
   expect(await stored(page)).toBe(before);
 });
@@ -117,6 +117,46 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
   await expect(page.locator("#stats-note")).toBeHidden();
 });
 
+test("allocation defaults to the minimum Storage and previews both extremes", async ({
+  page,
+}) => {
+  await fixture(page);
+  await page.locator("#suggest-plan-btn").click();
+  await page.locator("#confirm-btn").click();
+  const pending = await stored(page);
+  const checkDefault = async () => {
+    await expect(page.locator("#plan-store")).toHaveValue("0");
+    await expect(page.locator("#plan-store-slider")).toHaveValue("0");
+    await expect(page.locator("#plan-store")).toHaveAttribute("max", "600");
+    await expect(page.locator("#allocation-exported")).toHaveText("600 t");
+    await expect(page.locator("#allocation-next-budget")).toHaveText(
+      "12,200 coins",
+    );
+    await expect(page.locator("#store-min-outcome")).toHaveText(
+      "0 t kept · next Budget 12,200 coins",
+    );
+    await expect(page.locator("#store-max-outcome")).toHaveText(
+      "600 t kept · next Budget 5,600 coins",
+    );
+  };
+  await checkDefault();
+  await page.locator("#store-max-btn").click();
+  await expect(page.locator("#plan-store")).toHaveValue("600");
+  await expect(page.locator("#allocation-next-budget")).toHaveText(
+    "5,600 coins",
+  );
+  await expect(page.locator("#store-min-outcome")).toHaveText(
+    "0 t kept · next Budget 12,200 coins",
+  );
+  expect(await stored(page)).toBe(pending);
+  await page.reload();
+  expect(await stored(page)).toBe(pending);
+  await checkDefault();
+  await page.locator("#allocate-btn").click();
+  await expect(page.locator("#stat-budget")).toHaveText("12,200 coins");
+  await expect(page.locator("#report-storage-summary")).toHaveText("0 t");
+});
+
 test("Technology cards and landmarks respect next-Turn timing", async ({
   page,
 }) => {
@@ -154,6 +194,30 @@ test("Technology cards and landmarks respect next-Turn timing", async ({
   await expect(page.locator("#tech-highYieldSeeds")).toBeDisabled();
 });
 
+test("keyboard reaches every Technology before Resolve harvest, and Technologies hide during allocation", async ({
+  page,
+}) => {
+  await fixture(page);
+  const technologies = await page
+    .locator("#technologies input[type=checkbox]")
+    .evaluateAll((inputs) => inputs.map((input) => input.id));
+  expect(technologies.length).toBeGreaterThan(0);
+  const reached = [];
+  await page.locator("#plan-prep").focus();
+  for (let i = 0; i < 100; i++) {
+    await page.keyboard.press("Tab");
+    const id = await page.evaluate(() => document.activeElement?.id);
+    if (id === "confirm-btn") break;
+    if (technologies.includes(id)) reached.push(id);
+  }
+  await expect(page.locator("#confirm-btn")).toBeFocused();
+  expect(reached).toEqual(technologies);
+  await page.locator("#suggest-plan-btn").click();
+  await page.locator("#confirm-btn").click();
+  await expect(page.locator("#allocation")).toBeVisible();
+  await expect(page.locator("#technologies")).toBeHidden();
+});
+
 test("Collapse replaces planning and supports a confirmed restart without losing history on cancellation", async ({
   page,
 }) => {
@@ -173,7 +237,7 @@ test("Collapse replaces planning and supports a confirmed restart without losing
   await page.reload();
   await expect(page.locator("#production")).toBeHidden();
   await page.locator("#report-details summary").click();
-  await expect(page.locator("#report-famine")).toHaveText("Famine (total)");
+  await expect(page.locator("#report-famine")).toHaveText("Total famine");
   await expect(page.locator("#report-available")).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#collapse-restart-btn").click();

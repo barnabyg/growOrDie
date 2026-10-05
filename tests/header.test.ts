@@ -78,6 +78,7 @@ it("shows losses and the end of a run after Collapse", () => {
     result,
   });
   const header = resourceHeader(save);
+  expect(header.year).toBe("1");
   expect(header.population).toBe("0");
   expect(header.populationChange).toBe("-1,000 last Year");
   expect(header.status).toBe(

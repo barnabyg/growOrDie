@@ -64,11 +64,14 @@ Budget, plus a one-line status saying what to do next. Score appears beside the
 Milestone meter; the export price appears during allocation. After resolving, a
 single **Opening values** note marks the header as this Year's opening resources,
 separate from the actual outcome. Allocation shows food kept, automatic Export income, upkeep, and the
-next-Year Budget together. **Keep minimum** respects surviving old food; **Keep
-maximum** respects the affordable range. Finishing the Year highlights population
-changes, with detailed accounting under **Harvest, Event & Budget details**.
+next-Year Budget together. Allocation opens at the minimum Storage, so surplus
+is exported unless you choose to keep it. **Keep minimum** respects surviving
+old food; **Keep maximum** respects the affordable range. Each shows the food it
+keeps and the resulting next-Year Budget before you choose. Finishing the Year
+highlights population changes, with detailed accounting under **Harvest, Event & Budget details**.
 Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
-with a run summary and a confirmed **Start a new run** action. On mobile, the
+with a run summary and a confirmed **Start a new run** action; the header keeps
+the final Year played and the summary gives the run length in Years. On mobile, the
 current decision appears before a compact landscape. Optional synthesized sound
 starts off in every tab and can be muted immediately; animations respect reduced
 motion. See [interface checks](docs/field-journal-ui.md) for manual examples.
