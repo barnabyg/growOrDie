@@ -79,7 +79,14 @@ outlook mentions lost Storage only when some would be lost. After Collapse
 the header keeps the final Year played.
 
 Milestones track the highest Population reached. Collapse replaces production
-and Technology controls with the final outcome and a restart action. Restarting
+and Technology controls with the final outcome and a restart action. Its
+summary states the cause in the final Year's food figures, for example
+"Partial famine: Harvest 200 t and 73 t stored against 1,277 t needed.
+Population fell from 1,277 to 273, below half the starting 1,000.", or, for a
+total famine, that no one could be fed. Stored food is the opening Storage that
+survived any flood. The final Year's Event appears only when one occurred. The
+run length in Years and the Score follow; Milestone progress is hidden because
+there is nothing left to plan. Restarting
 a progressed or pending game still requires confirmation. On small screens the
 current decision appears before the compact landscape. The interface follows
 the system's light/dark and reduced-motion settings. Sound starts off and can be
@@ -141,7 +148,14 @@ set `$env:PORT='0'` before starting and open the printed address.
 6. Resolve a fresh game with zero cultivation. Collapse should take focus and
    replace planning and Technology controls. The header should still show
    Year 1, the run length should read 1 Year and the report should say Total
-   famine. Cancel a restart and check the
+   famine. The summary should read "Total famine: Harvest 0 t and 0 t stored
+   against 1,000 t needed. No one could be fed, so the population reached
+   zero.", show no Event line, show Score 1,000 and hide Next Milestone. For
+   the below-half cause, use seed 5 with `save.state.population = 1277`,
+   `save.state.highestPopulation = 1300` and `save.state.storageTons = 73`, then
+   cultivate 100 ha without fertilizer: expect "Harvest 200 t and 73 t stored
+   against 1,277 t needed" and a fall from 1,277 to 273. Seed 43 with 200 t
+   Storage and the same plan adds a Flood line. Cancel a restart and check the
    outcome remains; confirm a restart and expect Year 1 with an empty chronicle.
    Repeat cancellation while allocation is pending to check preservation there.
 7. Check 320, 390, 760 and 1,280 px widths, normal and doubled text size, and
@@ -177,10 +191,13 @@ controls, affordable maximums and inline overspend messages,
 forecasts without save mutations, the food bar's description and 3:1 non-text
 contrast in light and dark mode, allocation accounting and reloads, purchase
 timing, Technology placement and keyboard order within the plan, landmarks,
-milestones, Collapse, mobile dark mode, reduced motion, unavailable audio, and
+milestones, Collapse summaries for total famine, a fall below half and a
+flood (cause, Event line, Score, hidden Milestone progress, restart), mobile dark mode, reduced motion, unavailable audio, and
 the four-resource header with its opening-values note and at most two visible
 mentions of the current Year at 390 and 1,280 px. `tests/header.test.ts` covers
-the header text, Population change and status. `tests/format.test.ts` covers
+the header text, Population change and status; `tests/collapse.test.ts` covers
+the Collapse summary's cause sentence for both causes, flood-surviving Storage,
+the Event line and the legacy fallback. `tests/format.test.ts` covers
 units, rates and plurals; `tests/e2e/copy.spec.js` fails if raw identifiers or
 Turn wording appear on plan, allocation, report, chronicle or Collapse screens.
 `tests/e2e/layout.spec.js` also checks that shortcut actions render as bordered

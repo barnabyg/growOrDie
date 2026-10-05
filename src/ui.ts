@@ -16,6 +16,7 @@ import {
 import type { ProductionInput } from "./turn.js";
 import { economyRates } from "./economy.js";
 import { carriedPlan } from "./carryover.js";
+import { collapseSummary } from "./collapse.js";
 import { CONFIG } from "./config.js";
 import { eventSummary } from "./simulation.js";
 import {
@@ -28,7 +29,6 @@ import {
   formatDecimal as fmtRate,
   hectares,
   tons,
-  years,
 } from "./format.js";
 import type {
   GameState,
@@ -640,13 +640,12 @@ function renderCollapse(state: GameState): void {
     return;
   }
   section.hidden = false;
-  el<HTMLElement>("collapse-length").textContent = years(state.year - 1);
-  el<HTMLElement>("collapse-score").textContent = fmt(state.highestPopulation);
-  text("collapse-event", save.eventLog.at(-1)?.summary ?? "");
-  el<HTMLElement>("collapse-cause").textContent =
-    state.collapseCause === "totalFamine"
-      ? "Total Famine: no food at all, the population reached zero."
-      : `The population fell below half of the starting ${fmt(CONFIG.startingPopulation)}.`;
+  const summary = collapseSummary(save, CONFIG.startingPopulation);
+  text("collapse-cause", summary.cause);
+  text("collapse-event", summary.event);
+  el<HTMLElement>("collapse-event").hidden = summary.event === "";
+  text("collapse-length", summary.runLength);
+  text("collapse-score", summary.score);
 }
 
 function render(): void {
@@ -722,6 +721,8 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
     ) + 1,
   );
   const threshold = CONFIG.startingPopulation * 2 ** level;
+  // Milestone progress is a planning aid; the Collapse summary carries the Score.
+  el<HTMLElement>("milestone-meter").hidden = state.collapsed;
   text("milestone-target", `${fmt(threshold)} people`);
   const progress = el<HTMLProgressElement>("milestone-progress");
   progress.max = threshold;
