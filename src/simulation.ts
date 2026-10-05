@@ -1,5 +1,6 @@
 import { economyRates, isAffordable, planCosts } from "./economy.js";
 import { createRng } from "./rng.js";
+import { coinRate, tons } from "./format.js";
 import { eventProbabilities, type GameConfig } from "./config.js";
 import type {
   CollapseCause,
@@ -292,11 +293,11 @@ export function resolveTurn(
 export function eventSummary(report: YearReport): string {
   switch (report.event) {
     case "drought":
-      return `Drought: Yield reduced by ${Math.round(report.droughtYieldLossFraction * 100)}%, Harvest ${Math.round(report.harvestTons)} t`;
+      return `Drought: Yield reduced by ${Math.round(report.droughtYieldLossFraction * 100)}%, Harvest ${tons(report.harvestTons)}`;
     case "flood":
-      return `Flood: Yield hit and ${Math.round(report.storageDestroyedTons)} t of Storage destroyed, Harvest ${Math.round(report.harvestTons)} t`;
+      return `Flood: Yield hit and ${tons(report.storageDestroyedTons)} of Storage destroyed, Harvest ${tons(report.harvestTons)}`;
     case "priceShock":
-      return `Export price shock: exports sold at ${Math.round(report.exportPriceCoins)} coins/ton`;
+      return `Export price shock: exports sold at ${coinRate(report.exportPriceCoins, "t", 2)}`;
     default:
       return "No event";
   }

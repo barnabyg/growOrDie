@@ -87,7 +87,7 @@ test("flood losses, consumption, exports and retained food conserve the opening 
   await expect(page.locator("#report-export")).toHaveText(
     "860 t for +8,600 coins",
   );
-  await expect(page.locator("#report-upkeep")).toHaveText("-600");
+  await expect(page.locator("#report-upkeep")).toHaveText("-600 coins");
   await expect(page.locator("#stat-storage")).toHaveText("600 t");
   await expect(page.locator("#stat-budget")).toHaveText("14,200 coins");
   await page.reload();
@@ -108,7 +108,7 @@ test("issue #10 zero-harvest flood retains 500 tons without export income", asyn
   await expect(page.locator("#report-available")).toHaveText("1,500 t");
   await expect(page.locator("#report-consumption")).toHaveText("1,000 t");
   await expect(page.locator("#report-export")).toHaveText("0 t for +0 coins");
-  await expect(page.locator("#report-upkeep")).toHaveText("-500");
+  await expect(page.locator("#report-upkeep")).toHaveText("-500 coins");
   await expect(page.locator("#stat-storage")).toHaveText("500 t");
   await expect(page.locator("#stat-budget")).toHaveText("7,700 coins");
   await page.reload();
@@ -124,12 +124,13 @@ test("granary discounts the selected retention and charges exactly the preview",
   });
   await resolveHarvest(page);
   await expect(page.locator("#plan-store")).toHaveAttribute("max", "600");
+  await page.locator("#store-max-btn").click();
   await expect(page.locator("#allocation-preview")).toContainText(
     "Upkeep 300 coins",
   );
   await page.locator("#allocate-btn").click();
-  await expect(page.locator("#report-upkeep")).toHaveText("-300");
-  await expect(page.locator("#report-carryover")).toHaveText("0");
+  await expect(page.locator("#report-upkeep")).toHaveText("-300 coins");
+  await expect(page.locator("#report-carryover")).toHaveText("0 coins");
   await expect(page.locator("#stat-storage")).toHaveText("600 t");
 });
 
@@ -213,7 +214,7 @@ test("production, post-harvest allocation and reload preserve one committed outc
   await expect(page.locator("#report-export")).toHaveText(
     "400 t for +4,000 coins",
   );
-  await expect(page.locator("#report-carryover")).toHaveText("1,800");
+  await expect(page.locator("#report-carryover")).toHaveText("1,800 coins");
   const completed = await saved(page);
   expect(completed.pendingTurn).toBeUndefined();
   expect(completed.eventLog).toHaveLength(1);
@@ -317,9 +318,9 @@ Object.assign(CONFIG, {
   expect(pending.result.report.harvestTons).toBe(1400);
   await page.locator("#plan-store").fill("0");
   await page.locator("#allocate-btn").click();
-  await expect(page.locator("#plan-fert-price")).toHaveText("1.8");
-  await expect(page.locator("#plan-prep-price")).toHaveText("24");
-  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.7");
+  await expect(page.locator("#plan-fert-price")).toHaveText("1.8 coins/ha");
+  await expect(page.locator("#plan-prep-price")).toHaveText("24 coins/ha");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.7 coins/t");
   await resolveHarvest(page);
   pending = (await saved(page)).pendingTurn;
   expect(pending.result.report.harvestTons).toBe(1820);
@@ -352,7 +353,7 @@ test("reducing cultivation also reduces the displayed fertilizer hectares", asyn
 
   await expect(fertilizer).toHaveAttribute("max", "100");
   await expect(fertilizer).toHaveValue("100");
-  await expect(page.locator("#plan-fert-cost")).toHaveText("300");
+  await expect(page.locator("#plan-fert-cost")).toHaveText("300 coins");
 
   await page.locator("#confirm-btn").click();
   expect(
@@ -425,8 +426,8 @@ test("storage affordability cannot spend beyond the remaining production budget"
   await expect(page.locator("#allocate-btn")).toBeDisabled();
   await page.locator("#plan-store").fill("200");
   await page.locator("#allocate-btn").click();
-  await expect(page.locator("#report-carryover")).toHaveText("0");
-  await expect(page.locator("#report-upkeep")).toHaveText("-200");
+  await expect(page.locator("#report-carryover")).toHaveText("0 coins");
+  await expect(page.locator("#report-upkeep")).toHaveText("-200 coins");
 });
 
 test("owned technology discounts and trade bonus agree between preview and charged results", async ({
@@ -443,24 +444,24 @@ test("owned technology discounts and trade bonus agree between preview and charg
       ],
     },
   });
-  await expect(page.locator("#plan-fert-price")).toHaveText("1.5");
-  await expect(page.locator("#plan-prep-price")).toHaveText("30");
-  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.5");
+  await expect(page.locator("#plan-fert-price")).toHaveText("1.5 coins/ha");
+  await expect(page.locator("#plan-prep-price")).toHaveText("30 coins/ha");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.5 coins/t");
   await page.locator("#plan-fertilizer").fill("400");
   await page.locator("#plan-prep").fill("5");
-  await expect(page.locator("#plan-fert-cost")).toHaveText("600");
-  await expect(page.locator("#plan-prep-cost")).toHaveText("150");
-  await expect(page.locator("#plan-total-cost")).toHaveText("1,550");
+  await expect(page.locator("#plan-fert-cost")).toHaveText("600 coins");
+  await expect(page.locator("#plan-prep-cost")).toHaveText("150 coins");
+  await expect(page.locator("#plan-total-cost")).toHaveText("1,550 coins");
   await expect(page.locator("#confirm-btn")).toBeEnabled();
   await page.locator("#confirm-btn").click();
   await expect(page.locator("#allocation-price")).toHaveText("12.00 coins/t");
   await page.locator("#allocate-btn").click();
-  await expect(page.locator("#report-fertilizer")).toHaveText("-600");
-  await expect(page.locator("#report-prep")).toHaveText("-150");
+  await expect(page.locator("#report-fertilizer")).toHaveText("-600 coins");
+  await expect(page.locator("#report-prep")).toHaveText("-150 coins");
   await expect(page.locator("#report-export")).toHaveText(
     "600 t for +7,200 coins",
   );
-  await expect(page.locator("#report-carryover")).toHaveText("0");
+  await expect(page.locator("#report-carryover")).toHaveText("0 coins");
 });
 
 test("Land survey enables 100 ha preparation but blocks spending above Budget", async ({
@@ -469,16 +470,16 @@ test("Land survey enables 100 ha preparation but blocks spending above Budget", 
   await loadFixture(page, { state: { ownedTechnologies: ["landSurvey"] } });
   await page.locator("#plan-hectares").fill("0");
   await page.locator("#plan-prep").fill("100");
-  await expect(page.locator("#plan-total-cost")).toHaveText("3,000");
+  await expect(page.locator("#plan-total-cost")).toHaveText("3,000 coins");
   await expect(page.locator("#confirm-btn")).toBeEnabled();
   await page.locator("#plan-prep").fill("134");
-  await expect(page.locator("#plan-total-cost")).toHaveText("4,020");
+  await expect(page.locator("#plan-total-cost")).toHaveText("4,020 coins");
   await expect(page.locator("#confirm-btn")).toBeDisabled();
   await page.locator("#plan-prep").fill("100");
   await page.locator("#confirm-btn").click();
   await page.locator("#allocate-btn").click();
-  await expect(page.locator("#report-prep")).toHaveText("-3,000");
-  await expect(page.locator("#report-carryover")).toHaveText("1,000");
+  await expect(page.locator("#report-prep")).toHaveText("-3,000 coins");
+  await expect(page.locator("#report-carryover")).toHaveText("1,000 coins");
 });
 
 test("purchased economy technologies change rates only in the following year", async ({
@@ -493,23 +494,24 @@ test("purchased economy technologies change rates only in the following year", a
   ]) {
     await page.locator(`#tech-${id}`).check();
   }
-  await expect(page.locator("#plan-fert-price")).toHaveText("3");
-  await expect(page.locator("#plan-prep-price")).toHaveText("60");
-  await expect(page.locator("#plan-upkeep-price")).toHaveText("1");
+  await expect(page.locator("#plan-fert-price")).toHaveText("3 coins/ha");
+  await expect(page.locator("#plan-prep-price")).toHaveText("60 coins/ha");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("1 coin/t");
   await resolveHarvest(page);
   await expect(page.locator("#allocation-price")).toHaveText("10.00 coins/t");
+  await page.locator("#store-max-btn").click();
   await expect(page.locator("#allocation-preview")).toContainText(
     "Upkeep 600 coins",
   );
   await page.locator("#allocate-btn").click();
-  await expect(page.locator("#report-fertilizer")).toHaveText("-1,200");
-  await expect(page.locator("#plan-fert-price")).toHaveText("1.5");
-  await expect(page.locator("#plan-prep-price")).toHaveText("30");
-  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.5");
+  await expect(page.locator("#report-fertilizer")).toHaveText("-1,200 coins");
+  await expect(page.locator("#plan-fert-price")).toHaveText("1.5 coins/ha");
+  await expect(page.locator("#plan-prep-price")).toHaveText("30 coins/ha");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.5 coins/t");
   await page.reload();
-  await expect(page.locator("#plan-fert-price")).toHaveText("1.5");
-  await expect(page.locator("#plan-prep-price")).toHaveText("30");
-  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.5");
+  await expect(page.locator("#plan-fert-price")).toHaveText("1.5 coins/ha");
+  await expect(page.locator("#plan-prep-price")).toHaveText("30 coins/ha");
+  await expect(page.locator("#plan-upkeep-price")).toHaveText("0.5 coins/t");
   await resolveHarvest(page);
   const price = (await saved(page)).state.worldPrice;
   await expect(page.locator("#allocation-price")).toHaveText(
@@ -584,15 +586,17 @@ test("total famine finishes once, remains collapsed on reload, and restart clear
 }) => {
   await loadFixture(page);
   await resolveHarvest(page, { hectares: 0, fertilizer: 0 });
-  await expect(page.locator("#allocation-consumption")).toContainText("total");
+  await expect(page.locator("#allocation-consumption")).toContainText(
+    "Total famine",
+  );
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#collapse-summary")).toBeVisible();
   await expect(page.locator("#stat-population")).toHaveText("0");
   await expect(page.locator("#confirm-btn")).toBeDisabled();
   await page.reload();
-  await expect(page.locator("#report-famine")).toHaveText("Famine (total)");
+  await expect(page.locator("#report-famine")).toHaveText("Total famine");
   await expect(page.locator("#event-log summary")).toContainText(
-    "Famine: total",
+    "Total famine",
   );
   await expect(page.locator("#collapse-summary")).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());

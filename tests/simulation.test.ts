@@ -815,7 +815,7 @@ describe("resolveTurn — events", () => {
 
     const shockUp = resolveTurn(baselineState(), fullPlan, 4, CONFIG);
     expect(eventSummary(shockUp.report)).toBe(
-      "Export price shock: exports sold at 14 coins/ton",
+      "Export price shock: exports sold at 14.00 coins/t",
     );
   });
 
