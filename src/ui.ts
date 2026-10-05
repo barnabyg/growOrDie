@@ -969,6 +969,8 @@ function init(): void {
       el<HTMLInputElement>(id).value = String(save.state.preparedLandHectares);
     }
     planEdited = true;
+    // Both production inputs changed; neither one nor a Technology is to blame.
+    lastPlanChange = undefined;
     updatePlanPreview(save.state);
   });
   el<HTMLButtonElement>("sound-btn").addEventListener("click", () => {

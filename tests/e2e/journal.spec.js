@@ -278,6 +278,24 @@ test("selecting an unaffordable Technology shows the overspend on its card", asy
   await expect(page.locator("#confirm-btn")).toBeEnabled();
 });
 
+test("a suggested plan that overspends does not blame an earlier Technology", async ({
+  page,
+}) => {
+  await fixture(page);
+  // 800 coins of seeds plus Granary's 2,500 fit the 4,000-coin Budget.
+  await page.locator("#tech-granary").check();
+  await expect(page.locator("#plan-error")).toBeHidden();
+  // The suggestion adds 1,200 coins of production, taking the plan over Budget.
+  await page.locator("#suggest-plan-btn").click();
+  await expect(page.locator("#plan-error")).toBeVisible();
+  await expect(page.locator("#tech-granary-error")).toBeHidden();
+  await expect(page.locator("#tech-granary")).toHaveAttribute(
+    "aria-invalid",
+    "false",
+  );
+  await expect(page.locator("#plan-hectares-error")).toBeVisible();
+});
+
 test("the allocation slider preserves retained-food bounds and agrees with saved accounting", async ({
   page,
 }) => {
