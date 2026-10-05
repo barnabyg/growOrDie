@@ -16,6 +16,11 @@ drought and flood harvests against Consumption, including opening Storage and
 food destroyed by floods. It uses only Technology already owned at the start of
 the year. Newly prepared land and newly purchased Technology help next year.
 These scenarios describe possible outcomes, rather than predicting the event.
+A single food bar shows Harvest and opening Storage with a Consumption marker;
+any shortfall up to the marker is shaded in the danger colour. Labelled values
+beneath the bar identify each part, and the bar's accessible description states
+available food, Consumption and the balance. The drought outcome is always
+visible; the full scenario table stays in the Weather scenarios disclosure.
 
 The country shows cultivated, prepared and unprepared shares, weather, a growing
 village and owned Technology landmarks. Its parcels illustrate aggregate
@@ -45,11 +50,13 @@ existing progress, use a disposable browser profile or a new loopback origin:
 set `$env:PORT='0'` before starting and open the printed address.
 
 1. Start a fresh game. Cultivating 400 ha without fertilizer forecasts 800 t
-   against 1,000 t Consumption: a 200 t shortfall. Choose the first-year
-   suggestion. Cultivation and fertilization should both read 400 ha, spending
-   should be 2,000 coins and ordinary surplus should be 600 t. Expand weather
-   scenarios: drought should yield 800 t with a 200 t shortfall; flood should
-   yield 960 t with a 40 t shortfall.
+   against 1,000 t Consumption: a 200 t shortfall, shaded at the end of the
+   food bar up to the Consumption marker. Choose the first-year suggestion.
+   Cultivation and fertilization should both read 400 ha, spending should be
+   2,000 coins and ordinary surplus should be 600 t, with no shaded shortfall.
+   Without expanding anything, the drought line should read 800 t Harvest and a
+   200 t shortfall. Expand weather scenarios: flood should yield 960 t with a
+   40 t shortfall.
 2. Operate production controls by pointer and keyboard. Sliders and number
    inputs should agree; reducing cultivation should also limit fertilization.
    With the suggested plan, preparing 100 ha should show overspending and disable
@@ -94,8 +101,10 @@ location.reload();
 
 `tests/outlook.test.ts` compares forecasts with real simulation outcomes under
 ordinary, drought and flood events, including tuned configuration, owned
-Technology and delayed purchases. `tests/e2e/journal.spec.js` checks controls,
-forecasts without save mutations, allocation accounting and reloads, purchase
+Technology and delayed purchases, plus the food bar's segment and marker
+positions. `tests/e2e/journal.spec.js` checks controls, forecasts without save
+mutations, the food bar's description and 3:1 non-text contrast in light and
+dark mode, allocation accounting and reloads, purchase
 timing, landmarks, milestones, Collapse, mobile dark mode, reduced motion and
 unavailable audio. Existing game, persistence and layout checks remain in place.
 Run `npm.cmd run verify` for the canonical full gate.

@@ -22,6 +22,7 @@
         --land: light-dark(#d8d8b7, #3a4b30);
         --prepared: light-dark(#cbbf96, #786843);
         --river: light-dark(#b6ced2, #415e69);
+        --stored-food: light-dark(#2f6a80, #7fc0d6);
         --roof: light-dark(#ac714b, #b68b61);
         --house: light-dark(#ead6a8, #c4b38a);
       }
@@ -555,14 +556,66 @@
         display: block;
         transition: width 0.2s ease;
       }
-      #forecast-harvest-bar {
+      .meter.food-bar {
+        position: relative;
+        height: 0.75rem;
+        margin: 0.55rem 0 0.4rem;
+        overflow: visible;
+      }
+      /* Segments and the marker are separated by --bg gaps, so each one only
+         needs 3:1 non-text contrast against the outlook background. */
+      #forecast-storage-bar,
+      #forecast-shortfall-bar {
+        box-shadow: inset 2px 0 0 var(--bg);
+      }
+      #forecast-harvest-bar,
+      .key-harvest {
         background: var(--green);
       }
-      #forecast-storage-bar {
-        background: var(--river);
+      #forecast-storage-bar,
+      .key-storage {
+        background: var(--stored-food);
       }
-      #forecast-consumption-bar {
-        background: var(--gold);
+      #forecast-shortfall-bar {
+        background: var(--danger);
+      }
+      #forecast-consumption-marker {
+        position: absolute;
+        top: -0.3rem;
+        bottom: -0.3rem;
+        width: 3px;
+        transform: translateX(-50%);
+        background: var(--text);
+        box-shadow: 0 0 0 2px var(--bg);
+        border-radius: 1px;
+      }
+      .forecast-key {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.2rem 0.9rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 0.8rem;
+      }
+      .forecast-key li {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      .key-swatch {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 2px;
+      }
+      .key-consumption {
+        width: 3px;
+        height: 0.9rem;
+        background: var(--text);
+      }
+      .drought-outcome {
+        margin-top: 0.3rem;
+        font-size: 0.85rem;
       }
       .food-balance {
         margin-top: 0.7rem;
@@ -1571,35 +1624,42 @@
                 ><strong id="forecast-available"></strong>
               </div>
               <div
-                class="meter"
+                class="meter food-bar"
                 role="img"
                 id="forecast-food-meter"
                 aria-label="Forecast food"
+                aria-describedby="forecast-food-description"
               >
                 <span id="forecast-harvest-bar"></span
-                ><span id="forecast-storage-bar"></span>
+                ><span id="forecast-storage-bar"></span
+                ><span id="forecast-shortfall-bar"></span
+                ><span id="forecast-consumption-marker"></span>
               </div>
-              <div class="meter-label">
-                <span>Consumption</span
-                ><strong id="forecast-consumption"></strong>
-              </div>
-              <div
-                class="meter"
-                role="img"
-                id="forecast-consumption-meter"
-                aria-label="Consumption"
-              >
-                <span id="forecast-consumption-bar"></span>
-              </div>
+              <p class="sr-only" id="forecast-food-description"></p>
+              <ul class="forecast-key">
+                <li>
+                  <span class="key-swatch key-harvest" aria-hidden="true"></span
+                  >Harvest <strong id="forecast-harvest"></strong>
+                </li>
+                <li>
+                  <span class="key-swatch key-storage" aria-hidden="true"></span
+                  >Storage <strong id="forecast-storage"></strong>
+                </li>
+                <li>
+                  <span
+                    class="key-swatch key-consumption"
+                    aria-hidden="true"
+                  ></span
+                  >Consumption <strong id="forecast-consumption"></strong>
+                </li>
+              </ul>
               <p
                 class="food-balance"
                 id="forecast-balance"
                 aria-live="polite"
               ></p>
-              <p class="preview">
-                Green: Harvest · blue: stored food. The Event is unknown until
-                you resolve.
-              </p>
+              <p class="drought-outcome" id="forecast-drought-outcome"></p>
+              <p class="preview">The Event is unknown until you resolve.</p>
               <details>
                 <summary>Weather scenarios</summary>
                 <table class="scenario-table">
