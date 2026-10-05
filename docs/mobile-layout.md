@@ -51,8 +51,8 @@ For manual verification, run `npm.cmd run build`, then `npm.cmd start`, and open
 http://127.0.0.1:8000 in a disposable browser profile. Use responsive mode at the
 widths above; repeat with enlarged text. Choose 400 cultivated hectares, 400
 fertilized hectares, and Irrigation, then resolve and allocate the harvest.
-Check the report and Owned indicator. Resolve subsequent years with zero
-cultivation until Collapse. Expect readable labels, costs, effects, reports, and
+Check the report and the Owned status on the Irrigation card. Resolve subsequent years with zero
+cultivation until Collapse. Expect readable labels, costs, benefits, reports, and
 buttons without horizontal page scrolling or clipped text. Below 840 px, the
 pinned bar should follow every production and Storage change, match the
 in-page button's label, colour and disabled state, and never hide the input

@@ -79,16 +79,15 @@ test("plan, allocation, report, chronicle and Collapse never show raw identifier
   await plan(page, 300, 0);
   await expectCleanCopy(page, "plan");
   await page.locator("#confirm-btn").click();
-  await expect(page.locator("#allocation-event-title")).toHaveText(
-    "An Export price shock",
+  await expect(page.locator("#allocation-event")).toContainText(
+    "Export price shock",
   );
-  await expect(page.locator("#allocation-consumption")).toHaveText(
-    "1,000 t needed · Partial famine",
-  );
+  await expect(page.locator("#allocation-consumption")).toHaveText("1,000 t");
+  await expect(page.locator("#allocation-famine")).toHaveText("Partial famine");
   await expectCleanCopy(page, "allocation");
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#report-famine")).toHaveText("Partial famine");
-  await expect(page.locator("#event-log summary")).toContainText(
+  await expect(page.locator("#event-log .famine-tag")).toHaveText(
     "Partial famine",
   );
   await expectCleanCopy(page, "report and chronicle");

@@ -147,7 +147,7 @@ test("a purchased technology is saved once and changes the following harvest", a
     "-3,000 coins",
   );
   await page.reload();
-  await expect(page.locator("#tech-highYieldSeeds-owned")).toBeVisible();
+  await expect(page.locator("#tech-highYieldSeeds-status")).toHaveText("Owned");
   await expect(page.locator("#tech-highYieldSeeds")).toBeDisabled();
   await resolveHarvest(page);
   await expect(page.locator("#allocation-event")).toHaveText("No event");
@@ -225,22 +225,18 @@ test("production, post-harvest allocation and reload preserve one committed outc
   await expect(page.locator("#country-caption")).toContainText(
     "Year 1: 400 of 2,000 ha cultivated (20%)",
   );
-  await expect(page.locator("#event-log li")).toHaveCount(1);
+  await expect(page.locator("#event-log tbody tr")).toHaveCount(1);
   expect(await saved(page)).toEqual(completed);
   await expect(page.locator("#report-year")).toHaveText("1");
   await expect(page.locator("#report-export")).toHaveText(
     "400 t for +4,000 coins",
   );
-  await page.locator("#event-log summary").click();
-  await expect(page.locator("#event-log details p")).toContainText(
-    "Harvest 1,600 t",
-  );
-  await expect(page.locator("#event-log details p")).toContainText(
-    "Storage 200 t",
+  await expect(page.locator("#event-log tbody td").nth(1)).toHaveText(
+    "1,600 t",
   );
 });
 
-test("history preserves earlier outcomes and legacy summaries without inventing reports", async ({
+test("the chronicle tables a mixed history newest first, marks Famine and keeps legacy summaries without inventing figures", async ({
   page,
 }) => {
   await loadFixture(page);
@@ -252,24 +248,56 @@ test("history preserves earlier outcomes and legacy summaries without inventing 
   });
   await page.reload();
   await expect(page.locator("#report")).toBeHidden();
-  await expect(page.locator("#event-log details")).toHaveCount(0);
+  await expect(page.locator("#event-log tbody tr")).toHaveCount(1);
   // A summary-only entry records no plan, so the default plan is not replaced.
   await expect(page.locator("#plan-hectares")).toHaveValue("400");
   await expect(page.locator("#plan-fertilizer")).toHaveValue("0");
-  await resolveHarvest(page);
+  // 300 unfertilized ha grow 600 t against 1,000 t Consumption: partial famine.
+  await resolveHarvest(page, { hectares: 300, fertilizer: 0 });
   await page.locator("#allocate-btn").click();
   const first = (await saved(page)).eventLog[1];
   await resolveHarvest(page);
   await page.locator("#allocate-btn").click();
   await page.reload();
   await expect(page.locator("#report-year")).toHaveText("2");
-  await expect(page.locator("#event-log details")).toHaveCount(2);
   expect((await saved(page)).eventLog[1]).toEqual(first);
-  await page.locator("#event-log summary").first().click();
-  await expect(page.locator("#event-log details p").first()).toBeVisible();
-  await expect(page.locator("#event-log li").first()).toHaveText(
-    "Year 0: Legacy summary",
+
+  const table = page.getByRole("table", { name: "Country chronicle" });
+  await expect(table.locator("thead th")).toHaveText([
+    "Year",
+    "Event",
+    "Harvest",
+    "Population change",
+    "Budget",
+  ]);
+  // Newest Year first; the legacy entry keeps its summary and known Event.
+  const rows = table.locator("tbody tr");
+  await expect(rows.locator("th")).toHaveText(["2", "1", "0"]);
+  const famineYear = rows.nth(1);
+  await expect(famineYear.locator("td").nth(1)).toHaveText("600 t");
+  await expect(famineYear.locator("td").nth(2)).toContainText(
+    /^-[\d,]+ to [\d,]+/,
   );
+  await expect(famineYear.locator(".famine-tag")).toHaveText("Partial famine");
+  await expect(famineYear).toHaveClass(/famine/);
+  await expect(rows.nth(0).locator(".famine-tag")).toHaveCount(0);
+  await expect(rows.nth(0).locator("td").nth(1)).toHaveText(/^[\d,]+ t$/);
+  await expect(rows.nth(0).locator("td").nth(3)).toHaveText(/^[\d,]+ coins$/);
+  await expect(rows.nth(2).locator("td")).toHaveText([
+    "Legacy summary",
+    "Unknown",
+    "Unknown",
+    "Unknown",
+  ]);
+
+  // The table never widens the page on the narrowest supported screen.
+  await page.setViewportSize({ width: 320, height: 800 });
+  await table.scrollIntoViewIfNeeded();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
 
 test("tuned Technology and fertilizer descriptions agree with costs and next-Turn effects", async ({
@@ -297,19 +325,19 @@ Object.assign(CONFIG, {
   await loadFixture(page);
   await expect(page.locator("#plan-fert-yield")).toHaveText("1.75");
   const technologies = [
-    ["irrigation", "1.5", "Drought Yield loss ×0.2"],
-    ["highYieldSeeds", "2", "Base Yield ×1.3"],
-    ["granary", "3", "Storage upkeep ×0.7"],
-    ["tradeRoutes", "4", "Export price ×1.1"],
-    ["landSurvey", "5", "Land preparation cost ×0.4"],
-    ["fertilizerWorks", "6", "Fertilizer cost ×0.6"],
+    ["irrigation", "1.5", "80% less Yield lost to drought"],
+    ["highYieldSeeds", "2", "30% more food per hectare"],
+    ["granary", "3", "30% less Storage upkeep"],
+    ["tradeRoutes", "4", "10% more Export income per ton"],
+    ["landSurvey", "5", "60% less land preparation cost"],
+    ["fertilizerWorks", "6", "40% less fertilizer cost"],
   ];
-  for (const [id, cost, effect] of technologies) {
+  for (const [id, cost, benefit] of technologies) {
     const row = page
       .locator(".tech-row")
       .filter({ has: page.locator(`#tech-${id}`) });
     await expect(row.locator(".tech-cost")).toHaveText(`${cost} coins`);
-    await expect(row.locator(".tech-effect")).toHaveText(effect);
+    await expect(row.locator(".tech-benefit")).toHaveText(benefit);
     await page.locator(`#tech-${id}`).check();
   }
   await resolveHarvest(page);
@@ -563,8 +591,9 @@ for (const fixture of [
     await expect(page.locator("#report")).toHaveText(latestReport, {
       useInnerText: true,
     });
-    await page.locator("#event-log summary").click();
-    await expect(page.locator("#event-log details p")).toContainText("Budget");
+    await expect(page.locator("#event-log tbody td").last()).toHaveText(
+      /^[\d,]+ coins?$/,
+    );
     if (fixture.name === "drought") {
       await expect(page.locator("#report-event")).toContainText("25%");
       await expect(page.locator("#country-green")).toHaveClass(/drought/);
@@ -586,8 +615,9 @@ test("total famine finishes once, remains collapsed on reload, and restart clear
 }) => {
   await loadFixture(page);
   await resolveHarvest(page, { hectares: 0, fertilizer: 0 });
-  await expect(page.locator("#allocation-consumption")).toContainText(
-    "Total famine",
+  await expect(page.locator("#allocation-famine")).toHaveText("Total famine");
+  await expect(page.locator("#allocation-outcome-lead")).toHaveText(
+    "1,000 t shortfall",
   );
   await page.locator("#allocate-btn").click();
   await expect(page.locator("#collapse-summary")).toBeVisible();
@@ -595,8 +625,8 @@ test("total famine finishes once, remains collapsed on reload, and restart clear
   await expect(page.locator("#confirm-btn")).toBeDisabled();
   await page.reload();
   await expect(page.locator("#report-famine")).toHaveText("Total famine");
-  await expect(page.locator("#event-log summary")).toContainText(
-    "Total famine",
+  await expect(page.locator("#event-log .famine-tag")).toHaveText(
+    "Total famine · Collapse",
   );
   await expect(page.locator("#collapse-summary")).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());

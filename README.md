@@ -29,7 +29,8 @@ hectares under the default configuration. Each Turn has two decisions:
 1. **Plan production and investment.** Cultivation costs seeds each year;
    fertilizer adds cost and multiplies Yield on the chosen hectares. Preparing
    land costs money once and makes it available for future cultivation.
-   Technologies are one-off purchases whose benefits start next Turn. The
+   Technologies are one-off purchases whose benefits start next Turn; click
+   anywhere on a Technology card to select it. The
    preview includes mandatory upkeep for retained food and blocks unaffordable
    commitments. Select **Resolve harvest** to commit the plan. If the ordinary
    forecast falls short of Consumption, the button turns to a warning such as
@@ -77,11 +78,19 @@ separate from the actual outcome. Allocation shows food kept, automatic Export i
 next-Year Budget together. Allocation opens at the minimum Storage, so surplus
 is exported unless you choose to keep it. **Keep minimum** respects surviving
 old food; **Keep maximum** respects the affordable range. Each shows the food it
-keeps and the resulting next-Year Budget before you choose. Finishing the Year
-highlights population changes, with detailed accounting under **Harvest, Event & Budget details**.
-Earlier outcomes remain in the **Country chronicle**. Collapse replaces planning
-with a run summary and a confirmed **Start a new run** action; the header keeps
-the final Year played and the summary gives the run length in Years. On mobile, the
+keeps and the resulting next-Year Budget before you choose. Allocation and the
+Year report each lead with one headline: the Population change (such as
+**+50 people**), or the shortfall in tons during Famine, followed by the Famine
+outcome in words. The Event appears once beneath it, and the other figures share
+one readable stat row. Detailed accounting is under **Harvest, Event & Budget details**.
+Earlier outcomes remain in the **Country chronicle**, a table of Year, Event,
+Harvest, Population change and Budget, newest first, with Famine Years labelled
+in text. Collapse replaces planning
+with a run summary and a confirmed **Start a new run** action. The summary
+states the cause using the final Year's Harvest, stored food and Consumption,
+names the final Year's Event only when one occurred, and gives the run length in
+Years and the Score; Milestone progress is hidden. The header keeps the final
+Year played. On mobile, the
 current decision appears before a compact landscape, and a bar pinned to the
 bottom of the screen keeps the food balance, Budget after the plan and
 **Resolve harvest** in view while planning (Storage kept, next-Year Budget and
@@ -96,7 +105,7 @@ population, including zero; there is no fixed winning population.
 
 Progress saves after harvest commitment and allocation. Reloading during
 allocation preserves the rolled outcome. The latest report returns on reload;
-expand history entries to inspect earlier outcomes. **Restart run** asks for
+the Country chronicle summarises earlier outcomes. **Restart run** asks for
 confirmation before replacing the run, including a pending harvest. Storage
 failures show a warning and Retry and pause further advances. Legacy summaries
 remain readable without invented details; see [saved games and recovery](docs/saves.md).

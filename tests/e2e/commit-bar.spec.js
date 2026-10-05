@@ -149,7 +149,8 @@ test("the bar leaves focused inputs and the end of the page uncovered", async ({
   const lastBottom = await page
     .locator("footer.help")
     .evaluate((node) => node.getBoundingClientRect().bottom);
-  expect(lastBottom).toBeLessThanOrEqual(await barTop(page));
+  // The maximum scroll offset is rounded, so allow sub-pixel overlap.
+  expect(lastBottom).toBeLessThanOrEqual((await barTop(page)) + 1);
 });
 
 test("the bar is absent on desktop and after Collapse", async ({ page }) => {

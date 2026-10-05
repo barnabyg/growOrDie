@@ -14,6 +14,14 @@ the food outlook, then Technologies, then the spending summary and Resolve
 harvest. Every investment is visible, and reachable by keyboard, before the
 Year is committed.
 
+Each Technology card shows its name and cost on one line and a single benefit
+line derived from configuration, such as "50% less Storage upkeep". A status
+line appears only when it differs from the default: Owned, Selected, or the
+coins still needed, such as "Need 1,800 coins more". The whole card is the
+click target; a real checkbox inside it keeps keyboard and screen-reader
+access, with the name as its label and cost, benefit and status as its
+description. Owned cards cannot be toggled.
+
 Production sliders and exact number inputs stay in sync. Shortcuts cultivate or
 fertilize all available land; the first-year suggestion selects both. Later
 Years open with the previous Year's cultivation and fertilization, derived from
@@ -66,10 +74,24 @@ Consumption and surplus, then previews retained Storage, exports, income, upkeep
 and the next Budget. The Storage choice opens at the minimum (surviving old food
 that must stay), and Keep minimum and Keep maximum each show their Storage and
 next Budget. Invalid
-storage entries hide those totals until corrected. Completed reports lead with
-the outcome and put detailed accounting behind an expandable disclosure.
+storage entries hide those totals until corrected.
+
+Allocation and completed reports share one outcome presentation
+(`src/outcome.ts`). A single headline leads with the key number: the
+Population change ("+50 people"), or during Famine the food shortfall in tons
+("400 t shortfall"). Beneath it the Famine outcome is written out (No famine,
+Partial famine or Total famine), so Famine never relies on colour alone.
+Allocation states the Event once, with its icon, as supporting context. The
+remaining figures sit in a shared stat row at a readable size: Population,
+Harvest, Consumption, Surplus and export price during allocation; Population,
+peak, Storage and Budget in the Year report. Completed reports put detailed
+accounting behind an expandable disclosure.
 Previous years remain in the Country chronicle, which continues the country
-column beneath the landscape on desktop.
+column beneath the landscape on desktop. It is a compact table of Year, Event,
+Harvest, Population change and the Budget carried forward, newest Year first.
+Famine Years are labelled in text (Partial famine, Total famine, plus Collapse)
+with a warning sign as well as colour. Legacy summary-only entries show their
+recorded summary as the Event and Unknown for figures they never stored.
 
 All screens share one formatter (`src/format.ts`): money always shows coins
 with correct plurals, rates read like 10.00 coins/t or 3 coins/ha, food
@@ -79,7 +101,14 @@ outlook mentions lost Storage only when some would be lost. After Collapse
 the header keeps the final Year played.
 
 Milestones track the highest Population reached. Collapse replaces production
-and Technology controls with the final outcome and a restart action. Restarting
+and Technology controls with the final outcome and a restart action. Its
+summary states the cause in the final Year's food figures, for example
+"Partial famine: Harvest 200 t and 73 t stored against 1,277 t needed.
+Population fell from 1,277 to 273, below half the starting 1,000.", or, for a
+total famine, that no one could be fed. Stored food is the opening Storage that
+survived any flood. The final Year's Event appears only when one occurred. The
+run length in Years and the Score follow; Milestone progress is hidden because
+there is nothing left to plan. Restarting
 a progressed or pending game still requires confirmation. On small screens the
 current decision appears before the compact landscape. The interface follows
 the system's light/dark and reduced-motion settings. Sound starts off and can be
@@ -114,7 +143,11 @@ set `$env:PORT='0'` before starting and open the printed address.
    the inline message should disappear.
 3. Check that Technologies sit between production and the spending summary,
    and that tabbing from the production controls reaches every Technology
-   before Resolve harvest. Select a Technology. Its cost should change spending
+   before Resolve harvest. Each card should show name and cost on one line,
+   one benefit line, and no status until it is selected, unaffordable or
+   Owned. Click the card's padding or benefit text to select a Technology; it
+   should read Selected, and cards the remaining Budget cannot cover should
+   show the coins still needed. Its cost should change spending
    but its benefit should not change this year's forecast. Resolve an affordable
    plan: the event and actual food totals should appear, while one note marks
    the header as opening values. Reload
@@ -122,7 +155,10 @@ set `$env:PORT='0'` before starting and open the printed address.
    Finish the year: the Technology becomes Owned, its landmark appears, and the
    following year's forecast includes its benefit.
 4. With the ordinary fixture below (seed 5), cultivate and fertilize 400 ha,
-   prepare zero and buy no Technology. Allocation should open at 0 t kept,
+   prepare zero and buy no Technology. The allocation headline should read
+   "+50 people" over "No famine", with "No event" stated once beneath it; with
+   300 ha unfertilized instead it reads "400 t shortfall" over "Partial
+   famine". Allocation should open at 0 t kept,
    exporting 600 t with a next Budget of 12,200 coins. Keep minimum should read
    0 t kept and 12,200 coins; Keep maximum should read 600 t kept and 5,600
    coins. Reload: the same default should return. Retain 200 t. The preview
@@ -141,7 +177,14 @@ set `$env:PORT='0'` before starting and open the printed address.
 6. Resolve a fresh game with zero cultivation. Collapse should take focus and
    replace planning and Technology controls. The header should still show
    Year 1, the run length should read 1 Year and the report should say Total
-   famine. Cancel a restart and check the
+   famine. The summary should read "Total famine: Harvest 0 t and 0 t stored
+   against 1,000 t needed. No one could be fed, so the population reached
+   zero.", show no Event line, show Score 1,000 and hide Next Milestone. For
+   the below-half cause, use seed 5 with `save.state.population = 1277`,
+   `save.state.highestPopulation = 1300` and `save.state.storageTons = 73`, then
+   cultivate 100 ha without fertilizer: expect "Harvest 200 t and 73 t stored
+   against 1,277 t needed" and a fall from 1,277 to 273. Seed 43 with 200 t
+   Storage and the same plan adds a Flood line. Cancel a restart and check the
    outcome remains; confirm a restart and expect Year 1 with an empty chronicle.
    Repeat cancellation while allocation is pending to check preservation there.
 7. Check 320, 390, 760 and 1,280 px widths, normal and doubled text size, and
@@ -152,7 +195,10 @@ set `$env:PORT='0'` before starting and open the printed address.
    sound, complete a year and mute it; sound should be optional and should not
    block play when browser audio is unavailable. Shortcut actions should look
    like rounded, outlined chips: tinted on hover, a gold ring on keyboard focus,
-   and a dashed grey outline when unavailable.
+   and a dashed grey outline when unavailable. After a few Years, the Country
+   chronicle table should list the newest Year first, label any Famine Year in
+   text with a warning sign, and fit at 320 px; with doubled text it may scroll
+   inside its own box but never widens the page.
 
 For deterministic checks, use the developer console on the disposable page:
 
@@ -177,10 +223,22 @@ controls, affordable maximums and inline overspend messages,
 forecasts without save mutations, the food bar's description and 3:1 non-text
 contrast in light and dark mode, allocation accounting and reloads, purchase
 timing, Technology placement and keyboard order within the plan, landmarks,
-milestones, Collapse, mobile dark mode, reduced motion, unavailable audio, and
+milestones, Collapse summaries for total famine, a fall below half and a
+flood (cause, Event line, Score, hidden Milestone progress, restart), mobile dark mode, reduced motion, unavailable audio, and
 the four-resource header with its opening-values note and at most two visible
 mentions of the current Year at 390 and 1,280 px. `tests/header.test.ts` covers
-the header text, Population change and status. `tests/format.test.ts` covers
+the header text, Population change and status; `tests/collapse.test.ts` covers
+the Collapse summary's cause sentence for both causes, flood-surviving Storage,
+the Event line and the legacy fallback. `tests/chronicle.test.ts` covers
+chronicle rows, including legacy summary-only entries, and
+`tests/e2e/game.spec.js` checks the table with a mixed history at 320 px. `tests/outcome.test.ts` covers
+the outcome headline (Population change or Famine shortfall) against resolved
+Harvests, and `tests/e2e/journal.spec.js` checks both outcome screens' headline,
+single Event mention, shared stat sizes and focus. `tests/technology.test.ts`
+covers Technology benefit lines under default and tuned configuration and the
+card status rules, and the journal browser suite checks whole-card toggling,
+locked Owned cards, the checkbox's accessible name and description, and AA
+contrast of cost and status text in light and dark mode. `tests/format.test.ts` covers
 units, rates and plurals; `tests/e2e/copy.spec.js` fails if raw identifiers or
 Turn wording appear on plan, allocation, report, chronicle or Collapse screens.
 `tests/e2e/layout.spec.js` also checks that shortcut actions render as bordered
