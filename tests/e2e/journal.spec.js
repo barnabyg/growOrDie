@@ -88,7 +88,7 @@ test("the food forecast is one labelled bar with a Consumption marker and a visi
   await expect(page.getByText("Green: Harvest")).toHaveCount(0);
   await expect(page.locator("#forecast-consumption-meter")).toHaveCount(0);
   await expect(meter).toHaveAccessibleDescription(
-    "Available food 800 t (Harvest 800 t plus opening Storage 0 t) against Consumption 1,000 t: 200 t shortfall before Events.",
+    "Available food 800 tons (Harvest 800 tons plus opening Storage 0 tons) against Consumption 1,000 tons: 200 tons shortfall before Events.",
   );
   await expect(page.locator("#forecast-harvest")).toHaveText("800 t");
   await expect(page.locator("#forecast-storage")).toHaveText("0 t");
@@ -106,7 +106,7 @@ test("the food forecast is one labelled bar with a Consumption marker and a visi
   await fixture(page, { state: { storageTons: 400 } });
   await page.locator("#suggest-plan-btn").click();
   await expect(meter).toHaveAccessibleDescription(
-    "Available food 2,000 t (Harvest 1,600 t plus opening Storage 400 t) against Consumption 1,000 t: 1,000 t Surplus before Events.",
+    "Available food 2,000 tons (Harvest 1,600 tons plus opening Storage 400 tons) against Consumption 1,000 tons: 1,000 tons Surplus before Events.",
   );
   await expect(page.locator("#forecast-drought-outcome")).toHaveText(
     "Drought: 800 t Harvest · 200 t Surplus",

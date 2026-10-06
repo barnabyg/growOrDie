@@ -92,10 +92,19 @@ function text(id: string, value: string): void {
   el<HTMLElement>(id).textContent = value;
 }
 
-function foodBalance(balance: number): string {
+/** "600 t Surplus" or "200 t shortfall"; `format` spells out the amount. */
+function foodBalance(
+  balance: number,
+  format: (tons: number) => string = tons,
+): string {
   return balance >= 0
-    ? `${tons(balance)} Surplus`
-    : `${tons(-balance)} shortfall`;
+    ? `${format(balance)} Surplus`
+    : `${format(-balance)} shortfall`;
+}
+
+// Screen-reader text spells the unit out; a lone "t" may be read as a letter.
+function spokenTons(n: number): string {
+  return `${formatCount(n)} tons`;
 }
 
 function focusPanel(id: string): void {
@@ -443,7 +452,7 @@ function renderOutlook(state: GameState, outlook: FoodOutlook): void {
     `${bar.consumptionPercent}%`;
   text(
     "forecast-food-description",
-    `Available food ${tons(ordinary.availableFoodTons)} (Harvest ${tons(ordinary.harvestTons)} plus opening Storage ${tons(ordinary.storageTons)}) against Consumption ${tons(consumptionTons)}: ${foodBalance(ordinary.balanceTons)} before Events.`,
+    `Available food ${spokenTons(ordinary.availableFoodTons)} (Harvest ${spokenTons(ordinary.harvestTons)} plus opening Storage ${spokenTons(ordinary.storageTons)}) against Consumption ${spokenTons(consumptionTons)}: ${foodBalance(ordinary.balanceTons, spokenTons)} before Events.`,
   );
   for (const scenario of ["ordinary", "drought", "flood"] as const) {
     text(`forecast-${scenario}-harvest`, tons(outlook[scenario].harvestTons));
