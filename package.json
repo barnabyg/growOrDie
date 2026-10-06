@@ -8,6 +8,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "start": "node server.js",
+    "play": "node scripts/play.js",
     "verify": "node scripts/verify.js",
     "format:check": "prettier --check .",
     "lint": "biome lint --skip=correctness --skip=suspicious --skip=security --skip=performance --skip=a11y --error-on-warnings .",
