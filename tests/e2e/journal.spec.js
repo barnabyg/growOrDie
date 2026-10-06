@@ -230,6 +230,72 @@ test("production inputs show the affordable maximum and an inline overspend mess
   await expect(page.locator("#confirm-btn")).toBeEnabled();
 });
 
+test("selecting an unaffordable Technology shows the overspend on its card", async ({
+  page,
+}) => {
+  await fixture(page);
+  await page.locator("#suggest-plan-btn").click();
+  const checkbox = page.locator("#tech-highYieldSeeds");
+  const message = page.locator("#tech-highYieldSeeds-error");
+  await expect(message).toBeHidden();
+  await expect(checkbox).toHaveAttribute("aria-invalid", "false");
+
+  // The suggested plan leaves 2,000 of 4,000 coins; High-yield seeds costs 3,000.
+  await techCard(page, "highYieldSeeds").locator(".tech-benefit").click();
+  await expect(checkbox).toBeChecked();
+  await expect(message).toBeVisible();
+  await expect(message).toHaveText("Over Budget by 1,000 coins");
+  await expect(checkbox).toHaveAttribute("aria-invalid", "true");
+  await expect(checkbox).toHaveAccessibleDescription(
+    /Over Budget by 1,000 coins/,
+  );
+  for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep"]) {
+    await expect(page.locator(`#${id}-error`)).toBeHidden();
+    await expect(page.locator(`#${id}`)).toHaveAttribute(
+      "aria-invalid",
+      "false",
+    );
+  }
+  await expect(page.locator("#plan-error")).toBeVisible();
+  await expect(page.locator("#confirm-btn")).toBeDisabled();
+
+  // A production change that keeps the plan over Budget moves the message.
+  await page.locator("#plan-prep").fill("10");
+  await expect(message).toBeHidden();
+  await expect(page.locator("#plan-prep-error")).toBeVisible();
+  await page.locator("#plan-prep").fill("0");
+
+  // Selecting it again blames the card; deselecting it clears the message.
+  await checkbox.press("Space");
+  await checkbox.press("Space");
+  await expect(message).toBeVisible();
+  await expect(page.locator("#plan-prep-error")).toBeHidden();
+  await checkbox.press("Space");
+  await expect(checkbox).not.toBeChecked();
+  await expect(message).toBeHidden();
+  await expect(checkbox).toHaveAttribute("aria-invalid", "false");
+  await expect(checkbox).not.toHaveAccessibleDescription(/Over Budget/);
+  await expect(page.locator("#confirm-btn")).toBeEnabled();
+});
+
+test("a suggested plan that overspends does not blame an earlier Technology", async ({
+  page,
+}) => {
+  await fixture(page);
+  // 800 coins of seeds plus Granary's 2,500 fit the 4,000-coin Budget.
+  await page.locator("#tech-granary").check();
+  await expect(page.locator("#plan-error")).toBeHidden();
+  // The suggestion adds 1,200 coins of production, taking the plan over Budget.
+  await page.locator("#suggest-plan-btn").click();
+  await expect(page.locator("#plan-error")).toBeVisible();
+  await expect(page.locator("#tech-granary-error")).toBeHidden();
+  await expect(page.locator("#tech-granary")).toHaveAttribute(
+    "aria-invalid",
+    "false",
+  );
+  await expect(page.locator("#plan-hectares-error")).toBeVisible();
+});
+
 test("the allocation slider preserves retained-food bounds and agrees with saved accounting", async ({
   page,
 }) => {

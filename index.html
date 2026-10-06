@@ -917,7 +917,8 @@
       }
       .tech-heading,
       .tech-benefit,
-      .tech-status {
+      .tech-status,
+      .tech-error {
         grid-column: 3;
         min-width: 0;
       }
@@ -2027,7 +2028,7 @@
                   type="checkbox"
                   id="tech-irrigation"
                   aria-labelledby="tech-irrigation-name"
-                  aria-describedby="tech-irrigation-cost tech-irrigation-benefit tech-irrigation-status"
+                  aria-describedby="tech-irrigation-cost tech-irrigation-benefit tech-irrigation-status tech-irrigation-error"
                 /><span class="tech-heading"
                   ><span class="tech-name" id="tech-irrigation-name"
                     >Irrigation</span
@@ -2040,6 +2041,11 @@
                   class="tech-status"
                   id="tech-irrigation-status"
                   hidden
+                ></span
+                ><span
+                  class="tech-error field-error"
+                  id="tech-irrigation-error"
+                  hidden
                 ></span>
               </label>
               <label class="tech-row">
@@ -2049,7 +2055,7 @@
                   type="checkbox"
                   id="tech-highYieldSeeds"
                   aria-labelledby="tech-highYieldSeeds-name"
-                  aria-describedby="tech-highYieldSeeds-cost tech-highYieldSeeds-benefit tech-highYieldSeeds-status"
+                  aria-describedby="tech-highYieldSeeds-cost tech-highYieldSeeds-benefit tech-highYieldSeeds-status tech-highYieldSeeds-error"
                 /><span class="tech-heading"
                   ><span class="tech-name" id="tech-highYieldSeeds-name"
                     >High-yield seeds</span
@@ -2065,6 +2071,11 @@
                   class="tech-status"
                   id="tech-highYieldSeeds-status"
                   hidden
+                ></span
+                ><span
+                  class="tech-error field-error"
+                  id="tech-highYieldSeeds-error"
+                  hidden
                 ></span>
               </label>
               <label class="tech-row">
@@ -2074,7 +2085,7 @@
                   type="checkbox"
                   id="tech-granary"
                   aria-labelledby="tech-granary-name"
-                  aria-describedby="tech-granary-cost tech-granary-benefit tech-granary-status"
+                  aria-describedby="tech-granary-cost tech-granary-benefit tech-granary-status tech-granary-error"
                 /><span class="tech-heading"
                   ><span class="tech-name" id="tech-granary-name">Granary</span
                   ><span class="tech-cost" id="tech-granary-cost"></span></span
@@ -2082,6 +2093,11 @@
                 ><span
                   class="tech-status"
                   id="tech-granary-status"
+                  hidden
+                ></span
+                ><span
+                  class="tech-error field-error"
+                  id="tech-granary-error"
                   hidden
                 ></span>
               </label>
@@ -2092,7 +2108,7 @@
                   type="checkbox"
                   id="tech-tradeRoutes"
                   aria-labelledby="tech-tradeRoutes-name"
-                  aria-describedby="tech-tradeRoutes-cost tech-tradeRoutes-benefit tech-tradeRoutes-status"
+                  aria-describedby="tech-tradeRoutes-cost tech-tradeRoutes-benefit tech-tradeRoutes-status tech-tradeRoutes-error"
                 /><span class="tech-heading"
                   ><span class="tech-name" id="tech-tradeRoutes-name"
                     >Trade routes</span
@@ -2105,6 +2121,11 @@
                   class="tech-status"
                   id="tech-tradeRoutes-status"
                   hidden
+                ></span
+                ><span
+                  class="tech-error field-error"
+                  id="tech-tradeRoutes-error"
+                  hidden
                 ></span>
               </label>
               <label class="tech-row">
@@ -2114,7 +2135,7 @@
                   type="checkbox"
                   id="tech-landSurvey"
                   aria-labelledby="tech-landSurvey-name"
-                  aria-describedby="tech-landSurvey-cost tech-landSurvey-benefit tech-landSurvey-status"
+                  aria-describedby="tech-landSurvey-cost tech-landSurvey-benefit tech-landSurvey-status tech-landSurvey-error"
                 /><span class="tech-heading"
                   ><span class="tech-name" id="tech-landSurvey-name"
                     >Land survey</span
@@ -2127,6 +2148,11 @@
                   class="tech-status"
                   id="tech-landSurvey-status"
                   hidden
+                ></span
+                ><span
+                  class="tech-error field-error"
+                  id="tech-landSurvey-error"
+                  hidden
                 ></span>
               </label>
               <label class="tech-row">
@@ -2136,7 +2162,7 @@
                   type="checkbox"
                   id="tech-fertilizerWorks"
                   aria-labelledby="tech-fertilizerWorks-name"
-                  aria-describedby="tech-fertilizerWorks-cost tech-fertilizerWorks-benefit tech-fertilizerWorks-status"
+                  aria-describedby="tech-fertilizerWorks-cost tech-fertilizerWorks-benefit tech-fertilizerWorks-status tech-fertilizerWorks-error"
                 /><span class="tech-heading"
                   ><span class="tech-name" id="tech-fertilizerWorks-name"
                     >Fertilizer works</span
@@ -2151,6 +2177,11 @@
                 ><span
                   class="tech-status"
                   id="tech-fertilizerWorks-status"
+                  hidden
+                ></span
+                ><span
+                  class="tech-error field-error"
+                  id="tech-fertilizerWorks-error"
                   hidden
                 ></span>
               </label>

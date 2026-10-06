@@ -58,7 +58,8 @@ shows Harvest and opening Storage against a Consumption marker, shading any
 shortfall, and the Drought outcome is always shown beneath it. Each
 production input shows the most hectares affordable with the rest of the plan,
 marks the unaffordable part of its slider, and explains an overspend beside the
-field that caused it. Expand
+field that caused it, or on the Technology card when selecting that Technology
+did. Expand
 **Weather scenarios** for ordinary, Drought, and Flood food balances. These are
 possible outcomes, not a forecast of the hidden Event; they include opening
 Storage, Flood losses, and currently owned Technologies. Purchases and newly

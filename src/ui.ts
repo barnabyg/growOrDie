@@ -39,6 +39,8 @@ import type {
   TechnologyId,
   TurnResult,
 } from "./types.js";
+import { overspendBlame } from "./overspend.js";
+import type { PlanChange } from "./overspend.js";
 import { loadSave, newSave, persist } from "./persistence.js";
 import type { SaveData } from "./persistence.js";
 
@@ -79,8 +81,8 @@ let readFailed = loadedSave === undefined;
 let saveFailed = false;
 let restartCandidate: SaveData | undefined;
 let planEdited = false;
-// The production input changed most recently; an overspend is reported there.
-let lastProductionInput: string | undefined;
+// The plan control changed most recently; an overspend is reported there.
+let lastPlanChange: PlanChange | undefined;
 const sound = new GameSound();
 
 function text(id: string, value: string): void {
@@ -278,7 +280,14 @@ function updatePlanPreview(state: GameState): void {
   error.textContent = !complete
     ? "Enter a number in each hectares field."
     : `Plan exceeds the available Budget. Reduce spending before resolving.`;
-  renderProductionLimits(state, plan, complete && !costs.affordable);
+  const limits = productionLimits(state, plan);
+  const blame = overspendBlame({
+    overBudget: complete && !costs.affordable,
+    lastChange: lastPlanChange,
+    overInputs: limits.filter((l) => l.value > l.max).map((l) => l.input),
+    selectedTechnologies: plan.purchaseTechnologies ?? [],
+  });
+  renderProductionLimits(limits, blame.inputs);
   for (const id of TECHNOLOGY_IDS) {
     const checkbox = el<HTMLInputElement>(`tech-${id}`);
     const status = technologyStatus({
@@ -293,6 +302,12 @@ function updatePlanPreview(state: GameState): void {
     const statusEl = el<HTMLElement>(`tech-${id}-status`);
     statusEl.textContent = status.text;
     statusEl.hidden = status.text === "";
+    renderFieldError(
+      `tech-${id}`,
+      id === blame.technology
+        ? `Over Budget by ${exactCoins(-remaining)}`
+        : undefined,
+    );
   }
   renderOutlook(state, plan);
   renderResolveButton(state, plan);
@@ -325,40 +340,61 @@ const PRODUCTION_INPUTS: Record<string, ProductionInput> = {
   "plan-prep": "preparedHectares",
 };
 
-/** Show each input's affordable maximum, tint the unaffordable slider range and,
- * when over Budget, put the message at the most recently changed input that
- * exceeds its maximum (or every such input if that one does not). */
-function renderProductionLimits(
+interface ProductionLimit {
+  id: string;
+  input: ProductionInput;
+  max: number;
+  value: number;
+}
+
+// Each production input's affordable maximum alongside its planned value.
+function productionLimits(
   state: GameState,
   plan: PlayerPlan,
-  overBudget: boolean,
-): void {
-  const limits = Object.entries(PRODUCTION_INPUTS).map(([id, input]) => ({
+): ProductionLimit[] {
+  return Object.entries(PRODUCTION_INPUTS).map(([id, input]) => ({
     id,
+    input,
     max: affordableHectares(state, plan, input, CONFIG),
     value: plan[input],
   }));
-  const over = limits.filter(({ max, value }) => value > max).map((l) => l.id);
-  const blamed = !overBudget
-    ? []
-    : lastProductionInput && over.includes(lastProductionInput)
-      ? [lastProductionInput]
-      : over;
-  for (const { id, max } of limits) {
+}
+
+/** Show a control's inline error, linked to it by aria-describedby, or clear
+ * it when `message` is undefined. */
+function renderFieldError(
+  controlId: string,
+  message: string | undefined,
+): void {
+  const error = el<HTMLElement>(`${controlId}-error`);
+  error.hidden = message === undefined;
+  // Hidden text still counts in aria-describedby, so clear it as well.
+  error.textContent = message ?? "";
+  el<HTMLInputElement>(controlId).setAttribute(
+    "aria-invalid",
+    String(message !== undefined),
+  );
+}
+
+/** Show each input's affordable maximum, tint the unaffordable slider range and
+ * put the overspend message at the blamed inputs (see `overspendBlame`). */
+function renderProductionLimits(
+  limits: readonly ProductionLimit[],
+  blamed: readonly ProductionInput[],
+): void {
+  for (const { id, input, max } of limits) {
     text(`${id}-affordable`, `Up to ${hectares(max)} affordable`);
     const range = Number(el<HTMLInputElement>(`${id}-slider`).max);
     el<HTMLElement>(`${id}-range`).style.setProperty(
       "--affordable",
       String(range > 0 ? Math.min(1, max / range) : 1),
     );
-    const shown = blamed.includes(id);
-    const message = el<HTMLElement>(`${id}-error`);
-    message.hidden = !shown;
-    // Hidden text still counts in aria-describedby, so clear it as well.
-    message.textContent = shown
-      ? `Over Budget: at most ${hectares(max)} is affordable with the rest of this plan.`
-      : "";
-    el<HTMLInputElement>(id).setAttribute("aria-invalid", String(shown));
+    renderFieldError(
+      id,
+      blamed.includes(input)
+        ? `Over Budget: at most ${hectares(max)} is affordable with the rest of this plan.`
+        : undefined,
+    );
   }
 }
 
@@ -892,7 +928,7 @@ function init(): void {
   for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep"]) {
     el<HTMLInputElement>(id).addEventListener("input", () => {
       planEdited = true;
-      lastProductionInput = id;
+      lastPlanChange = PRODUCTION_INPUTS[id];
       updatePlanPreview(save.state);
     });
     el<HTMLInputElement>(`${id}-slider`).addEventListener("input", () => {
@@ -900,14 +936,15 @@ function init(): void {
         `${id}-slider`,
       ).value;
       planEdited = true;
-      lastProductionInput = id;
+      lastPlanChange = PRODUCTION_INPUTS[id];
       updatePlanPreview(save.state);
     });
   }
   for (const techId of TECHNOLOGY_IDS) {
-    el<HTMLInputElement>(`tech-${techId}`).addEventListener("change", () =>
-      updatePlanPreview(save.state),
-    );
+    el<HTMLInputElement>(`tech-${techId}`).addEventListener("change", () => {
+      lastPlanChange = techId;
+      updatePlanPreview(save.state);
+    });
   }
   el<HTMLInputElement>("plan-store").addEventListener(
     "input",
@@ -935,7 +972,7 @@ function init(): void {
       save.state.preparedLandHectares,
     );
     planEdited = true;
-    lastProductionInput = "plan-hectares";
+    lastPlanChange = "cultivatedHectares";
     updatePlanPreview(save.state);
   });
   el<HTMLButtonElement>("fertilize-all-btn").addEventListener("click", () => {
@@ -943,7 +980,7 @@ function init(): void {
       readPlanInputs(save.state).cultivatedHectares,
     );
     planEdited = true;
-    lastProductionInput = "plan-fertilizer";
+    lastPlanChange = "fertilizedHectares";
     updatePlanPreview(save.state);
   });
   el<HTMLButtonElement>("suggest-plan-btn").addEventListener("click", () => {
@@ -951,6 +988,8 @@ function init(): void {
       el<HTMLInputElement>(id).value = String(save.state.preparedLandHectares);
     }
     planEdited = true;
+    // Both production inputs changed; neither one nor a Technology is to blame.
+    lastPlanChange = undefined;
     updatePlanPreview(save.state);
   });
   el<HTMLButtonElement>("sound-btn").addEventListener("click", () => {

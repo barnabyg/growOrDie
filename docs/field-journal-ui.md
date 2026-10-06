@@ -59,7 +59,10 @@ selected Technology; reducing cultivation also reduces fertilization. A red
 band under each slider marks the unaffordable range, which remains reachable.
 When the plan exceeds the Budget, the overspend message appears under the most
 recently changed input that exceeds its maximum (or under every such input),
-is linked to it for assistive technology, and the summary error remains.
+is linked to it for assistive technology, and the summary error remains. When
+selecting a Technology is what took the plan over Budget, the message ("Over
+Budget by 1,000 coins") appears on that card instead, linked to its checkbox,
+and the production fields show none; deselecting the card clears it.
 
 The country shows cultivated, prepared and unprepared shares, weather, a growing
 village and owned Technology landmarks. Its parcels illustrate aggregate
@@ -174,7 +177,12 @@ set `$env:PORT='0'` before starting and open the printed address.
    reader should announce that message with the preparation input, and the
    slider should still reach 1,600 ha. The preparation note should say the new
    land is available next year. Reset preparation to zero before continuing;
-   the inline message should disappear.
+   the inline message should disappear. Still with the suggested plan, select
+   High-yield seeds: its card should read "Over Budget by 1,000 coins", no
+   production field should show a message, the summary error should remain and
+   Resolve should be disabled. A screen reader should announce the message with
+   the checkbox, which is marked invalid. Deselect it; the message should
+   disappear.
 3. Check that Technologies sit between production and the spending summary,
    and that tabbing from the production controls reaches every Technology
    before Resolve harvest. Each card should show name and cost on one line,
@@ -273,8 +281,11 @@ Technology and delayed purchases, plus the food bar's segment and marker
 positions. `tests/carryover.test.ts` covers the carried
 plan's derivation, clamping and legacy fallback. `tests/affordability.test.ts`
 checks each input's affordable maximum against the Resolve gate.
+`tests/overspend.test.ts` covers which production inputs or Technology card
+carry the overspend message.
 `tests/e2e/journal.spec.js` checks the carried plan and shortfall warning,
-controls, affordable maximums and inline overspend messages,
+controls, affordable maximums and inline overspend messages on production
+fields and Technology cards,
 forecasts without save mutations, the food bar's description and 3:1 non-text
 contrast in light and dark mode, allocation accounting and reloads, purchase
 timing, Technology placement and keyboard order within the plan, landmarks,
