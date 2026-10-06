@@ -542,15 +542,14 @@ function renderAllocation(): void {
     );
   }
   text("plan-upkeep-price", coinRate(pending.storageUpkeepPerTon, "t"));
-  el<HTMLElement>("plan-store-range").textContent =
-    `${exactTons(pending.minStoreTons)}–${exactTons(pending.maxStoreTons)} affordable range`;
+  const range = `${exactTons(pending.minStoreTons)}–${exactTons(pending.maxStoreTons)} affordable`;
   text(
-    "allocation-retained",
-    pending.minStoreTons > 0
-      ? `${exactTons(pending.minStoreTons)} of surviving old food must stay in Storage and cannot be exported.`
-      : pending.maxStoreTons === 0
-        ? "No affordable Surplus remains to store. Finish the Year to record the outcome."
-        : "Keeping food buffers future shortfalls; exporting funds future investment.",
+    "plan-store-range",
+    pending.maxStoreTons === 0
+      ? "No affordable Surplus to store"
+      : pending.minStoreTons > 0
+        ? `${range} · ${exactTons(pending.minStoreTons)} of old food must stay`
+        : range,
   );
   updateAllocationPreview();
 }

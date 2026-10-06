@@ -144,9 +144,13 @@ test("each panel has at most one helper line and How to play holds the explanati
         .filter((node) => node.getClientRects().length > 0)
         .map((node) => ({
           panel: node.id || node.className,
-          helpers: [...node.querySelectorAll(".helper")].filter(
-            (helper) => helper.getClientRects().length > 0,
-          ).length,
+          // The allocation Storage range always counts, and the removed
+          // retained-food line would count if it came back.
+          helpers: [
+            ...node.querySelectorAll(
+              ".helper, #plan-store-range, #allocation-retained",
+            ),
+          ].filter((helper) => helper.getClientRects().length > 0).length,
         })),
     );
     for (const { panel, helpers } of counts)
@@ -159,6 +163,7 @@ test("each panel has at most one helper line and How to play holds the explanati
     /reloading resumes this decision/,
     /The Event is unknown until you resolve/,
     /Feed your people before growing your country/,
+    /buffers future shortfalls/,
   ];
   const absent = async (screen) => {
     for (const text of moved)
@@ -176,6 +181,15 @@ test("each panel has at most one helper line and How to play holds the explanati
   await page.locator("#allocate-btn").click();
   await check("report");
 
+  // With nothing to store, the one line says so without instructions.
+  await fixture(page);
+  await page.locator("#plan-hectares").fill("0");
+  await page.locator("#confirm-btn").click();
+  await expect(page.locator("#plan-store-range")).toHaveText(
+    "No affordable Surplus to store",
+  );
+  await check("allocation with nothing to store");
+
   const help = page.locator("footer.help details");
   await help.locator("summary").click();
   for (const text of [
@@ -185,6 +199,7 @@ test("each panel has at most one helper line and How to play holds the explanati
     /landmarks/,
     /mandatory upkeep/i,
     /Only new Harvest can be exported/,
+    /Export\s+income funds future investment/,
     /Reloading resumes/,
   ])
     await expect(help, String(text)).toContainText(text);

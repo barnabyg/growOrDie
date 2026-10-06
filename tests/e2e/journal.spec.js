@@ -308,8 +308,8 @@ test("the allocation slider preserves retained-food bounds and agrees with saved
   await expect(page.locator("#allocation-event")).toContainText("Flood");
   await expect(page.locator("#stats-note")).toBeVisible();
   await expect(page.locator("#allocation-title")).toBeFocused();
-  await expect(page.locator("#allocation-retained")).toContainText(
-    "500 t of surviving old food must stay",
+  await expect(page.locator("#plan-store-range")).toHaveText(
+    "500 t–1,460 t affordable · 500 t of old food must stay",
   );
   await expect(page.locator("#plan-store-slider")).toHaveAttribute(
     "min",
