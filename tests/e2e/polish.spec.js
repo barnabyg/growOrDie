@@ -103,11 +103,17 @@ async function digitInk(page, node) {
     const origin = probe.getBoundingClientRect();
     return [...probe.children].map((digit) => {
       const box = digit.getBoundingClientRect();
-      return [Math.round(box.left - origin.left), Math.round(box.width)];
+      return {
+        left: Math.round(box.left - origin.left),
+        width: Math.round(box.width),
+      };
     });
   });
   const probe = page.locator("[data-lining-probe]");
-  const png = (await probe.screenshot()).toString("base64");
+  // Finish reveal fades first so a half-transparent ancestor cannot lighten ink.
+  const png = (await probe.screenshot({ animations: "disabled" })).toString(
+    "base64",
+  );
   await probe.evaluate((element) => element.remove());
   return page.evaluate(
     async ({ png, columns }) => {
@@ -123,11 +129,12 @@ async function digitInk(page, node) {
         image.width,
         image.height,
       );
+      // Darker than mid-grey, so anti-aliased edges count as ink only past half.
       const dark = (x, y) => {
         const i = (y * width + x) * 4;
         return data[i] + data[i + 1] + data[i + 2] < 384;
       };
-      return columns.map(([left, span]) => {
+      return columns.map(({ left, width: span }) => {
         const rows = [];
         for (let y = 0; y < height; y++)
           for (let x = left; x < left + span; x++)
