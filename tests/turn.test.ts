@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { CONFIG } from "../src/config.js";
 import { createNewGame } from "../src/simulation.js";
 import { newSave, parseSave } from "../src/persistence.js";
+import { TOLERANCE } from "../src/tolerance.js";
 import { beginTurn, finishTurn } from "../src/turn.js";
 const plan = {
   cultivatedHectares: 400,
@@ -116,4 +117,14 @@ it("freezes storage pricing and checks committed ownership across reload", () =>
     },
   };
   expect(parseSave(JSON.stringify(corrupt))).toBeNull();
+});
+
+it("accepts Storage within the shared tolerance of the maximum, and no further", () => {
+  const pending = beginTurn(createNewGame(CONFIG), plan, 0, calm);
+  expect(() =>
+    finishTurn(pending, pending.maxStoreTons + TOLERANCE / 2, calm),
+  ).not.toThrow();
+  expect(() =>
+    finishTurn(pending, pending.maxStoreTons + TOLERANCE * 2, calm),
+  ).toThrow("outside affordable bounds");
 });

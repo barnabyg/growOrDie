@@ -1,5 +1,6 @@
-import { coins, formatCount as fmt, tons } from "./format.js";
+import { coins, formatCount, signedCount, tons } from "./format.js";
 import type { SaveData } from "./persistence.js";
+import { finalYear } from "./simulation.js";
 
 // Text for the resource header: where the player is in the run and what they have.
 
@@ -20,13 +21,11 @@ export function resourceHeader(save: SaveData): ResourceHeader {
   const { state } = save;
   const latest = save.eventLog.at(-1);
   const report = latest?.result?.report;
-  const change = report ? report.populationEnd - report.populationStart : 0;
   return {
-    // A Collapsed run never plays its next Year, so show the final Year played.
-    year: String(state.collapsed ? state.year - 1 : state.year),
-    population: fmt(state.population),
+    year: String(finalYear(state)),
+    population: formatCount(state.population),
     populationChange: report
-      ? `${change >= 0 ? "+" : "-"}${fmt(Math.abs(change))} last Year`
+      ? `${signedCount(report.populationEnd - report.populationStart)} last Year`
       : "",
     storage: tons(state.storageTons),
     budget: coins(state.budgetCoins),

@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { CONFIG } from "../src/config.js";
-import { createNewGame, eventSummary, resolveTurn } from "../src/simulation.js";
+import { eventSummary } from "../src/event-text.js";
+import { createNewGame, resolveTurn } from "../src/simulation.js";
 
 it.each([
   [false, 0.5, 50, 400],

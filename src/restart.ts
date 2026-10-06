@@ -1,13 +1,12 @@
-import { formatCount as fmt, years } from "./format.js";
-import { resourceHeader } from "./header.js";
+import { formatCount, years } from "./format.js";
 import type { SaveData } from "./persistence.js";
+import { finalYear } from "./simulation.js";
 
 /** What the Restart confirmation dialog says will be lost: the current run,
  * its chronicle and any Harvest awaiting allocation. */
 export function restartWarning(save: SaveData): string {
-  const { year } = resourceHeader(save);
   const parts = [
-    `Your current run (Year ${year}, Population ${fmt(save.state.population)}) will be replaced by a new run starting at Year 1.`,
+    `Your current run (Year ${finalYear(save.state)}, Population ${formatCount(save.state.population)}) will be replaced by a new run starting at Year 1.`,
   ];
   if (save.eventLog.length > 0) {
     parts.push(

@@ -3,7 +3,8 @@ import { collapseSummary } from "../src/collapse.js";
 import { CONFIG } from "../src/config.js";
 import { newSave } from "../src/persistence.js";
 import type { SaveData } from "../src/persistence.js";
-import { createNewGame, eventSummary, resolveTurn } from "../src/simulation.js";
+import { eventSummary } from "../src/event-text.js";
+import { createNewGame, resolveTurn } from "../src/simulation.js";
 import type { GameState } from "../src/types.js";
 
 // Resolves one Year with the given cultivation (unfertilized) and records it in

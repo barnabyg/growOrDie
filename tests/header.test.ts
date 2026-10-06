@@ -85,3 +85,12 @@ it("shows losses and the end of a run after Collapse", () => {
     "Run complete · start a new country when you're ready",
   );
 });
+
+it("signs an unchanged Population as +0, like the Year report and chronicle", () => {
+  const save = newSave(5);
+  completeYear(save, 0);
+  const report = save.eventLog[0]?.result?.report;
+  if (!report) throw new Error("expected a detailed entry");
+  report.populationEnd = report.populationStart;
+  expect(resourceHeader(save).populationChange).toBe("+0 last Year");
+});

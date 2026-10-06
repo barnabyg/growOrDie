@@ -6,16 +6,15 @@ import { economyRates } from "./economy.js";
 import type { EventLogEntry } from "./persistence.js";
 import { productionCosts } from "./turn.js";
 import type { GameState } from "./types.js";
+import { TOLERANCE } from "./tolerance.js";
 
 export interface CarriedPlan {
   cultivatedHectares: number;
   fertilizedHectares: number;
 }
 
-// Tolerates floating-point noise when converting coin totals back to hectares.
-const EPSILON = 1e-6;
 const wholeHectares = (value: number): number =>
-  Math.max(0, Math.floor(value + EPSILON));
+  Math.max(0, Math.floor(value + TOLERANCE));
 
 /** The previous Year's plan as recorded by its saved outcome, or null when the
  * entry is a legacy summary that cannot tell us without inventing values. */
@@ -85,7 +84,7 @@ export function carriedPlan(
   const available = Math.max(0, state.budgetCoins - mandatoryUpkeep);
   const seedRate = config.seedCostPerHectare;
   const fertilizerRate = economyRates(state, config).fertilizer;
-  if (seedRate > 0 && cultivatedHectares * seedRate > available + EPSILON) {
+  if (seedRate > 0 && cultivatedHectares * seedRate > available + TOLERANCE) {
     cultivatedHectares = wholeHectares(available / seedRate);
     fertilizedHectares = 0;
   } else if (fertilizerRate > 0) {

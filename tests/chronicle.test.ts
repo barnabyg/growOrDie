@@ -112,11 +112,11 @@ describe("Country chronicle rows", () => {
     });
   });
 
-  it("shows an unchanged population without a sign", () => {
+  it("shows an unchanged population as +0, like the header and Year report", () => {
     const [row] = chronicleRows([
       detailed(1, "none", { populationStart: 1000, populationEnd: 1000 }),
     ]);
-    expect(row?.population).toBe("0 to 1,000");
+    expect(row?.population).toBe("+0 to 1,000");
   });
 
   it("keeps a legacy summary-only entry to what it recorded", () => {

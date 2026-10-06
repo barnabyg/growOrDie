@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CONFIG } from "../src/config.js";
-import { outcomeHeadline, populationChange } from "../src/outcome.js";
+import { outcomeHeadline, populationTransition } from "../src/outcome.js";
 import { newSave } from "../src/persistence.js";
 import { beginTurn } from "../src/turn.js";
 
@@ -81,9 +81,12 @@ describe("outcome headline", () => {
 
 describe("Population change", () => {
   it("shows start, end and signed change", () => {
-    expect(populationChange(fed)).toBe("1,000 → 1,050 (+50)");
+    expect(populationTransition(fed)).toBe("1,000 → 1,050 (+50)");
     expect(
-      populationChange({ populationStart: 1000, populationEnd: 880 }),
+      populationTransition({ populationStart: 1000, populationEnd: 880 }),
     ).toBe("1,000 → 880 (-120)");
+    expect(
+      populationTransition({ populationStart: 1000, populationEnd: 1000 }),
+    ).toBe("1,000 → 1,000 (+0)");
   });
 });

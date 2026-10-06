@@ -1,5 +1,6 @@
 import type { GameConfig } from "./config.js";
 import type { GameState, PlayerPlan } from "./types.js";
+import { TOLERANCE } from "./tolerance.js";
 
 /** Rates depend only on technologies owned before this year's purchases. */
 export function economyRates(state: GameState, config: GameConfig) {
@@ -62,7 +63,8 @@ export function isAffordable(
   const mandatoryUpkeep =
     mandatoryStorageTons * economyRates(state, config).upkeep;
   return (
-    costs.total <= Math.max(state.budgetCoins, mandatoryUpkeep) + 1e-8 &&
-    costs.production <= Math.max(0, state.budgetCoins - mandatoryUpkeep) + 1e-8
+    costs.total <= Math.max(state.budgetCoins, mandatoryUpkeep) + TOLERANCE &&
+    costs.production <=
+      Math.max(0, state.budgetCoins - mandatoryUpkeep) + TOLERANCE
   );
 }

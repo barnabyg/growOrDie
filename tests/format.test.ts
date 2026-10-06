@@ -8,6 +8,7 @@ import {
   formatCount,
   formatDecimal,
   hectares,
+  signedCount,
   tons,
   years,
 } from "../src/format.js";
@@ -17,6 +18,15 @@ describe("player-facing formatter", () => {
     expect(formatCount(1234.6)).toBe("1,235");
     expect(formatCount(-1500)).toBe("-1,500");
     expect(formatCount(0)).toBe("0");
+  });
+
+  it("signs changes, showing zero as +0", () => {
+    expect(signedCount(50)).toBe("+50");
+    expect(signedCount(-1200)).toBe("-1,200");
+    expect(signedCount(0)).toBe("+0");
+    expect(signedCount(-0)).toBe("+0");
+    expect(signedCount(-0.4)).toBe("+0");
+    expect(signedCount(1499.6)).toBe("+1,500");
   });
 
   it("keeps meaningful decimals for multipliers and prices", () => {
