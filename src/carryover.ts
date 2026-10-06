@@ -50,10 +50,10 @@ function previousPlan(
 /** Opening values for this Year's production inputs. Without a complete saved
  * outcome (a new run or a legacy summary) this is the long-standing default:
  * cultivate all prepared land, fertilize none. A carried plan is reduced to
- * fit prepared land, then to the Budget as judged by the Resolve harvest check
+ * fit prepared land, then to the Budget as judged by the Resolve gate
  * (including mandatory Storage upkeep): fertilizer is dropped before
- * cultivation, and in debt both are 0. Preparation and Technologies are
- * never carried. */
+ * cultivation, and without a positive Budget both are 0. Preparation and
+ * Technologies are never carried. */
 export function carriedPlan(
   state: GameState,
   latest: EventLogEntry | undefined,
@@ -65,7 +65,9 @@ export function carriedPlan(
       cultivatedHectares: state.preparedLandHectares,
       fertilizedHectares: 0,
     };
-  const plan: PlayerPlan = {
+  // Fit cultivation with no fertilizer, then fertilize with what the Budget
+  // has left, both through the same Resolve gate as the plan controls.
+  const unfertilized: PlayerPlan = {
     cultivatedHectares: Math.min(
       previous.cultivatedHectares,
       wholeHectares(state.preparedLandHectares),
@@ -74,15 +76,18 @@ export function carriedPlan(
     preparedHectares: 0,
     storeTons: 0,
   };
-  // Fit cultivation first with no fertilizer, then fertilize what the rest of
-  // the Budget allows, using the same check that enables Resolve harvest.
-  plan.cultivatedHectares = Math.min(
-    plan.cultivatedHectares,
-    affordableHectares(state, plan, "cultivatedHectares", config),
+  const cultivatedHectares = Math.min(
+    unfertilized.cultivatedHectares,
+    affordableHectares(state, unfertilized, "cultivatedHectares", config),
   );
   const fertilizedHectares = Math.min(
     previous.fertilizedHectares,
-    affordableHectares(state, plan, "fertilizedHectares", config),
+    affordableHectares(
+      state,
+      { ...unfertilized, cultivatedHectares },
+      "fertilizedHectares",
+      config,
+    ),
   );
-  return { cultivatedHectares: plan.cultivatedHectares, fertilizedHectares };
+  return { cultivatedHectares, fertilizedHectares };
 }
