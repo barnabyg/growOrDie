@@ -127,7 +127,10 @@ of at least 3:1 contrast against their panel, so they read as editable.
 All screens share one formatter (`src/format.ts`): money always shows coins
 with correct plurals, rates read like 10.00 coins/t or 3 coins/ha, food
 uses t and land uses ha. Famine reads No famine, Partial famine or Total
-famine, and player-facing text counts Years rather than Turns. The flood
+famine, and player-facing text counts Years rather than Turns. Population
+change is always signed, with no change shown as +0 in the header, outcome
+headline, Year report and chronicle. Event icons, summaries and chronicle
+labels come from one map (`src/event-text.ts`). The flood
 outlook mentions lost Storage only when some would be lost. After Collapse
 the header keeps the final Year played.
 
