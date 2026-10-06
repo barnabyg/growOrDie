@@ -168,6 +168,15 @@ describe("carried plan affordability", () => {
     fertilizerWorksCostMultiplier: 0.35,
     granaryUpkeepMultiplier: 0.4,
   };
+  const previousHectares = 400;
+  const owned: TechnologyId[][] = [
+    [],
+    ["fertilizerWorks"],
+    ["granary", "fertilizerWorks"],
+  ];
+  const budgets = [-50, 0, 1, 499, 801, 1100, 1733.3, 2600, 9000];
+  const storages = [0, 1000, 1500, 2400.5];
+  const preparedLands = [0, 150.5, 400, 900];
 
   it.each([
     ["default", CONFIG],
@@ -175,19 +184,14 @@ describe("carried plan affordability", () => {
   ])("always passes the Resolve gate under the %s config", (_, config) => {
     const entry = completedYear(
       { ...createNewGame(config), budgetCoins: 20000 },
-      plan(400, 400),
+      plan(previousHectares, previousHectares),
       config,
     );
     const next = entry.result?.state as GameState;
-    const owned: TechnologyId[][] = [
-      [],
-      ["fertilizerWorks"],
-      ["granary", "fertilizerWorks"],
-    ];
-    for (const ownedTechnologies of owned)
-      for (const budgetCoins of [-50, 0, 1, 499, 801, 1100, 1733.3, 2600, 9000])
-        for (const storageTons of [0, 1000, 1500, 2400.5])
-          for (const preparedLandHectares of [0, 150.5, 400, 900]) {
+    for (const ownedTechnologies of owned) {
+      for (const budgetCoins of budgets) {
+        for (const storageTons of storages) {
+          for (const preparedLandHectares of preparedLands) {
             const state = {
               ...next,
               ownedTechnologies,
@@ -196,37 +200,44 @@ describe("carried plan affordability", () => {
               population: 1000,
               preparedLandHectares,
             };
-            const carried = carriedPlan(state, entry, config);
-            const costs = productionCosts(
-              state,
-              plan(carried.cultivatedHectares, carried.fertilizedHectares),
-              config,
-            );
-            const zero = productionCosts(state, plan(0, 0), config);
-            // Only a plan the Resolve gate accepts is carried; when even an
-            // empty plan is unaffordable (debt), both inputs are 0.
-            if (zero.affordable) expect(costs.affordable).toBe(true);
-            else
-              expect(carried).toEqual({
-                cultivatedHectares: 0,
-                fertilizedHectares: 0,
-              });
-            expect(carried.fertilizedHectares).toBeLessThanOrEqual(
-              carried.cultivatedHectares,
-            );
-            expect(carried.cultivatedHectares).toBeLessThanOrEqual(
-              preparedLandHectares,
-            );
+            const fits = (cultivated: number, fertilized: number) =>
+              productionCosts(state, plan(cultivated, fertilized), config)
+                .affordable;
+            const { cultivatedHectares: c, fertilizedHectares: f } =
+              carriedPlan(state, entry, config);
+
+            expect(fits(c, f)).toBe(true);
+            expect(f).toBeLessThanOrEqual(c);
+            expect(c).toBeLessThanOrEqual(preparedLandHectares);
+            if (budgetCoins <= 0) expect([c, f]).toEqual([0, 0]);
             // Nothing is cut that the Resolve gate would have accepted.
-            const { cultivatedHectares: c, fertilizedHectares: f } = carried;
-            if (c < Math.min(400, Math.floor(preparedLandHectares)))
-              expect(
-                productionCosts(state, plan(c + 1, 0), config).affordable,
-              ).toBe(false);
-            if (f < Math.min(400, c))
-              expect(
-                productionCosts(state, plan(c, f + 1), config).affordable,
-              ).toBe(false);
+            const land = Math.floor(preparedLandHectares);
+            if (c < Math.min(previousHectares, land))
+              expect(fits(c + 1, 0)).toBe(false);
+            if (f < Math.min(previousHectares, c))
+              expect(fits(c, f + 1)).toBe(false);
           }
+        }
+      }
+    }
+  });
+
+  it("spends Budget left after cutting cultivation on fertilizer", () => {
+    const entry = completedYear(
+      { ...createNewGame(tuned), budgetCoins: 20000 },
+      plan(previousHectares, previousHectares),
+      tuned,
+    );
+    const state = {
+      ...(entry.result?.state as GameState),
+      ownedTechnologies: ["fertilizerWorks" as const],
+      budgetCoins: 499,
+      storageTons: 0,
+    };
+    // 184 ha of seed costs 496.8; the 2.2 left buys 1 ha at 1.505 each.
+    expect(carriedPlan(state, entry, tuned)).toEqual({
+      cultivatedHectares: 184,
+      fertilizedHectares: 1,
+    });
   });
 });
