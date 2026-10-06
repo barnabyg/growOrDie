@@ -1,9 +1,4 @@
-import {
-  famineLabel,
-  formatCount as fmt,
-  signedCount,
-  tons,
-} from "./format.js";
+import { famineLabel, formatCount, signedCount, tons } from "./format.js";
 import type { YearReport } from "./types.js";
 
 /** Headline text shared by the allocation and Year report outcome screens. */
@@ -38,5 +33,5 @@ export function outcomeHeadline(report: OutcomeReport): OutcomeHeadline {
 export function populationTransition(
   report: Pick<YearReport, "populationStart" | "populationEnd">,
 ): string {
-  return `${fmt(report.populationStart)} → ${fmt(report.populationEnd)} (${signedCount(report.populationEnd - report.populationStart)})`;
+  return `${formatCount(report.populationStart)} → ${formatCount(report.populationEnd)} (${signedCount(report.populationEnd - report.populationStart)})`;
 }

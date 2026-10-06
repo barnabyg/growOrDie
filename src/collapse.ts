@@ -1,4 +1,4 @@
-import { famineLabel, formatCount as fmt, tons, years } from "./format.js";
+import { famineLabel, formatCount, tons, years } from "./format.js";
 import type { SaveData } from "./persistence.js";
 import { finalYear } from "./simulation.js";
 
@@ -26,17 +26,17 @@ export function collapseSummary(
     const food = `${famineLabel(report.famine)}: Harvest ${tons(report.harvestTons)} and ${tons(report.availableFoodTons - report.harvestTons)} stored against ${tons(report.consumptionTons)} needed.`;
     cause = totalFamine
       ? `${food} No one could be fed, so the population reached zero.`
-      : `${food} Population fell from ${fmt(report.populationStart)} to ${fmt(report.populationEnd)}, below half the starting ${fmt(startingPopulation)}.`;
+      : `${food} Population fell from ${formatCount(report.populationStart)} to ${formatCount(report.populationEnd)}, below half the starting ${formatCount(startingPopulation)}.`;
   } else {
     // Legacy saves may keep only the final Year's summary line.
     cause = totalFamine
       ? "Total famine: no food at all, the population reached zero."
-      : `The population fell below half of the starting ${fmt(startingPopulation)}.`;
+      : `The population fell below half of the starting ${formatCount(startingPopulation)}.`;
   }
   return {
     cause,
     event: latest && latest.event !== "none" ? latest.summary : "",
     runLength: years(finalYear(state)),
-    score: fmt(state.highestPopulation),
+    score: formatCount(state.highestPopulation),
   };
 }

@@ -28,8 +28,8 @@ import {
   coins,
   exactCoins,
   exactTons,
-  formatCount as fmt,
-  formatDecimal as fmtRate,
+  formatCount,
+  formatDecimal,
   hectares,
   tons,
 } from "./format.js";
@@ -134,7 +134,7 @@ function renderStats(): void {
 }
 
 function renderPlan(state: GameState): void {
-  el<HTMLElement>("plan-fert-yield").textContent = fmtRate(
+  el<HTMLElement>("plan-fert-yield").textContent = formatDecimal(
     CONFIG.fertilizerYieldMultiplier,
   );
   text("plan-seed-price", coinRate(CONFIG.seedCostPerHectare, "ha"));
@@ -142,7 +142,7 @@ function renderPlan(state: GameState): void {
     state.year !== 1 || save.eventLog.length > 0;
   el<HTMLElement>("plan-year").textContent = String(state.year);
   const maxHectares = state.preparedLandHectares;
-  el<HTMLElement>("plan-max").textContent = fmt(maxHectares);
+  el<HTMLElement>("plan-max").textContent = formatCount(maxHectares);
   el<HTMLElement>("plan-fert-price").textContent = coinRate(
     economyRates(state, CONFIG).fertilizer,
     "ha",
@@ -428,7 +428,7 @@ function renderOutlook(state: GameState, plan: PlayerPlan): void {
     `${bar.consumptionPercent}%`;
   text(
     "forecast-food-description",
-    `Available food ${fmt(ordinary.availableFoodTons)} tons (Harvest ${fmt(ordinary.harvestTons)} tons plus opening Storage ${fmt(ordinary.storageTons)} tons) against Consumption ${fmt(consumptionTons)} tons: ${fmt(Math.abs(ordinary.balanceTons))} tons ${ordinary.balanceTons >= 0 ? "Surplus" : "shortfall"} before Events.`,
+    `Available food ${formatCount(ordinary.availableFoodTons)} tons (Harvest ${formatCount(ordinary.harvestTons)} tons plus opening Storage ${formatCount(ordinary.storageTons)} tons) against Consumption ${formatCount(consumptionTons)} tons: ${formatCount(Math.abs(ordinary.balanceTons))} tons ${ordinary.balanceTons >= 0 ? "Surplus" : "shortfall"} before Events.`,
   );
   for (const scenario of ["ordinary", "drought", "flood"] as const) {
     text(`forecast-${scenario}-harvest`, tons(outlook[scenario].harvestTons));
@@ -617,14 +617,14 @@ function renderReport(result: TurnResult): void {
   const milestoneEl = el<HTMLElement>("milestone-banner");
   if (milestoneLevel !== null) {
     const threshold = CONFIG.startingPopulation * 2 ** milestoneLevel;
-    milestoneEl.textContent = `Milestone — population reached ×${2 ** milestoneLevel} of the starting value: ${fmt(threshold)} people`;
+    milestoneEl.textContent = `Milestone — population reached ×${2 ** milestoneLevel} of the starting value: ${formatCount(threshold)} people`;
     milestoneEl.hidden = false;
   } else {
     milestoneEl.hidden = true;
   }
 
   text("report-population-summary", populationTransition(report));
-  text("report-peak", fmt(state.highestPopulation));
+  text("report-peak", formatCount(state.highestPopulation));
   text("report-storage-summary", tons(state.storageTons));
   text("report-budget-summary", coins(state.budgetCoins));
   el<HTMLElement>("report-pop-change").textContent =
@@ -709,12 +709,12 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
     population,
   );
   const caption = preview
-    ? `Plan preview: ${fmt(cultivated ?? 0)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%).${preview.preparedHectares > 0 ? ` ${hectares(preview.preparedHectares)} of new land available next Year.` : ""}`
+    ? `Plan preview: ${formatCount(cultivated ?? 0)} of ${formatCount(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%).${preview.preparedHectares > 0 ? ` ${hectares(preview.preparedHectares)} of new land available next Year.` : ""}`
     : cultivated === undefined
       ? year === undefined
         ? "No harvest resolved yet."
         : `Year ${year}: cultivation was not recorded in this legacy save.`
-      : `${save.pendingTurn ? "This Year" : `Year ${year}`}: ${fmt(cultivated)} of ${fmt(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%). Latest harvest.`;
+      : `${save.pendingTurn ? "This Year" : `Year ${year}`}: ${formatCount(cultivated)} of ${formatCount(state.arableLandHectares)} ha cultivated (${Math.round(fraction * 100)}%). Latest harvest.`;
   const village =
     villageHouses(population, state.highestPopulation).faded > 0
       ? `${caption} Faded houses show Population lost since its peak.`
@@ -741,17 +741,17 @@ function renderCountry(state: GameState, preview?: PlayerPlan): void {
   const threshold = CONFIG.startingPopulation * 2 ** level;
   // Milestone progress is a planning aid; the Collapse summary carries the Score.
   el<HTMLElement>("milestone-meter").hidden = state.collapsed;
-  text("milestone-target", `${fmt(threshold)} people`);
+  text("milestone-target", `${formatCount(threshold)} people`);
   const progress = el<HTMLProgressElement>("milestone-progress");
   progress.max = threshold;
   progress.value = Math.min(population, threshold);
   progress.setAttribute(
     "aria-valuetext",
-    `${fmt(population)} of ${fmt(threshold)} people`,
+    `${formatCount(population)} of ${formatCount(threshold)} people`,
   );
   text(
     "milestone-caption",
-    `Population doubles at each Milestone · Score ${fmt(state.highestPopulation)}`,
+    `Population doubles at each Milestone · Score ${formatCount(state.highestPopulation)}`,
   );
   const landmarks = el<HTMLElement>("country-technologies");
   landmarks.hidden = state.ownedTechnologies.length === 0;

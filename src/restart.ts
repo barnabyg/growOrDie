@@ -1,4 +1,4 @@
-import { formatCount as fmt, years } from "./format.js";
+import { formatCount, years } from "./format.js";
 import type { SaveData } from "./persistence.js";
 import { finalYear } from "./simulation.js";
 
@@ -6,7 +6,7 @@ import { finalYear } from "./simulation.js";
  * its chronicle and any Harvest awaiting allocation. */
 export function restartWarning(save: SaveData): string {
   const parts = [
-    `Your current run (Year ${finalYear(save.state)}, Population ${fmt(save.state.population)}) will be replaced by a new run starting at Year 1.`,
+    `Your current run (Year ${finalYear(save.state)}, Population ${formatCount(save.state.population)}) will be replaced by a new run starting at Year 1.`,
   ];
   if (save.eventLog.length > 0) {
     parts.push(

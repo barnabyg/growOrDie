@@ -1,4 +1,4 @@
-import { coins, formatCount as fmt, signedCount, tons } from "./format.js";
+import { coins, formatCount, signedCount, tons } from "./format.js";
 import type { SaveData } from "./persistence.js";
 import { finalYear } from "./simulation.js";
 
@@ -23,7 +23,7 @@ export function resourceHeader(save: SaveData): ResourceHeader {
   const report = latest?.result?.report;
   return {
     year: String(finalYear(state)),
-    population: fmt(state.population),
+    population: formatCount(state.population),
     populationChange: report
       ? `${signedCount(report.populationEnd - report.populationStart)} last Year`
       : "",
