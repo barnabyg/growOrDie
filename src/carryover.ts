@@ -4,8 +4,8 @@
 import type { GameConfig } from "./config.js";
 import { economyRates } from "./economy.js";
 import type { EventLogEntry } from "./persistence.js";
-import { productionCosts } from "./turn.js";
-import type { GameState } from "./types.js";
+import { affordableHectares } from "./turn.js";
+import type { GameState, PlayerPlan } from "./types.js";
 import { TOLERANCE } from "./tolerance.js";
 
 export interface CarriedPlan {
@@ -50,8 +50,9 @@ function previousPlan(
 /** Opening values for this Year's production inputs. Without a complete saved
  * outcome (a new run or a legacy summary) this is the long-standing default:
  * cultivate all prepared land, fertilize none. A carried plan is reduced to
- * fit prepared land, then to the Budget left after mandatory Storage upkeep:
- * fertilizer is dropped before cultivation. Preparation and Technologies are
+ * fit prepared land, then to the Budget as judged by the Resolve harvest check
+ * (including mandatory Storage upkeep): fertilizer is dropped before
+ * cultivation, and in debt both are 0. Preparation and Technologies are
  * never carried. */
 export function carriedPlan(
   state: GameState,
@@ -64,35 +65,24 @@ export function carriedPlan(
       cultivatedHectares: state.preparedLandHectares,
       fertilizedHectares: 0,
     };
-  let cultivatedHectares = Math.min(
-    previous.cultivatedHectares,
-    wholeHectares(state.preparedLandHectares),
-  );
-  let fertilizedHectares = Math.min(
-    previous.fertilizedHectares,
-    cultivatedHectares,
-  );
-
-  const empty = {
-    cultivatedHectares: 0,
+  const plan: PlayerPlan = {
+    cultivatedHectares: Math.min(
+      previous.cultivatedHectares,
+      wholeHectares(state.preparedLandHectares),
+    ),
     fertilizedHectares: 0,
     preparedHectares: 0,
     storeTons: 0,
   };
-  const { retained } = productionCosts(state, empty, config);
-  const mandatoryUpkeep = retained * economyRates(state, config).upkeep;
-  const available = Math.max(0, state.budgetCoins - mandatoryUpkeep);
-  const seedRate = config.seedCostPerHectare;
-  const fertilizerRate = economyRates(state, config).fertilizer;
-  if (seedRate > 0 && cultivatedHectares * seedRate > available + TOLERANCE) {
-    cultivatedHectares = wholeHectares(available / seedRate);
-    fertilizedHectares = 0;
-  } else if (fertilizerRate > 0) {
-    const left = available - cultivatedHectares * seedRate;
-    fertilizedHectares = Math.min(
-      fertilizedHectares,
-      wholeHectares(left / fertilizerRate),
-    );
-  }
-  return { cultivatedHectares, fertilizedHectares };
+  // Fit cultivation first with no fertilizer, then fertilize what the rest of
+  // the Budget allows, using the same check that enables Resolve harvest.
+  plan.cultivatedHectares = Math.min(
+    plan.cultivatedHectares,
+    affordableHectares(state, plan, "cultivatedHectares", config),
+  );
+  const fertilizedHectares = Math.min(
+    previous.fertilizedHectares,
+    affordableHectares(state, plan, "fertilizedHectares", config),
+  );
+  return { cultivatedHectares: plan.cultivatedHectares, fertilizedHectares };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONFIG } from "../src/config.js";
+import { CONFIG, type GameConfig } from "../src/config.js";
 import { carriedPlan } from "../src/carryover.js";
 import type { EventLogEntry } from "../src/persistence.js";
 import { eventSummary } from "../src/event-text.js";
@@ -156,5 +156,77 @@ describe("carried plan", () => {
       cultivatedHectares: 400,
       fertilizedHectares: 0,
     });
+  });
+});
+
+describe("carried plan affordability", () => {
+  const tuned: GameConfig = {
+    ...CONFIG,
+    seedCostPerHectare: 2.7,
+    fertilizerCostPerHectare: 4.3,
+    storageUpkeepPerTonPerYear: 1.9,
+    fertilizerWorksCostMultiplier: 0.35,
+    granaryUpkeepMultiplier: 0.4,
+  };
+
+  it.each([
+    ["default", CONFIG],
+    ["tuned", tuned],
+  ])("always passes the Resolve gate under the %s config", (_, config) => {
+    const entry = completedYear(
+      { ...createNewGame(config), budgetCoins: 20000 },
+      plan(400, 400),
+      config,
+    );
+    const next = entry.result?.state as GameState;
+    const owned: TechnologyId[][] = [
+      [],
+      ["fertilizerWorks"],
+      ["granary", "fertilizerWorks"],
+    ];
+    for (const ownedTechnologies of owned)
+      for (const budgetCoins of [-50, 0, 1, 499, 801, 1100, 1733.3, 2600, 9000])
+        for (const storageTons of [0, 1000, 1500, 2400.5])
+          for (const preparedLandHectares of [0, 150.5, 400, 900]) {
+            const state = {
+              ...next,
+              ownedTechnologies,
+              budgetCoins,
+              storageTons,
+              population: 1000,
+              preparedLandHectares,
+            };
+            const carried = carriedPlan(state, entry, config);
+            const costs = productionCosts(
+              state,
+              plan(carried.cultivatedHectares, carried.fertilizedHectares),
+              config,
+            );
+            const zero = productionCosts(state, plan(0, 0), config);
+            // Only a plan the Resolve gate accepts is carried; when even an
+            // empty plan is unaffordable (debt), both inputs are 0.
+            if (zero.affordable) expect(costs.affordable).toBe(true);
+            else
+              expect(carried).toEqual({
+                cultivatedHectares: 0,
+                fertilizedHectares: 0,
+              });
+            expect(carried.fertilizedHectares).toBeLessThanOrEqual(
+              carried.cultivatedHectares,
+            );
+            expect(carried.cultivatedHectares).toBeLessThanOrEqual(
+              preparedLandHectares,
+            );
+            // Nothing is cut that the Resolve gate would have accepted.
+            const { cultivatedHectares: c, fertilizedHectares: f } = carried;
+            if (c < Math.min(400, Math.floor(preparedLandHectares)))
+              expect(
+                productionCosts(state, plan(c + 1, 0), config).affordable,
+              ).toBe(false);
+            if (f < Math.min(400, c))
+              expect(
+                productionCosts(state, plan(c, f + 1), config).affordable,
+              ).toBe(false);
+          }
   });
 });
