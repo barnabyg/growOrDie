@@ -20,7 +20,7 @@ import { economyRates } from "./economy.js";
 import { carriedPlan } from "./carryover.js";
 import { collapseSummary } from "./collapse.js";
 import { CONFIG } from "./config.js";
-import { eventSummary } from "./simulation.js";
+import { eventIcon, eventSummary } from "./event-text.js";
 import { technologyBenefit, technologyStatus } from "./technology.js";
 import { chronicleRows, UNKNOWN } from "./chronicle.js";
 import {
@@ -496,15 +496,9 @@ function renderAllocation(): void {
   text("allocation-famine", headline.context);
   el<HTMLElement>("event-reveal").classList.toggle("famine", headline.famine);
   el<HTMLElement>("allocation-event").textContent = eventSummary(report);
-  const eventIcons = {
-    none: "sun",
-    drought: "sun",
-    flood: "rain",
-    priceShock: "trade",
-  };
   el<SVGUseElement>("allocation-event-icon").setAttribute(
     "href",
-    `#icon-${eventIcons[report.event]}`,
+    `#icon-${eventIcon(report.event)}`,
   );
   text("allocation-population-change", populationTransition(report));
   el<HTMLElement>("allocation-harvest").textContent = tons(report.harvestTons);

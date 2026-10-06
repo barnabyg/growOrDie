@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  createNewGame,
-  eventSummary,
-  finalYear,
-  resolveTurn,
-} from "../src/simulation.js";
+import { eventSummary } from "../src/event-text.js";
+import { createNewGame, finalYear, resolveTurn } from "../src/simulation.js";
 import { CONFIG } from "../src/config.js";
 import type { GameState, PlayerPlan } from "../src/types.js";
 

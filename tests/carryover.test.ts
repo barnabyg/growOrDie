@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { CONFIG } from "../src/config.js";
 import { carriedPlan } from "../src/carryover.js";
 import type { EventLogEntry } from "../src/persistence.js";
-import { createNewGame, eventSummary } from "../src/simulation.js";
+import { eventSummary } from "../src/event-text.js";
+import { createNewGame } from "../src/simulation.js";
 import { beginTurn, finishTurn, productionCosts } from "../src/turn.js";
 import type { GameState, PlayerPlan, TechnologyId } from "../src/types.js";
 

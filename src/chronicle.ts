@@ -1,13 +1,13 @@
 import {
-  coinRate,
   coins,
   famineLabel,
   formatCount,
   signedCount,
   tons,
 } from "./format.js";
+import { eventLabel } from "./event-text.js";
 import type { EventLogEntry } from "./persistence.js";
-import type { EventType, YearReport } from "./types.js";
+import type { EventType } from "./types.js";
 
 /** Country chronicle rows: one compact table row per completed Year, newest
  * first. Legacy summary-only entries keep their recorded summary and mark every
@@ -24,21 +24,6 @@ export interface ChronicleRow {
   famine: string | null; // Famine (and Collapse) label; null when the Year had no Famine
   budget: string; // Budget carried into the following Year
   detailed: boolean; // false for legacy summary-only entries
-}
-
-function eventLabel(report: YearReport): string {
-  switch (report.event) {
-    case "drought":
-      return `Drought: Yield down ${Math.round(report.droughtYieldLossFraction * 100)}%`;
-    case "flood":
-      return report.storageDestroyedTons > 0
-        ? `Flood: ${tons(report.storageDestroyedTons)} of Storage lost`
-        : "Flood";
-    case "priceShock":
-      return `Export price shock: ${coinRate(report.exportPriceCoins, "t", 2)}`;
-    default:
-      return "No event";
-  }
 }
 
 function populationOutcome(start: number, end: number): string {
