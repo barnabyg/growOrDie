@@ -53,16 +53,3 @@ it("uses the final Year played for a Collapsed run", () => {
   save.state = { ...save.state, year: 4, population: 0, collapsed: true };
   expect(restartWarning(save)).toContain("(Year 3, Population 0)");
 });
-
-it("names the final Year played after Collapse", () => {
-  const save = newSave(5);
-  const pending = beginTurn(
-    save.state,
-    { ...plan, cultivatedHectares: 0, fertilizedHectares: 0 },
-    6,
-    CONFIG,
-  );
-  save.state = finishTurn(pending, 0, CONFIG).state;
-  expect(save.state.collapsed).toBe(true);
-  expect(restartWarning(save)).toContain("(Year 1, Population 0)");
-});

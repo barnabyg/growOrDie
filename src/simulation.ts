@@ -27,8 +27,6 @@ export function createNewGame(config: GameConfig): GameState {
   };
 }
 
-// Harvest for a given allocation at the base Yield rules (no Events); shared with
-// the UI's pre-event Surplus estimate so the plan preview never drifts from resolution.
 /** The Year to show as the run's latest: the current Year, or the final Year
  * played once the run has Collapsed, since a Collapsed run never plays its next
  * Year. */
@@ -38,6 +36,8 @@ export function finalYear(
   return state.collapsed ? state.year - 1 : state.year;
 }
 
+// Harvest for a given allocation at the base Yield rules (no Events); shared with
+// the UI's pre-event Surplus estimate so the plan preview never drifts from resolution.
 export function estimateHarvestTons(
   config: GameConfig,
   cultivatedHectares: number,
