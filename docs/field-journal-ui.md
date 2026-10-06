@@ -326,8 +326,9 @@ remain, that each panel shows at most one helper line while How to play covers
 the removed explanations, and that no label butts against the Cultivate field
 at 390 px in Year 2. `tests/e2e/polish.spec.js` checks that no visible text
 on the plan, allocation and report screens renders below 13 px at 1,280 and
-390 px, that serif text containing digits uses lining figures, that number
-inputs are not darker than their panel in light mode and have a border of at
+390 px, that serif text containing digits renders lining figures (measured
+from the digit glyphs' ink, not the computed style), that number inputs are
+not darker than their panel in light mode and have a border of at
 least 3:1 against it in light and dark mode, that no label row touches the
 next control below it at 390 px on the plan, allocation and report screens,
 and that the chronicle's empty state hides once a Harvest is committed, across

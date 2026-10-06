@@ -82,27 +82,114 @@ for (const width of [1280, 390]) {
   });
 }
 
-test("serif headings and headline numbers use lining figures", async ({
+// Ink top and bottom (px) of each digit 0–9 set in `node`'s own font. A probe
+// appended to the node inherits its font exactly; it is drawn black on white
+// so ink is any dark pixel. Lining figures share one top and baseline, while
+// old-style figures rise to x-height or ascender and 3, 4, 5, 7 and 9 descend.
+async function digitInk(page, node) {
+  const columns = await node.evaluate((element) => {
+    const probe = document.createElement("span");
+    probe.dataset.liningProbe = "";
+    probe.style.cssText =
+      "position:fixed;top:0;left:0;z-index:9999;padding:8px;" +
+      "background:#fff;color:#000;white-space:nowrap;text-shadow:none";
+    for (const digit of "0123456789")
+      probe.append(
+        Object.assign(document.createElement("span"), {
+          textContent: digit,
+        }),
+      );
+    element.append(probe);
+    const origin = probe.getBoundingClientRect();
+    return [...probe.children].map((digit) => {
+      const box = digit.getBoundingClientRect();
+      return {
+        left: Math.round(box.left - origin.left),
+        width: Math.round(box.width),
+      };
+    });
+  });
+  const probe = page.locator("[data-lining-probe]");
+  // Finish reveal fades first so a half-transparent ancestor cannot lighten ink.
+  const png = (await probe.screenshot({ animations: "disabled" })).toString(
+    "base64",
+  );
+  await probe.evaluate((element) => element.remove());
+  return page.evaluate(
+    async ({ png, columns }) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${png}`;
+      await image.decode();
+      const canvas = new OffscreenCanvas(image.width, image.height);
+      const context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0);
+      const { data, width, height } = context.getImageData(
+        0,
+        0,
+        image.width,
+        image.height,
+      );
+      // Darker than mid-grey, so anti-aliased edges count as ink only past half.
+      const dark = (x, y) => {
+        const i = (y * width + x) * 4;
+        return data[i] + data[i + 1] + data[i + 2] < 384;
+      };
+      return columns.map(({ left, width: span }) => {
+        const rows = [];
+        for (let y = 0; y < height; y++)
+          for (let x = left; x < left + span; x++)
+            if (dark(x, y)) {
+              rows.push(y);
+              break;
+            }
+        return { top: rows[0], bottom: rows.at(-1) };
+      });
+    },
+    { png, columns },
+  );
+}
+
+test("serif headings and headline numbers render lining figures", async ({
   page,
 }) => {
   await eachScreen(page, async (screen) => {
-    const serif = await page.evaluate(() =>
-      [...document.body.querySelectorAll("*")]
+    // Visible serif elements whose own text holds digits, e.g. "Year 1", the
+    // outcome headline's number and "1,004 people lost".
+    const texts = await page.evaluate(() => {
+      for (const node of document.querySelectorAll("[data-numeral-check]"))
+        delete node.dataset.numeralCheck;
+      return [...document.body.querySelectorAll("*")]
         .filter(
           (node) =>
             node.getClientRects().length > 0 &&
             /Georgia/.test(getComputedStyle(node).fontFamily) &&
-            /\d/.test(node.textContent),
+            [...node.childNodes].some(
+              (child) => child.nodeType === 3 && /\d/.test(child.textContent),
+            ),
         )
-        .map((node) => ({
-          text: node.textContent.trim().slice(0, 40),
-          numerals: getComputedStyle(node).fontVariantNumeric,
-        })),
-    );
+        .map((node, index) => {
+          node.dataset.numeralCheck = String(index);
+          return node.textContent.trim().slice(0, 40);
+        });
+    });
     // Year headings and the outcome headline's number are always present.
-    expect(serif.length, screen).toBeGreaterThan(0);
-    for (const { text, numerals } of serif)
-      expect(numerals, `${screen}: ${text}`).toContain("lining-nums");
+    expect(texts.length, screen).toBeGreaterThan(0);
+    for (const [index, text] of texts.entries()) {
+      const ink = await digitInk(
+        page,
+        page.locator(`[data-numeral-check="${index}"]`),
+      );
+      const spread = (edge) =>
+        Math.max(...ink.map((digit) => digit[edge])) -
+        Math.min(...ink.map((digit) => digit[edge]));
+      // Lining digits measure the same; allow a pixel for round-digit overshoot.
+      // Old-style Georgia differs by 4 px even in the smallest numeric heading.
+      expect(spread("top"), `${screen}: ${text} tops`).toBeLessThanOrEqual(1);
+      expect(
+        spread("bottom"),
+        `${screen}: ${text} baselines`,
+      ).toBeLessThanOrEqual(1);
+    }
   });
 });
 
