@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { createNewGame, eventSummary, resolveTurn } from "../src/simulation.js";
+import {
+  createNewGame,
+  eventSummary,
+  finalYear,
+  resolveTurn,
+} from "../src/simulation.js";
 import { CONFIG } from "../src/config.js";
 import type { GameState, PlayerPlan } from "../src/types.js";
 
@@ -1344,5 +1349,15 @@ describe("resolveTurn — collapse", () => {
     expect(result.report.populationEnd).toBe(800);
     expect(result.state.collapsed).toBe(false);
     expect(result.state.collapseCause).toBeNull();
+  });
+});
+
+describe("finalYear", () => {
+  it("is the current Year while the run continues", () => {
+    expect(finalYear({ year: 4, collapsed: false })).toBe(4);
+  });
+
+  it("is the last Year played once the run has Collapsed", () => {
+    expect(finalYear({ year: 4, collapsed: true })).toBe(3);
   });
 });

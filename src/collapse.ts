@@ -1,5 +1,6 @@
 import { famineLabel, formatCount as fmt, tons, years } from "./format.js";
 import type { SaveData } from "./persistence.js";
+import { finalYear } from "./simulation.js";
 
 /** Text for the Collapse summary: why the run ended, in the final Year's food
  * figures, plus the Event (only when one occurred), run length and Score. */
@@ -35,8 +36,7 @@ export function collapseSummary(
   return {
     cause,
     event: latest && latest.event !== "none" ? latest.summary : "",
-    // A Collapsed run never plays its next Year.
-    runLength: years(state.year - 1),
+    runLength: years(finalYear(state)),
     score: fmt(state.highestPopulation),
   };
 }
