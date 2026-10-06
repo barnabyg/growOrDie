@@ -471,12 +471,12 @@ function renderOutlook(state: GameState, outlook: FoodOutlook): void {
 function renderCommitButton(
   buttonId: string,
   labelId: string,
-  state: CommitButtonState,
+  view: CommitButtonState,
 ): void {
   const button = el<HTMLButtonElement>(buttonId);
-  button.disabled = state.disabled;
-  button.classList.toggle("warning", state.warning);
-  text(labelId, state.label);
+  button.disabled = view.disabled;
+  button.classList.toggle("warning", view.warning);
+  text(labelId, view.label);
 }
 
 interface CommitBarValue {

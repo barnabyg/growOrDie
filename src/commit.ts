@@ -1,5 +1,8 @@
 import { tons } from "./format.js";
 
+/** Label, disabled state and warning for the two commit buttons: Resolve
+ * harvest (production plan) and Finish year (Storage allocation). */
+
 /** What a commit button shows. The in-page button and the mobile commit bar
  * both render the same state, so they cannot disagree. */
 export interface CommitButtonState {
