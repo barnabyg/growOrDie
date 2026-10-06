@@ -15,10 +15,13 @@ dividers rather than by tinted boxes, and Technology cards and the Milestone
 banner are outlined, not filled. Headings carry no eyebrow labels that repeat
 them. Each panel keeps at most one short helper line, marked `.helper`: the
 Technologies timing ("One-off · effects start next Year") in the plan and the
-Storage guidance in allocation. The general explanations (fertilizer and
-weather, the forecast being an estimate until the Event is rolled, mandatory
-Storage upkeep in plan spending, Technology timing and landmarks, export of new
-Harvest only, and reloading a committed Harvest) live in How to play.
+Storage range in allocation ("500 t–1,460 t affordable · 500 t of old food must
+stay"), which carries only decision information: the affordable range and any
+mandatory minimum, with the upkeep rate beside the Storage label. The general
+explanations (fertilizer and weather, the forecast being an estimate until the
+Event is rolled, mandatory Storage upkeep in plan spending, Technology timing
+and landmarks, the Storage and export trade-off, export of new Harvest only,
+and reloading a committed Harvest) live in How to play.
 
 The plan reads top to bottom: production (cultivate, fertilize, prepare) and
 the food outlook, then Technologies, then the spending summary and Resolve
@@ -322,9 +325,9 @@ with columns that end within 400 px of each other on every screen;
 `tests/landscape.test.ts` covers the house counts. `tests/e2e/panels.spec.js`
 checks that no tinted container sits inside another on the plan, allocation,
 report and Collapse screens in light and dark mode, that no eyebrow labels
-remain, that each panel shows at most one helper line while How to play covers
-the removed explanations, and that no label butts against the Cultivate field
-at 390 px in Year 2. `tests/e2e/polish.spec.js` checks that no visible text
+remain, that each panel shows at most one helper line (counting the allocation
+Storage range) while How to play covers the removed explanations, and that no
+label butts against the Cultivate field at 390 px in Year 2. `tests/e2e/polish.spec.js` checks that no visible text
 on the plan, allocation and report screens renders below 13 px at 1,280 and
 390 px, that serif text containing digits renders lining figures (measured
 from the digit glyphs' ink, not the computed style), that number inputs are
