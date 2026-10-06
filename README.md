@@ -11,13 +11,16 @@ From a terminal:
 ```sh
 git clone https://github.com/barnabyg/growOrDie.git
 cd growOrDie
-npm ci
-npm run build
-npm start
+npm run play
 ```
 
-Open http://127.0.0.1:8000. On native Windows PowerShell use `npm.cmd` and
-`npx.cmd` in place of `npm` and `npx`. Stop the server with Ctrl+C.
+`npm run play` installs dependencies when needed (`npm ci`), builds the game,
+starts the server and opens http://127.0.0.1:8000 in your default browser. Add
+`-- --no-open` (or set `NO_OPEN=1`) to skip the browser, and set `PORT` to use
+another port. Stop the server with Ctrl+C. On native Windows PowerShell use
+`npm.cmd` and `npx.cmd` in place of `npm` and `npx`.
+
+The individual steps are `npm ci`, `npm run build` and `npm start`.
 The server is for local development and binds only to loopback; see
 [local server and static hosting](docs/local-server.md).
 
