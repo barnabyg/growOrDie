@@ -11,6 +11,7 @@ import type {
   YearReport,
   TurnResult,
 } from "./types.js";
+import { TOLERANCE } from "./tolerance.js";
 
 export const SAVE_KEY = "growOrDie.save.v1";
 export const SAVE_VERSION = 1;
@@ -254,12 +255,12 @@ function parsePending(value: unknown, opening: GameState): PendingTurn | null {
     !isFiniteNumber(max) ||
     min < 0 ||
     max < min ||
-    max > surplus + 1e-8 ||
+    max > surplus + TOLERANCE ||
     state.storageTons !== min
   )
     return null;
   const close = (left: number, right: number): boolean =>
-    Math.abs(left - right) < 1e-6;
+    Math.abs(left - right) < TOLERANCE;
   if (
     !close(min + report.exportTons, surplus) ||
     !close(

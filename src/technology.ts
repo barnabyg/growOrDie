@@ -1,6 +1,7 @@
 import type { GameConfig } from "./config.js";
 import { exactCoins } from "./format.js";
 import type { TechnologyId } from "./types.js";
+import { TOLERANCE } from "./tolerance.js";
 
 /** Player-facing copy for Technology cards: one benefit line derived from
  * configuration and a status shown only when it differs from the default. */
@@ -59,7 +60,7 @@ export function technologyStatus(card: {
 }): { kind: TechnologyStatusKind; text: string } {
   if (card.owned) return { kind: "owned", text: "Owned" };
   if (card.selected) return { kind: "selected", text: "Selected" };
-  if (card.shortfall > 1e-8) {
+  if (card.shortfall > TOLERANCE) {
     return {
       kind: "unaffordable",
       text: `Need ${exactCoins(card.shortfall)} more`,

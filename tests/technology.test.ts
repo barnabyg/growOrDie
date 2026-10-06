@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CONFIG } from "../src/config.js";
 import { technologyBenefit, technologyStatus } from "../src/technology.js";
+import { TOLERANCE } from "../src/tolerance.js";
 
 describe("Technology card benefit line", () => {
   it("describes each default Technology in one plain line", () => {
@@ -88,5 +89,14 @@ describe("Technology card status", () => {
     expect(
       technologyStatus({ owned: false, selected: false, shortfall: 1e-10 }),
     ).toEqual({ kind: "available", text: "" });
+  });
+});
+
+describe("Technology affordability tolerance", () => {
+  it("treats floating-point noise within the shared tolerance as affordable", () => {
+    const status = (shortfall: number) =>
+      technologyStatus({ owned: false, selected: false, shortfall }).kind;
+    expect(status(TOLERANCE / 2)).toBe("available");
+    expect(status(TOLERANCE * 2)).toBe("unaffordable");
   });
 });

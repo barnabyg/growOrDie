@@ -7,6 +7,7 @@ import type {
 } from "./types.js";
 import { economyRates, isAffordable, planCosts } from "./economy.js";
 import { resolveTurn } from "./simulation.js";
+import { TOLERANCE } from "./tolerance.js";
 
 /** Reserve the worst-case unavoidable bill before revealing the event. A flood
  * can destroy reserves, but can never increase this minimum retained quantity. */
@@ -116,7 +117,7 @@ export function finishTurn(
   if (
     !Number.isFinite(storeTons) ||
     storeTons < pending.minStoreTons ||
-    storeTons > pending.maxStoreTons + 1e-8
+    storeTons > pending.maxStoreTons + TOLERANCE
   )
     throw new Error("Storage allocation is outside affordable bounds");
   const { state, report } = pending.result;
