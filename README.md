@@ -14,6 +14,10 @@ cd growOrDie
 npm run play
 ```
 
+On Windows, run `run.bat` from the repository folder instead (`.\run.bat` in
+PowerShell, `run.bat` in Command Prompt, or double-click it in Explorer). It does
+the same as `npm.cmd run play` and keeps the window open if a step fails.
+
 `npm run play` installs dependencies when needed (`npm ci`), builds the game,
 starts the server and opens http://127.0.0.1:8000 in your default browser. Add
 `-- --no-open` (or set `NO_OPEN=1`) to skip the browser, and set `PORT` to use

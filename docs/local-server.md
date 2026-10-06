@@ -1,6 +1,6 @@
 # Local development server
 
-Run `npm run play` to install dependencies when `node_modules` is missing or
+Run `npm run play` (or `run.bat` on Windows) to install dependencies when `node_modules` is missing or
 older than `package-lock.json`, build, start the server and open the game in the
 default browser (`--no-open` or `NO_OPEN=1` skips the browser). It stops at the
 first failing step with a non-zero exit code and reports a busy port in one line.
