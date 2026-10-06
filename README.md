@@ -21,15 +21,15 @@ Open http://127.0.0.1:8000. On native Windows PowerShell use `npm.cmd` and
 The server is for local development and binds only to loopback; see
 [local server and static hosting](docs/local-server.md).
 
-## Play a Turn
+## Play a Year
 
 A new run starts with 1,000 people and 400 prepared hectares out of 2,000 arable
-hectares under the default configuration. Each Turn has two decisions:
+hectares under the default configuration. Each Year has two decisions:
 
 1. **Plan production and investment.** Cultivation costs seeds each year;
    fertilizer adds cost and multiplies Yield on the chosen hectares. Preparing
    land costs money once and makes it available for future cultivation.
-   Technologies are one-off purchases whose benefits start next Turn; click
+   Technologies are one-off purchases whose benefits start next Year; click
    anywhere on a Technology card to select it. The
    preview includes mandatory upkeep for retained food and blocks unaffordable
    commitments. Select **Resolve harvest** to commit the plan. If the ordinary
@@ -43,7 +43,7 @@ hectares under the default configuration. Each Turn has two decisions:
    Choose how much food to keep within the affordable Storage range, then
    confirm allocation. Surviving old food must stay stored; the permitted
    remainder of new food is exported automatically. Upkeep uses the current
-   Budget; tax and export revenue fund the next Turn along with unspent coins.
+   Budget; tax and export revenue fund the next Year along with unspent coins.
 
 For a first attempt at the default settings, cultivate and fertilize all 400
 prepared hectares. That costs 2,000 coins before Storage upkeep and produces
@@ -63,7 +63,7 @@ did. Expand
 **Weather scenarios** for ordinary, Drought, and Flood food balances. These are
 possible outcomes, not a forecast of the hidden Event; they include opening
 Storage, Flood losses, and currently owned Technologies. Purchases and newly
-prepared land improve future Turns only.
+prepared land improve future Years only.
 
 The illustrated country distinguishes prepared, cultivated, and unprepared land.
 Changing production shows a labelled plan preview; a committed Harvest shows the

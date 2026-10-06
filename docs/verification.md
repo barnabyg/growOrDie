@@ -8,6 +8,8 @@ Tests cover production, allocation bounds, discounts, purchase timing, food cons
 
 Field journal checks also cover live food scenarios, paired production controls, previews that leave saves untouched, allocation accounting, Technology landmarks and purchase timing, milestones, mobile dark mode, reduced motion and unavailable audio. Pure forecast tests compare against resolved simulation outcomes with both default and tuned configuration.
 
+Later browser specs cover the Restart confirmation dialog (cancelling during allocation, focus trapping and the safe default), the mobile commit bar (it mirrors the in-page commit button's label, disabled state and shortfall warning, and leaves focused inputs, Restart and the page end uncovered), the chronicle table (newest first, Famine marks, legacy summaries and its empty state), panel structure (no nested tinted containers, one helper line per panel, label spacing on mobile) and visual polish (minimum text size, lining figures, number-input contrast in both color schemes). Player-facing copy checks reject raw identifiers and Turn wording.
+
 Use Node.js 24.13 or later within major version 24, then install the locked tools and Chromium:
 
 ```sh

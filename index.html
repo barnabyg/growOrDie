@@ -276,7 +276,7 @@
         font-size: var(--text-small);
         color: var(--muted);
       }
-      .year-rhythm {
+      .header-status {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1230,7 +1230,7 @@
         .stat .value {
           font-size: 1rem;
         }
-        .year-rhythm {
+        .header-status {
           margin-top: 0.75rem;
         }
         main {
@@ -1505,7 +1505,7 @@
           Opening values, before this Year's allocation
         </p>
       </div>
-      <div class="year-rhythm">
+      <div class="header-status">
         <p id="turn-status" role="status"></p>
       </div>
     </header>
@@ -2329,7 +2329,8 @@
             <p class="sr-only" id="allocation-preview" aria-live="polite"></p>
           </div>
           <button type="button" id="allocate-btn" class="commit-button">
-            Finish year<svg class="icon" aria-hidden="true">
+            <span id="allocate-label">Finish year</span
+            ><svg class="icon" aria-hidden="true">
               <use href="#icon-arrow" />
             </svg>
           </button>

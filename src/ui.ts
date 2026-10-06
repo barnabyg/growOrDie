@@ -5,6 +5,9 @@ import {
   villageHouses,
 } from "./landscape.js";
 import { foodBarLayout, foodOutlook } from "./outlook.js";
+import type { FoodOutlook } from "./outlook.js";
+import { finishButton, resolveButton } from "./commit.js";
+import type { CommitButtonState } from "./commit.js";
 import { resourceHeader } from "./header.js";
 import { outcomeHeadline, populationTransition } from "./outcome.js";
 import { restartWarning } from "./restart.js";
@@ -89,10 +92,19 @@ function text(id: string, value: string): void {
   el<HTMLElement>(id).textContent = value;
 }
 
-function foodBalance(balance: number): string {
+/** "600 t Surplus" or "200 t shortfall"; `format` spells out the amount. */
+function foodBalance(
+  balance: number,
+  format: (tons: number) => string = tons,
+): string {
   return balance >= 0
-    ? `${tons(balance)} Surplus`
-    : `${tons(-balance)} shortfall`;
+    ? `${format(balance)} Surplus`
+    : `${format(-balance)} shortfall`;
+}
+
+// Screen-reader text spells the unit out; a lone "t" may be read as a letter.
+function spokenTons(n: number): string {
+  return `${formatCount(n)} tons`;
 }
 
 function focusPanel(id: string): void {
@@ -160,13 +172,13 @@ function renderPlan(state: GameState): void {
 
   // Each Year opens with the previous Year's production, clamped to what fits.
   const opening = carriedPlan(state, save.eventLog.at(-1), CONFIG);
-  const input = el<HTMLInputElement>("plan-hectares");
+  const input = productionInput("plan-hectares");
   input.max = String(maxHectares);
   input.value = String(opening.cultivatedHectares);
-  const fertilizerInput = el<HTMLInputElement>("plan-fertilizer");
+  const fertilizerInput = productionInput("plan-fertilizer");
   fertilizerInput.max = String(maxHectares);
   fertilizerInput.value = String(opening.fertilizedHectares);
-  const prepInput = el<HTMLInputElement>("plan-prep");
+  const prepInput = productionInput("plan-prep");
   prepInput.max = String(maxPrep);
   prepInput.value = "0";
 
@@ -192,14 +204,14 @@ function clampedHectares(state: GameState, raw: number): number {
 function readPlanInputs(state: GameState): PlayerPlan {
   const cultivatedHectares = clampedHectares(
     state,
-    Number(el<HTMLInputElement>("plan-hectares").value),
+    Number(productionInput("plan-hectares").value),
   );
-  const rawFertilizer = Number(el<HTMLInputElement>("plan-fertilizer").value);
+  const rawFertilizer = Number(productionInput("plan-fertilizer").value);
   const fertilizedHectares = !Number.isFinite(rawFertilizer)
     ? 0
     : Math.max(0, Math.min(Math.floor(rawFertilizer), cultivatedHectares));
   const maxPrep = state.arableLandHectares - state.preparedLandHectares;
-  const rawPrep = Number(el<HTMLInputElement>("plan-prep").value);
+  const rawPrep = Number(productionInput("plan-prep").value);
   const preparedHectares = !Number.isFinite(rawPrep)
     ? 0
     : Math.max(0, Math.min(Math.floor(rawPrep), maxPrep));
@@ -222,18 +234,14 @@ function updatePlanPreview(state: GameState): void {
   const plan = readPlanInputs(state);
 
   // Keep each input's max in sync with the others (fertilizer <= cultivated).
-  const fertilizerInput = el<HTMLInputElement>("plan-fertilizer");
+  const fertilizerInput = productionInput("plan-fertilizer");
   fertilizerInput.max = String(plan.cultivatedHectares);
   if (fertilizerInput.valueAsNumber > plan.cultivatedHectares) {
     fertilizerInput.value = String(plan.fertilizedHectares);
   }
-  const fields: Record<string, number> = {
-    "plan-hectares": plan.cultivatedHectares,
-    "plan-fertilizer": plan.fertilizedHectares,
-    "plan-prep": plan.preparedHectares,
-  };
-  for (const [id, value] of Object.entries(fields)) {
-    const input = el<HTMLInputElement>(id);
+  for (const id of PRODUCTION_INPUT_IDS) {
+    const value = plan[PRODUCTION_INPUTS[id]];
+    const input = productionInput(id);
     if (Number.isFinite(input.valueAsNumber) && input.valueAsNumber !== value) {
       input.value = String(value);
     }
@@ -258,11 +266,18 @@ function updatePlanPreview(state: GameState): void {
   const remainingEl = el<HTMLElement>("plan-remaining");
   remainingEl.textContent = coins(remaining);
   remainingEl.classList.toggle("overspend", remaining < 0);
-  const complete = Object.keys(fields).every(
-    (id) => el<HTMLInputElement>(id).value !== "",
+  const complete = PRODUCTION_INPUT_IDS.every(
+    (id) => productionInput(id).value !== "",
   );
-  el<HTMLButtonElement>("confirm-btn").disabled =
-    !complete || !costs.affordable || state.collapsed || persistenceBlocked();
+  const outlook = foodOutlook(state, plan, CONFIG);
+  const balance = outlook.ordinary.balanceTons;
+  const resolve = resolveButton({
+    balanceTons: balance,
+    complete,
+    affordable: costs.affordable,
+    locked: state.collapsed || persistenceBlocked(),
+  });
+  renderCommitButton("confirm-btn", "confirm-label", resolve);
 
   el<HTMLElement>("plan-upkeep-cost").textContent = coins(costs.upkeep);
   el<HTMLElement>("budget-summary").classList.toggle(
@@ -309,11 +324,9 @@ function updatePlanPreview(state: GameState): void {
         : undefined,
     );
   }
-  renderOutlook(state, plan);
-  renderResolveButton(state, plan);
+  renderOutlook(state, outlook);
   if (!save.pendingTurn) {
-    const balance = foodOutlook(state, plan, CONFIG).ordinary.balanceTons;
-    renderCommitBar("confirm-btn", [
+    renderCommitBar(resolve, [
       {
         label: "Food",
         value: foodBalance(balance),
@@ -334,14 +347,23 @@ function updatePlanPreview(state: GameState): void {
   }
 }
 
-const PRODUCTION_INPUTS: Record<string, ProductionInput> = {
+// Production input element ids and the plan field each one edits.
+const PRODUCTION_INPUTS = {
   "plan-hectares": "cultivatedHectares",
   "plan-fertilizer": "fertilizedHectares",
   "plan-prep": "preparedHectares",
-};
+} as const satisfies Record<string, ProductionInput>;
+type ProductionInputId = keyof typeof PRODUCTION_INPUTS;
+const PRODUCTION_INPUT_IDS = Object.keys(
+  PRODUCTION_INPUTS,
+) as ProductionInputId[];
+
+function productionInput(id: ProductionInputId): HTMLInputElement {
+  return el<HTMLInputElement>(id);
+}
 
 interface ProductionLimit {
-  id: string;
+  id: ProductionInputId;
   input: ProductionInput;
   max: number;
   value: number;
@@ -352,12 +374,15 @@ function productionLimits(
   state: GameState,
   plan: PlayerPlan,
 ): ProductionLimit[] {
-  return Object.entries(PRODUCTION_INPUTS).map(([id, input]) => ({
-    id,
-    input,
-    max: affordableHectares(state, plan, input, CONFIG),
-    value: plan[input],
-  }));
+  return PRODUCTION_INPUT_IDS.map((id) => {
+    const input = PRODUCTION_INPUTS[id];
+    return {
+      id,
+      input,
+      max: affordableHectares(state, plan, input, CONFIG),
+      value: plan[input],
+    };
+  });
 }
 
 /** Show a control's inline error, linked to it by aria-describedby, or clear
@@ -398,8 +423,7 @@ function renderProductionLimits(
   }
 }
 
-function renderOutlook(state: GameState, plan: PlayerPlan): void {
-  const outlook = foodOutlook(state, plan, CONFIG);
+function renderOutlook(state: GameState, outlook: FoodOutlook): void {
   const { ordinary, drought, consumptionTons } = outlook;
   const bar = foodBarLayout(outlook);
   text("forecast-available", tons(ordinary.availableFoodTons));
@@ -428,7 +452,7 @@ function renderOutlook(state: GameState, plan: PlayerPlan): void {
     `${bar.consumptionPercent}%`;
   text(
     "forecast-food-description",
-    `Available food ${formatCount(ordinary.availableFoodTons)} tons (Harvest ${formatCount(ordinary.harvestTons)} tons plus opening Storage ${formatCount(ordinary.storageTons)} tons) against Consumption ${formatCount(consumptionTons)} tons: ${formatCount(Math.abs(ordinary.balanceTons))} tons ${ordinary.balanceTons >= 0 ? "Surplus" : "shortfall"} before Events.`,
+    `Available food ${spokenTons(ordinary.availableFoodTons)} (Harvest ${spokenTons(ordinary.harvestTons)} plus opening Storage ${spokenTons(ordinary.storageTons)}) against Consumption ${spokenTons(consumptionTons)}: ${foodBalance(ordinary.balanceTons, spokenTons)} before Events.`,
   );
   for (const scenario of ["ordinary", "drought", "flood"] as const) {
     text(`forecast-${scenario}-harvest`, tons(outlook[scenario].harvestTons));
@@ -444,15 +468,15 @@ function renderOutlook(state: GameState, plan: PlayerPlan): void {
   );
 }
 
-// Resolving stays possible, but an ordinary-forecast shortfall is stated on the button.
-function renderResolveButton(state: GameState, plan: PlayerPlan): void {
-  const balance = foodOutlook(state, plan, CONFIG).ordinary.balanceTons;
-  const shortfall = balance < 0;
-  el<HTMLButtonElement>("confirm-btn").classList.toggle("warning", shortfall);
-  text(
-    "confirm-label",
-    shortfall ? `Resolve with ${tons(-balance)} shortfall` : "Resolve harvest",
-  );
+function renderCommitButton(
+  buttonId: string,
+  labelId: string,
+  view: CommitButtonState,
+): void {
+  const button = el<HTMLButtonElement>(buttonId);
+  button.disabled = view.disabled;
+  button.classList.toggle("warning", view.warning);
+  text(labelId, view.label);
 }
 
 interface CommitBarValue {
@@ -462,10 +486,10 @@ interface CommitBarValue {
 }
 
 /** Fill the mobile pinned bar (shown by CSS below the breakpoint) with two
- * summary values, and mirror the in-page commit button it stands in for:
- * its label, disabled state and shortfall warning. Hidden after Collapse. */
+ * summary values and the state of the in-page commit button it stands in
+ * for. Hidden after Collapse. */
 function renderCommitBar(
-  sourceId: "confirm-btn" | "allocate-btn",
+  button: CommitButtonState,
   values: readonly [CommitBarValue, CommitBarValue],
 ): void {
   el<HTMLElement>("commit-bar").hidden = save.state.collapsed;
@@ -476,11 +500,7 @@ function renderCommitBar(
     valueEl.classList.remove("shortfall", "overspend");
     if (alert) valueEl.classList.add(alert);
   });
-  const source = el<HTMLButtonElement>(sourceId);
-  const button = el<HTMLButtonElement>("commit-bar-btn");
-  button.disabled = source.disabled;
-  button.classList.toggle("warning", source.classList.contains("warning"));
-  text("commit-bar-action", source.textContent?.trim() ?? "");
+  renderCommitButton("commit-bar-btn", "commit-bar-action", button);
 }
 
 function renderAllocation(): void {
@@ -557,8 +577,8 @@ function updateAllocationPreview(): void {
     Number.isFinite(value) &&
     value >= pending.minStoreTons &&
     value <= pending.maxStoreTons;
-  el<HTMLButtonElement>("allocate-btn").disabled =
-    !valid || persistenceBlocked();
+  const finish = finishButton({ valid, locked: persistenceBlocked() });
+  renderCommitButton("allocate-btn", "allocate-label", finish);
   el<HTMLElement>("allocation-error").hidden = valid;
   el<HTMLElement>("allocation-totals").hidden = !valid;
   const slider = el<HTMLInputElement>("plan-store-slider");
@@ -570,7 +590,7 @@ function updateAllocationPreview(): void {
     el<HTMLElement>("allocation-preview").textContent =
       "Choose storage within the affordable range.";
     text("allocation-error", "Choose Storage within the affordable range.");
-    renderCommitBar("allocate-btn", [
+    renderCommitBar(finish, [
       { label: "Storage kept", value: "—" },
       { label: "Next-year Budget", value: "—" },
     ]);
@@ -584,7 +604,7 @@ function updateAllocationPreview(): void {
   text("allocation-next-budget", coins(state.budgetCoins));
   el<HTMLElement>("allocation-preview").textContent =
     `Upkeep ${coins(report.storageUpkeepCoins)} · total spending ${coins(report.budgetSpentCoins)} · carry-over ${coins(report.budgetCarryOverCoins)} · export ${tons(report.exportTons)} for ${coins(report.exportIncomeCoins)}`;
-  renderCommitBar("allocate-btn", [
+  renderCommitBar(finish, [
     { label: "Storage kept", value: exactTons(value) },
     { label: "Next-year Budget", value: coins(state.budgetCoins) },
   ]);
@@ -919,16 +939,14 @@ function init(): void {
     "click",
     retryPersistence,
   );
-  for (const id of ["plan-hectares", "plan-fertilizer", "plan-prep"]) {
-    el<HTMLInputElement>(id).addEventListener("input", () => {
+  for (const id of PRODUCTION_INPUT_IDS) {
+    productionInput(id).addEventListener("input", () => {
       planEdited = true;
       lastPlanChange = PRODUCTION_INPUTS[id];
       updatePlanPreview(save.state);
     });
     el<HTMLInputElement>(`${id}-slider`).addEventListener("input", () => {
-      el<HTMLInputElement>(id).value = el<HTMLInputElement>(
-        `${id}-slider`,
-      ).value;
+      productionInput(id).value = el<HTMLInputElement>(`${id}-slider`).value;
       planEdited = true;
       lastPlanChange = PRODUCTION_INPUTS[id];
       updatePlanPreview(save.state);
@@ -962,7 +980,7 @@ function init(): void {
     });
   }
   el<HTMLButtonElement>("cultivate-all-btn").addEventListener("click", () => {
-    el<HTMLInputElement>("plan-hectares").value = String(
+    productionInput("plan-hectares").value = String(
       save.state.preparedLandHectares,
     );
     planEdited = true;
@@ -970,7 +988,7 @@ function init(): void {
     updatePlanPreview(save.state);
   });
   el<HTMLButtonElement>("fertilize-all-btn").addEventListener("click", () => {
-    el<HTMLInputElement>("plan-fertilizer").value = String(
+    productionInput("plan-fertilizer").value = String(
       readPlanInputs(save.state).cultivatedHectares,
     );
     planEdited = true;
@@ -978,8 +996,8 @@ function init(): void {
     updatePlanPreview(save.state);
   });
   el<HTMLButtonElement>("suggest-plan-btn").addEventListener("click", () => {
-    for (const id of ["plan-hectares", "plan-fertilizer"]) {
-      el<HTMLInputElement>(id).value = String(save.state.preparedLandHectares);
+    for (const id of ["plan-hectares", "plan-fertilizer"] as const) {
+      productionInput(id).value = String(save.state.preparedLandHectares);
     }
     planEdited = true;
     // Both production inputs changed; neither one nor a Technology is to blame.
