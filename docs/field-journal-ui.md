@@ -327,7 +327,8 @@ checks that no tinted container sits inside another on the plan, allocation,
 report and Collapse screens in light and dark mode, that no eyebrow labels
 remain, that each panel shows at most one helper line (counting the allocation
 Storage range) while How to play covers the removed explanations, and that no
-label butts against the Cultivate field at 390 px in Year 2. `tests/e2e/polish.spec.js` checks that no visible text
+label butts against the Cultivate field at 390 px in Year 2.
+`tests/e2e/polish.spec.js` checks that no visible text
 on the plan, allocation and report screens renders below 13 px at 1,280 and
 390 px, that serif text containing digits renders lining figures (measured
 from the digit glyphs' ink, not the computed style), that number inputs are

@@ -144,8 +144,8 @@ test("each panel has at most one helper line and How to play holds the explanati
         .filter((node) => node.getClientRects().length > 0)
         .map((node) => ({
           panel: node.id || node.className,
-          // The allocation range and retained-food lines are helper lines
-          // whatever their class.
+          // The allocation Storage range always counts, and the removed
+          // retained-food line would count if it came back.
           helpers: [
             ...node.querySelectorAll(
               ".helper, #plan-store-range, #allocation-retained",
@@ -180,6 +180,15 @@ test("each panel has at most one helper line and How to play holds the explanati
   await absent("allocation");
   await page.locator("#allocate-btn").click();
   await check("report");
+
+  // With nothing to store, the one line says so without instructions.
+  await fixture(page);
+  await page.locator("#plan-hectares").fill("0");
+  await page.locator("#confirm-btn").click();
+  await expect(page.locator("#plan-store-range")).toHaveText(
+    "No affordable Surplus to store",
+  );
+  await check("allocation with nothing to store");
 
   const help = page.locator("footer.help details");
   await help.locator("summary").click();
