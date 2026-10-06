@@ -8,6 +8,13 @@ export function formatCount(n: number): string {
   return Math.round(n).toLocaleString("en-US");
 }
 
+/** Whole-number change with an explicit sign, e.g. "+50", "-1,200"; no change
+ * is "+0" so it never reads as an absolute zero. */
+export function signedCount(n: number): string {
+  const rounded = Math.round(n);
+  return `${rounded < 0 ? "-" : "+"}${formatCount(Math.abs(rounded))}`;
+}
+
 /** Number keeping its meaningful decimals, e.g. multipliers such as "1.75". */
 export function formatDecimal(n: number): string {
   return n.toLocaleString("en-US");

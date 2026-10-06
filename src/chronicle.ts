@@ -1,4 +1,11 @@
-import { coinRate, coins, famineLabel, formatCount, tons } from "./format.js";
+import {
+  coinRate,
+  coins,
+  famineLabel,
+  formatCount,
+  signedCount,
+  tons,
+} from "./format.js";
 import type { EventLogEntry } from "./persistence.js";
 import type { EventType, YearReport } from "./types.js";
 
@@ -34,10 +41,8 @@ function eventLabel(report: YearReport): string {
   }
 }
 
-function populationChange(start: number, end: number): string {
-  const change = formatCount(end - start);
-  const signed = end - start > 0 ? `+${change}` : change;
-  return `${signed} to ${formatCount(end)}`;
+function populationOutcome(start: number, end: number): string {
+  return `${signedCount(end - start)} to ${formatCount(end)}`;
 }
 
 function row(entry: EventLogEntry): ChronicleRow {
@@ -63,7 +68,7 @@ function row(entry: EventLogEntry): ChronicleRow {
     event: eventLabel(report),
     eventType: entry.event,
     harvest: tons(report.harvestTons),
-    population: populationChange(report.populationStart, report.populationEnd),
+    population: populationOutcome(report.populationStart, report.populationEnd),
     famine: famine || null,
     budget: coins(state.budgetCoins),
     detailed: true,

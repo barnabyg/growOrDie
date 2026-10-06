@@ -6,7 +6,7 @@ import {
 } from "./landscape.js";
 import { foodBarLayout, foodOutlook } from "./outlook.js";
 import { resourceHeader } from "./header.js";
-import { outcomeHeadline, populationChange } from "./outcome.js";
+import { outcomeHeadline, populationTransition } from "./outcome.js";
 import { restartWarning } from "./restart.js";
 import { GameSound } from "./sound.js";
 import {
@@ -506,7 +506,7 @@ function renderAllocation(): void {
     "href",
     `#icon-${eventIcons[report.event]}`,
   );
-  text("allocation-population-change", populationChange(report));
+  text("allocation-population-change", populationTransition(report));
   el<HTMLElement>("allocation-harvest").textContent = tons(report.harvestTons);
   el<HTMLElement>("allocation-consumption").textContent = tons(
     report.consumptionTons,
@@ -629,11 +629,12 @@ function renderReport(result: TurnResult): void {
     milestoneEl.hidden = true;
   }
 
-  text("report-population-summary", populationChange(report));
+  text("report-population-summary", populationTransition(report));
   text("report-peak", fmt(state.highestPopulation));
   text("report-storage-summary", tons(state.storageTons));
   text("report-budget-summary", coins(state.budgetCoins));
-  el<HTMLElement>("report-pop-change").textContent = populationChange(report);
+  el<HTMLElement>("report-pop-change").textContent =
+    populationTransition(report);
 
   el<HTMLElement>("report-seeds").textContent =
     `-${coins(report.seedCostCoins)}`;
