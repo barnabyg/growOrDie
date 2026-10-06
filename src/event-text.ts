@@ -5,8 +5,10 @@ import type { EventType, YearReport } from "./types.js";
  * in the event log, and the compact chronicle label. Stored summaries are shown
  * as recorded, so changing a summary here only affects newly completed Years. */
 
-type EventReport = Pick<
+/** The Year report fields Event text reads. */
+export type EventReport = Pick<
   YearReport,
+  | "event"
   | "droughtYieldLossFraction"
   | "storageDestroyedTons"
   | "harvestTons"
@@ -56,16 +58,12 @@ const EVENT_TEXT: Record<EventType, EventText> = {
 
 /** One-line description of the rolled Event and its concrete effect, for the
  * Year report and the running event log. */
-export function eventSummary(
-  report: EventReport & Pick<YearReport, "event">,
-): string {
+export function eventSummary(report: EventReport): string {
   return EVENT_TEXT[report.event].summary(report);
 }
 
 /** Compact Event description for a chronicle row. */
-export function eventLabel(
-  report: EventReport & Pick<YearReport, "event">,
-): string {
+export function eventLabel(report: EventReport): string {
   return EVENT_TEXT[report.event].label(report);
 }
 

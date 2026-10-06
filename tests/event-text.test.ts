@@ -1,17 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { eventIcon, eventLabel, eventSummary } from "../src/event-text.js";
-import type { EventType, YearReport } from "../src/types.js";
+import type { EventReport } from "../src/event-text.js";
+import type { EventType } from "../src/types.js";
 
-type EventFields = Pick<
-  YearReport,
-  | "event"
-  | "droughtYieldLossFraction"
-  | "storageDestroyedTons"
-  | "harvestTons"
-  | "exportPriceCoins"
->;
-
-function report(event: EventType, fields: Partial<EventFields> = {}) {
+function report(
+  event: EventType,
+  fields: Partial<EventReport> = {},
+): EventReport {
   return {
     event,
     droughtYieldLossFraction: 0,
