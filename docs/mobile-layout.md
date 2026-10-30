@@ -70,6 +70,34 @@ country and the plan; after Collapse it stays beneath the Collapse summary.
 report and Collapse screens, and that the two columns end within 400 px of each
 other on every one of them.
 
+## Full-screen layout on large screens
+
+From 1,800 px wide, the game fills the whole window and the page no longer
+scrolls. The root text size scales with the window (never below the browser's
+default), so a maximized window on a 4K screen looks the same at 100%, 150% or
+200% display scaling, with text and controls growing to match. Slider thumbs are
+drawn at the same scale because the browser's own are a fixed pixel size.
+
+The header becomes a single row with a status line beneath it. Below it are
+three columns: Your country on the left, with the landscape taking all the
+height its panel has left; the current decision in the middle; and the latest
+Year report above the Country chronicle on the right. The plan splits into two
+columns: production and the food outlook, then Technologies, the spending summary
+and Resolve harvest. After Collapse, its summary and the final report take the
+middle column. How to play and Restart run share a slim footer, and How to play
+opens over the panels rather than moving them.
+
+Anything that outgrows its share of the window, such as an expanded disclosure,
+scrolls inside its own panel or plan column, so Resolve harvest stays on screen.
+Narrower windows keep the layouts described above. `tests/e2e/wide.spec.js`
+checks 1,920 x 930, 2,560 x 1,310 and 3,840 x 2,020 windows on the plan,
+allocation, report and Collapse screens: no page scrolling, columns spanning the
+window, a landscape over a quarter of the width and 40% of the height, and commit
+and Restart buttons fully visible, including with disclosures open.
+
+For manual verification, run `.\run.bat` in the repository root and maximize the
+browser window, or press F11. Expect no page scrollbar on any screen.
+
 Automated enlarged-text checks set the root font size to 32 px; they do not
 emulate every browser's text-only zoom setting. Physical mobile devices and other
 browser engines have not been manually tested.
