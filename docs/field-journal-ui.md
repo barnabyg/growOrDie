@@ -104,6 +104,8 @@ remaining figures sit in a shared stat row at a readable size: Population,
 Harvest, Consumption, Surplus and export price during allocation; Population,
 peak, Storage and Budget in the Year report. Completed reports put detailed
 accounting behind an expandable disclosure.
+Windows at least 1,800 px wide use a full-screen, three-column arrangement
+instead; see [the responsive layout notes](mobile-layout.md#full-screen-layout-on-large-screens).
 Previous years remain in the Country chronicle, which continues the country
 column beneath the landscape on desktop. While planning, the latest Year report
 spans both desktop columns above the country and the plan, and the first-year
