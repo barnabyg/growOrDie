@@ -70,8 +70,11 @@ and the production fields show none; deselecting the card clears it.
 The country shows cultivated, prepared and unprepared shares, weather, a growing
 village and owned Technology landmarks. Its parcels illustrate aggregate
 hectares; they do not introduce separate fields to manage. Each legend swatch
-is drawn like its land: striped crops (tinted by drought or flood), bare
-prepared soil, and pale land with a tree for unprepared hectares. Each house
+is drawn like its land: planted rows (tinted by drought or flood), furrowed
+soil for prepared hectares, and rough pasture with trees for unprepared hectares,
+which clear as land is prepared. The parcels narrow towards the village for
+perspective, and a partial parcel's drawn area is exactly its share. Dark mode
+shows the same country at night. Each house
 stands for up to 500 people; faded houses show Population lost since its peak,
 and the caption says so when any appear. The landmark line below the Milestone
 meter appears only once a Technology is owned. Loading or reloading shows the saved

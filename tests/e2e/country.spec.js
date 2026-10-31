@@ -40,17 +40,20 @@ test("legend swatches are drawn like the land they describe, including weather t
   const swatch = (category) => legend.locator(`.swatch.${category}`);
   const unprepared = page.locator("#country-fields .unprepared-field").last();
   const prepared = page.locator("#country-fields .prepared-field").first();
-  const crop = page.locator("#country-green rect").first();
+  const crop = page.locator("#country-green .crop-land").first();
   expect(await fill(swatch("unprepared").locator("rect"))).toBe(
     await fill(unprepared),
   );
-  // Unprepared parcels are drawn with a tree, so the swatch shows one too.
+  // Unprepared parcels are drawn with trees, so the swatch shows one too.
   await expect(
     swatch("unprepared").locator('use[href="#land-tree"]'),
   ).toHaveCount(1);
-  expect(await fill(swatch("prepared").locator("rect"))).toBe(
+  expect(await fill(swatch("prepared").locator(".prepared-field"))).toBe(
     await fill(prepared),
   );
+  await expect(
+    swatch("prepared").locator('rect[fill="url(#soil-rows)"]'),
+  ).toHaveCount(1);
   const cropSwatch = swatch("cultivated").locator("rect").first();
   expect(await fill(cropSwatch)).toBe(await fill(crop));
   await expect(
@@ -62,6 +65,100 @@ test("legend swatches are drawn like the land they describe, including weather t
   expect(await fill(cropSwatch)).toBe("rgb(169, 113, 66)");
   // The drawn crops reach the same colour once their tint transition ends.
   await expect.poll(() => fill(crop)).toBe(await fill(cropSwatch));
+});
+
+test("parcels show the exact prepared and cultivated shares, and preparing land clears it", async ({
+  page,
+}) => {
+  await fixture(page, {
+    state: { arableLandHectares: 2000, preparedLandHectares: 500 },
+  });
+  // A quarter of 20 parcels is five, which leaves the first row prepared.
+  const revealed = (clip) =>
+    page.locator(`#${clip} polygon`).evaluate((node) => {
+      const [topLeft, topRight] = node.points;
+      return topRight.x - topLeft.x;
+    });
+  expect(await revealed("parcel-soil-clip-4")).toBeGreaterThan(50);
+  expect(await revealed("parcel-soil-clip-5")).toBe(0);
+  const standing = () => page.locator('.parcel-wild[opacity="1"]').count();
+  const wild = await page.locator(".parcel-wild").count();
+  expect(await standing()).toBe((wild * 3) / 4);
+  // Cultivating half of the prepared land reveals crops on half the row, so
+  // the third parcel is half planted.
+  await page.locator("#plan-hectares").fill("250");
+  const third = await revealed("parcel-crop-clip-2");
+  expect(third / (await revealed("parcel-soil-clip-2"))).toBeCloseTo(0.5, 1);
+  expect(await revealed("parcel-crop-clip-3")).toBe(0);
+  // The cultivated share is a preview: no trees grow back or fall.
+  expect(await standing()).toBe((wild * 3) / 4);
+});
+
+test("every landmark sits inside the scene and shows only once owned", async ({
+  page,
+}) => {
+  const ids = [
+    "irrigation",
+    "granary",
+    "tradeRoutes",
+    "landSurvey",
+    "highYieldSeeds",
+    "fertilizerWorks",
+  ];
+  await fixture(page);
+  for (const id of ids)
+    await expect(page.locator(`#landmark-${id}`)).toHaveAttribute(
+      "display",
+      "none",
+    );
+  await fixture(page, { state: { ownedTechnologies: ids } });
+  const scene = await page.locator("#country-svg").boundingBox();
+  for (const id of ids) {
+    const landmark = page.locator(`#landmark-${id}`);
+    await expect(landmark).not.toHaveAttribute("display", "none");
+    const box = await landmark.boundingBox();
+    expect(box.width, id).toBeGreaterThan(0);
+    expect(box.x, id).toBeGreaterThanOrEqual(scene.x);
+    // The trade road alone carries on out of the frame.
+    if (id !== "tradeRoutes")
+      expect(box.x + box.width, id).toBeLessThanOrEqual(scene.x + scene.width);
+  }
+});
+
+test("the scene fills its frame at every layout, in both colour schemes", async ({
+  browser,
+}) => {
+  const views = [
+    { width: 375, height: 812, colorScheme: "dark" },
+    { width: 1280, height: 900, colorScheme: "light" },
+    { width: 1920, height: 1080, colorScheme: "dark" },
+    { width: 3840, height: 2160, colorScheme: "light" },
+  ];
+  for (const { colorScheme, ...viewport } of views) {
+    const context = await browser.newContext({ viewport, colorScheme });
+    const page = await context.newPage();
+    await page.goto(origin);
+    await page.locator("#country-svg").scrollIntoViewIfNeeded();
+    const painted = await page.evaluate(() => {
+      const svg = document.querySelector("#country-svg");
+      const frame = svg.getBoundingClientRect();
+      // Sky and land reach every side, whatever shape the frame has. A point
+      // with nothing drawn on it would hit the svg element itself.
+      const inset = frame.height / 4;
+      return [
+        [frame.left + 1, frame.top + inset],
+        [frame.right - 1, frame.top + inset],
+        [frame.left + 1, frame.bottom - inset],
+        [frame.right - 1, frame.bottom - inset],
+        [frame.left + frame.width / 2, frame.bottom - 1],
+      ].map(([x, y]) => {
+        const hit = document.elementFromPoint(x, y);
+        return hit !== svg && svg.contains(hit);
+      });
+    });
+    expect(painted, JSON.stringify(viewport)).toEqual(Array(5).fill(true));
+    await context.close();
+  }
 });
 
 test("faded houses are explained only when Population is below its peak", async ({
