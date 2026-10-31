@@ -21,12 +21,29 @@
         --gold-ink: light-dark(#845917, #e1bf76);
         --danger: light-dark(#a23c28, #efa28d);
         --track: light-dark(#e0ddc7, #363e2a);
-        --land: light-dark(#d8d8b7, #3a4b30);
+        --land: light-dark(#d3d8ae, #3a4b30);
         --prepared: light-dark(#cbbf96, #786843);
         --river: light-dark(#b6ced2, #415e69);
         --stored-food: light-dark(#2f6a80, #7fc0d6);
         --roof: light-dark(#ac714b, #b68b61);
         --house: light-dark(#ead6a8, #c4b38a);
+        /* Country illustration only: depth, shade and the night scene. */
+        --sky-low: light-dark(#fbeccb, #252d2e);
+        --sun: light-dark(#e3b04b, #e9e2c4);
+        --star: light-dark(transparent, #efe9c8);
+        --cloud: light-dark(#fffaf0, #39423f);
+        --storm: light-dark(#8d9a9c, #2a3234);
+        --land-far: light-dark(#dbdec3, #243024);
+        --land-mid: light-dark(#ccd3ab, #2a3828);
+        --land-near: light-dark(#c3cd9d, #33442c);
+        --land-foreground: light-dark(#aebc84, #283722);
+        --river-far: light-dark(#cfe0e2, #2f4750);
+        --water-light: light-dark(#eef7f8, #7e9fac);
+        --tree: light-dark(#4f7538, #5c8249);
+        --sheaf: light-dark(#d9a94b, #d8b263);
+        --roof-shade: light-dark(#7f4d2f, #80603f);
+        --house-shade: light-dark(#cfb684, #988861);
+        --window: light-dark(#7b8d90, #f4d27a);
         /* Editable fields: a light well in light mode, with a boundary of at
            least 3:1 against --panel and --bg in both modes. */
         --field: light-dark(#ffffff, #1b2015);
@@ -392,18 +409,71 @@
         display: block;
         width: 100%;
         height: auto;
+        border-radius: 1.1rem;
       }
-      .land-sky {
-        fill: var(--bg);
+      .sky-top {
+        stop-color: var(--bg);
       }
-      .land-hills {
-        fill: var(--land);
+      .sky-low {
+        stop-color: var(--sky-low);
       }
-      .land-river {
+      .sun-glow {
+        stop-color: var(--sun);
+      }
+      .land-sun {
+        fill: var(--sun);
+      }
+      .land-star {
+        fill: var(--star);
+      }
+      .land-cloud {
+        fill: var(--cloud);
+      }
+      .high-cloud {
+        opacity: 0.6;
+      }
+      .land-far {
+        fill: var(--land-far);
+      }
+      .land-mid {
+        fill: var(--land-mid);
+      }
+      .ground-far {
+        stop-color: var(--land-near);
+      }
+      .ground-near {
+        stop-color: var(--land-foreground);
+      }
+      .river-far {
+        stop-color: var(--river-far);
+      }
+      .river-near {
+        stop-color: var(--river);
+      }
+      .river-glint {
         fill: none;
-        stroke: var(--river);
-        stroke-width: 13;
+        stroke: var(--water-light);
         stroke-linecap: round;
+        stroke-width: 1.2;
+      }
+      .land-path {
+        fill: none;
+        stroke: var(--prepared);
+        stroke-linecap: round;
+        stroke-width: 4;
+        opacity: 0.75;
+      }
+      .distant-tree {
+        opacity: 0.55;
+      }
+      .land-flower {
+        fill: var(--gold);
+      }
+      .tuft {
+        fill: none;
+        stroke: var(--tree);
+        stroke-linecap: round;
+        stroke-width: 1.3;
       }
       .unprepared-field {
         fill: var(--land);
@@ -411,25 +481,72 @@
       .prepared-field {
         fill: var(--prepared);
       }
+      .soil-furrow {
+        fill: none;
+        stroke: #000;
+        opacity: 0.2;
+      }
+      .field-edge {
+        fill: none;
+        stroke: #000;
+        stroke-width: 1.5;
+        opacity: 0.22;
+      }
+      .crop-furrow {
+        fill: none;
+        stroke: #000;
+        opacity: 0.2;
+      }
+      .crop-plants {
+        fill: none;
+        stroke: #fff;
+        stroke-linecap: round;
+        opacity: 0.32;
+      }
       .tree-trunk {
-        fill: var(--roof);
+        fill: var(--roof-shade);
       }
       .tree-leaves {
-        fill: var(--green);
+        fill: var(--tree);
+      }
+      .shade {
+        fill: #000;
+        opacity: 0.2;
+      }
+      .highlight {
+        fill: #fff;
+        opacity: 0.14;
       }
       .house-walls {
         fill: var(--house);
       }
+      .house-side {
+        fill: var(--house-shade);
+      }
       .house-roof {
         fill: var(--roof);
       }
+      .house-window {
+        fill: var(--window);
+      }
+      .roof-line {
+        fill: none;
+        stroke: var(--roof-shade);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .roof-solid {
+        fill: var(--roof-shade);
+      }
       .house-door {
-        fill: var(--prepared);
+        fill: var(--roof-shade);
       }
       .village-house,
       #country-green,
       .weather-water,
-      .weather-cracks {
+      .weather-cracks,
+      .weather-haze,
+      .weather-rain {
         transition:
           opacity 0.4s ease,
           fill 0.4s ease;
@@ -452,26 +569,92 @@
       .weather-cracks {
         opacity: 0;
         fill: none;
-        stroke: var(--roof);
-        stroke-width: 2;
+        stroke: var(--roof-shade);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 1.4;
+      }
+      .weather-haze {
+        opacity: 0;
+        fill: var(--gold);
       }
       .weather-water {
         opacity: 0;
         fill: var(--river);
       }
+      .weather-water .river-glint {
+        stroke-width: 1.5;
+      }
+      .weather-rain {
+        opacity: 0;
+      }
+      .rain-drop {
+        fill: none;
+        stroke: var(--stored-food);
+        stroke-linecap: round;
+        stroke-width: 1.2;
+      }
+      .storm-cloud {
+        fill: var(--storm);
+      }
       .weather-drought .weather-cracks {
-        opacity: 0.8;
+        opacity: 0.85;
+      }
+      .weather-drought .weather-haze {
+        opacity: 0.22;
       }
       .weather-flood .weather-water {
-        opacity: 0.65;
+        opacity: 0.72;
+      }
+      .weather-flood .weather-rain {
+        opacity: 0.6;
       }
       .collapsed .village-house {
         filter: grayscale(1);
       }
-      .landmark {
+      .irrigation-water {
+        fill: none;
+        stroke: var(--river);
+        stroke-width: 3;
+      }
+      .survey-line {
+        fill: none;
+        stroke: var(--roof-shade);
+        stroke-width: 1.5;
+        stroke-dasharray: 5 4;
+      }
+      .road {
+        fill: var(--prepared);
+      }
+      .road-rut {
+        fill: none;
+        stroke: var(--roof-shade);
+        stroke-width: 1;
+        stroke-dasharray: 6 5;
+        opacity: 0.5;
+      }
+      .sheaf {
+        fill: var(--sheaf);
+      }
+      .sheaf-tie {
+        fill: none;
+        stroke: var(--roof-shade);
+        stroke-width: 1.4;
+      }
+      .works-smoke {
+        fill: var(--cloud);
+        opacity: 0.8;
+      }
+      .wagon-canvas {
         fill: var(--house);
-        stroke: var(--green);
-        stroke-width: 2;
+      }
+      .wheel {
+        fill: none;
+        stroke: var(--roof-shade);
+        stroke-width: 1.4;
+      }
+      .flag {
+        fill: var(--sheaf);
       }
       .country-caption {
         color: var(--muted);
@@ -1477,7 +1660,7 @@
           margin-top: 0.4rem;
         }
         /* The landscape takes whatever height its panel has left: the scene
-           sits at the bottom and the sky-coloured background extends upward. */
+           sits at the bottom and its sky and land continue past the frame. */
         .country {
           display: flex;
           flex-direction: column;
@@ -1486,8 +1669,6 @@
           flex: 1 1 0;
           min-height: 8rem;
           height: 0;
-          background: var(--bg);
-          border-radius: 1.1rem;
         }
         .country-caption {
           margin-bottom: 0;
@@ -1679,6 +1860,8 @@
         .village-house,
         #country-green,
         .weather-water,
+        .weather-haze,
+        .weather-rain,
         .weather-cracks,
         .meter > span {
           transition: none;
@@ -1842,106 +2025,567 @@
           aria-label="Your country"
         >
           <defs>
+            <linearGradient
+              id="sky-gradient"
+              gradientUnits="userSpaceOnUse"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="125"
+            >
+              <stop class="sky-top" offset="0" />
+              <stop class="sky-low" offset="1" />
+            </linearGradient>
+            <radialGradient id="sun-halo">
+              <stop class="sun-glow" offset="0.3" stop-opacity="0.45" />
+              <stop class="sun-glow" offset="1" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient
+              id="ground-gradient"
+              gradientUnits="userSpaceOnUse"
+              x1="0"
+              y1="135"
+              x2="0"
+              y2="385"
+            >
+              <stop class="ground-far" offset="0" />
+              <stop class="ground-near" offset="1" />
+            </linearGradient>
+            <linearGradient
+              id="river-gradient"
+              gradientUnits="userSpaceOnUse"
+              x1="0"
+              y1="125"
+              x2="0"
+              y2="385"
+            >
+              <stop class="river-far" offset="0" />
+              <stop class="river-near" offset="0.6" />
+            </linearGradient>
             <pattern
               id="crop-rows"
-              width="13"
-              height="13"
+              width="7"
+              height="6"
               patternUnits="userSpaceOnUse"
-              patternTransform="rotate(18)"
             >
-              <path
-                d="M3 0v13"
-                stroke="var(--house)"
-                stroke-width="2.5"
-                opacity="0.6"
-              />
+              <path class="crop-furrow" d="M3.5 0v6" stroke-width="3" />
+              <path class="crop-plants" d="M3.5 1v2.5" stroke-width="2" />
+            </pattern>
+            <pattern
+              id="soil-rows"
+              width="6"
+              height="6"
+              patternUnits="userSpaceOnUse"
+            >
+              <path class="soil-furrow" d="M3 0v6" stroke-width="1.5" />
+            </pattern>
+            <pattern
+              id="rain"
+              width="30"
+              height="42"
+              patternUnits="userSpaceOnUse"
+            >
+              <path class="rain-drop" d="m8 2-3 9m19 4-3 9m-9 8-3 9" />
             </pattern>
             <symbol id="land-tree" viewBox="0 0 26 32" width="26" height="32">
-              <rect class="tree-trunk" x="11" y="22" width="4" height="9" />
-              <path class="tree-leaves" d="m13 0 11 18h-5l7 9H0l7-9H2Z" />
+              <rect class="tree-trunk" x="11.5" y="25" width="3" height="7" />
+              <path
+                class="tree-leaves"
+                d="M13 0 19 9h-2.5l5.500 8H18.500L25 26H1l6.500-9H4l5.500-8H7Z"
+              />
+              <path
+                class="shade"
+                d="M13 0 19 9h-2.500l5.500 8h-3.500L25 26H13Z"
+              />
+            </symbol>
+            <symbol id="land-oak" viewBox="0 0 30 32" width="30" height="32">
+              <path class="tree-trunk" d="M13 32V19h4v13Z" />
+              <path
+                class="tree-leaves"
+                d="M8 24a7 7 0 0 1-3-13A10 10 0 0 1 24 8a8 8 0 0 1 1 15 6 6 0 0 1-8 1 7 7 0 0 1-9 0Z"
+              />
+              <path
+                class="shade"
+                d="M25 23a6 6 0 0 1-8 1 7 7 0 0 1-9 0 7 7 0 0 1-2-.700C14 24 22 18 24 8a8 8 0 0 1 1 15Z"
+              />
+              <circle class="highlight" cx="11" cy="9" r="4.500" />
             </symbol>
             <symbol id="land-house" viewBox="0 0 38 39" width="38" height="39">
+              <rect class="roof-solid" x="27.500" y="4" width="4" height="9" />
+              <path class="house-side" d="M21 20 35 17.500v16L21 37Z" />
+              <path class="house-walls" d="M3 20 12 10l9 10v17H3Z" />
+              <path class="house-roof" d="M12 9 27 6.500 36.500 18 21 21Z" />
+              <path
+                class="roof-line"
+                d="m15.500 12.500 14.500-2.500M18.500 16.500l14.500-2.500"
+                stroke-width="0.700"
+              />
+              <path
+                class="roof-line"
+                d="M1.500 21.500 12 9l9.500 12.500"
+                stroke-width="1.800"
+              />
+              <circle class="house-window" cx="12" cy="17.500" r="1.800" />
               <rect
-                class="house-walls"
-                x="5"
-                y="17"
-                width="28"
-                height="20"
+                class="house-door"
+                x="9.500"
+                y="27"
+                width="5"
+                height="10"
                 rx="1"
               />
-              <path class="house-roof" d="M0 18 19 2l19 16Z" />
-              <rect class="house-door" x="16" y="25" width="8" height="12" />
-              <rect class="house-door" x="8" y="23" width="5" height="5" />
+              <rect
+                class="house-window"
+                x="24"
+                y="23"
+                width="3.500"
+                height="5"
+              />
+              <rect
+                class="house-window"
+                x="30"
+                y="22"
+                width="3.500"
+                height="5"
+              />
             </symbol>
+            <path
+              id="land-river-shape"
+              d="M-1000 134 0 126c34 2 66 14 62 36-4 30-28 52-28 88 0 46 12 90 8 150H6c4-60 8-104 8-150 0-44 32-64 34-88 2-14-22-28-48-29L-1000 140Z"
+            />
+            <symbol id="land-cloud" viewBox="0 0 60 22" width="60" height="22">
+              <path
+                d="M6 22a6 6 0 0 1 0-12 9 9 0 0 1 14-6 12 12 0 0 1 21 2 8 8 0 0 1 13 16Z"
+              />
+            </symbol>
+            <symbol id="land-tuft" viewBox="0 0 10 7" width="10" height="7">
+              <path
+                class="tuft"
+                d="M5 7Q4.500 3 1.500 1.500M5 7q0-3.500 0-6M5 7q.500-3.500 3.500-5"
+              />
+            </symbol>
+            <g id="land-sack">
+              <path
+                class="house-walls"
+                d="M1 12c-1-5 1-8 3-9L3 1h6L8 3c2 1 4 4 3 9Z"
+              />
+              <path class="shade" d="M6 3h2c2 1 4 4 3 9H6Z" />
+              <path class="sheaf-tie" d="M3.500 3h5" />
+            </g>
+            <g id="land-sheaf">
+              <path
+                class="sheaf"
+                d="M1 26 5 12 1 3l4 1 2-4 2 4 4-1-4 9 4 14Z"
+              />
+              <path class="shade" d="M7 0 9 4l4-1-4 9 4 14H7Z" />
+              <path class="sheaf-tie" d="M3.800 13h6.400" />
+            </g>
+            <g id="land-stake">
+              <path class="roof-line" d="M0 0v-15" stroke-width="1.600" />
+              <path class="flag" d="m0-15 8 2.500-8 2.500Z" />
+            </g>
           </defs>
-          <rect class="land-sky" width="520" height="385" rx="18" />
-          <circle cx="443" cy="46" r="19" fill="var(--gold)" opacity="0.4" />
-          <path
-            class="land-hills"
-            d="M0 138Q77 55 165 111T331 100 520 129v35H0Z"
-            opacity="0.55"
+          <rect
+            fill="url(#sky-gradient)"
+            x="-1000"
+            y="-1000"
+            width="2520"
+            height="1400"
           />
-          <path
-            class="land-hills"
-            d="M0 158Q81 108 204 135T385 125 520 159v214H0Z"
-          />
-          <path class="land-river" d="M0 112q90 18 61 72t-38 92q-8 51 21 98" />
           <g aria-hidden="true">
-            <use class="village-house" href="#land-house" x="170" y="103" />
-            <use class="village-house" href="#land-house" x="218" y="87" />
-            <use class="village-house" href="#land-house" x="267" y="102" />
-            <use class="village-house" href="#land-house" x="310" y="86" />
-            <use class="village-house" href="#land-house" x="135" y="75" />
-            <use class="village-house" href="#land-house" x="190" y="59" />
-            <use class="village-house" href="#land-house" x="250" y="52" />
-            <use class="village-house" href="#land-house" x="294" y="53" />
+            <circle class="land-star" cx="60" cy="-30" r="1.1" />
+            <circle class="land-star" cx="190" cy="-70" r="0.8" />
+            <circle class="land-star" cx="330" cy="-24" r="1.1" />
+            <circle class="land-star" cx="450" cy="-90" r="0.8" />
+            <circle class="land-star" cx="120" cy="-150" r="1.1" />
+            <circle class="land-star" cx="280" cy="-190" r="0.8" />
+            <circle class="land-star" cx="410" cy="-240" r="1.1" />
+            <circle class="land-star" cx="40" cy="-280" r="0.8" />
+            <circle class="land-star" cx="220" cy="-330" r="1.1" />
+            <circle class="land-star" cx="490" cy="-360" r="0.8" />
+            <circle class="land-star" cx="130" cy="-420" r="1.1" />
+            <circle class="land-star" cx="350" cy="-470" r="0.8" />
+            <use
+              class="land-cloud high-cloud"
+              href="#land-cloud"
+              x="40"
+              y="-90"
+              width="66"
+              height="24"
+            />
+            <use
+              class="land-cloud high-cloud"
+              href="#land-cloud"
+              x="300"
+              y="-130"
+              width="84"
+              height="31"
+            />
+            <use
+              class="land-cloud high-cloud"
+              href="#land-cloud"
+              x="130"
+              y="-250"
+              width="74"
+              height="27"
+            />
+            <use
+              class="land-cloud high-cloud"
+              href="#land-cloud"
+              x="400"
+              y="-330"
+              width="90"
+              height="33"
+            />
+            <use
+              class="land-cloud high-cloud"
+              href="#land-cloud"
+              x="10"
+              y="-420"
+              width="70"
+              height="26"
+            />
+            <circle class="land-star" cx="162" cy="16" r="1" />
+            <circle class="land-star" cx="214" cy="42" r="0.700" />
+            <circle class="land-star" cx="256" cy="12" r="1.200" />
+            <circle class="land-star" cx="311" cy="30" r="0.800" />
+            <circle class="land-star" cx="366" cy="10" r="1" />
+            <circle class="land-star" cx="408" cy="38" r="0.700" />
+            <circle class="land-star" cx="478" cy="18" r="1.200" />
+            <circle class="land-star" cx="26" cy="20" r="0.800" />
+            <circle fill="url(#sun-halo)" cx="72" cy="44" r="56" />
+            <circle class="land-sun" cx="72" cy="44" r="17" />
+            <use
+              class="land-cloud"
+              href="#land-cloud"
+              x="150"
+              y="22"
+              width="58"
+              height="21"
+            />
+            <use
+              class="land-cloud"
+              href="#land-cloud"
+              x="352"
+              y="14"
+              width="74"
+              height="27"
+            />
+            <use
+              class="land-cloud"
+              href="#land-cloud"
+              x="264"
+              y="24"
+              width="44"
+              height="16"
+            />
+          </g>
+          <rect
+            class="weather-haze"
+            x="-1000"
+            y="-1000"
+            width="2520"
+            height="1400"
+          />
+          <path
+            class="land-far"
+            d="M-1000 118C-600 80-200 112 0 92 70 86 120 58 190 72c70 14 140-8 210-14 50-4 90 22 120 34 200 40 500-20 1000 20v290H-1000Z"
+          />
+          <g aria-hidden="true">
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="4"
+              y="78"
+              width="11"
+              height="14"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="14"
+              y="74"
+              width="13"
+              height="17"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="27"
+              y="77"
+              width="11"
+              height="14"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="108"
+              y="56"
+              width="11"
+              height="14"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="118"
+              y="52"
+              width="13"
+              height="17"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="130"
+              y="53"
+              width="11"
+              height="14"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="418"
+              y="46"
+              width="12"
+              height="15"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="430"
+              y="48"
+              width="13"
+              height="17"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="443"
+              y="53"
+              width="11"
+              height="14"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="486"
+              y="66"
+              width="12"
+              height="15"
+            />
+            <use
+              class="distant-tree"
+              href="#land-tree"
+              x="498"
+              y="72"
+              width="13"
+              height="17"
+            />
+          </g>
+          <path
+            class="land-mid"
+            d="M-1000 138C-600 112-200 124 0 118 80 114 140 88 220 92c80 4 140 12 210 8 40-2 70 12 90 16 200 30 500-10 1000 20v264H-1000Z"
+          />
+          <path
+            fill="url(#ground-gradient)"
+            d="M-1000 164C-600 150-200 152 0 144 90 138 180 132 270 138c90 6 170-4 250 4 200 8 500-4 1000 22v236H-1000Z"
+          />
+          <use href="#land-river-shape" fill="url(#river-gradient)" />
+          <path
+            class="river-glint"
+            d="M52 170c-3 12-14 24-20 38M25 236c-2 16 0 34 2 50M32 300c2 16 3 30 2 46M16 330c1 12 0 26-1 40"
+          />
+          <path class="land-path" d="M238 94c-10 22 40 36 28 66" />
+          <g aria-hidden="true">
+            <use class="village-house" href="#land-house" x="222" y="56" />
+            <use class="village-house" href="#land-house" x="318" y="58" />
+            <use class="village-house" href="#land-house" x="268" y="62" />
+            <use class="village-house" href="#land-house" x="176" y="64" />
+            <use class="village-house" href="#land-house" x="305" y="98" />
+            <use class="village-house" href="#land-house" x="205" y="100" />
+            <use class="village-house" href="#land-house" x="150" y="102" />
+            <use class="village-house" href="#land-house" x="255" y="106" />
           </g>
           <g id="country-fields" aria-hidden="true"></g>
           <g id="country-green" aria-hidden="true"></g>
           <path
-            class="weather-water"
-            d="M37 289q48-19 92 4t91-3 92 4 95-3 86 7v30H37Z"
-          />
-          <path
             class="weather-cracks"
-            d="m65 306 7 11-7 9m151-19 10 7-5 10m172-19 8 13-10 9"
+            aria-hidden="true"
+            d="m92 310 7 11-5 9 8 12m-3-21 9 4m28-16 9 8-3 11 7 9m-4-20 10-2m71-1 10 7-5 10 6 12m-1-22 9 3m62-17 8 13-8 9 5 11m-5-20-8 5m62-20 7 9-3 10 8 12m-5-22 9-3M64 366l10 5 4 8m-4-8 9-3M196 368l8 6 8-2 3 7m-11-5-2 7M340 366l9 6 9-1 4 8m-13-7-2 7M452 368l7 5 8-1 3 6M130 252l6 9-4 8 6 10m-2-18 8 3M262 256l8 7-3 9 5 9m-2-18-8 4M392 250l7 10-5 8 6 11m-1-19 8-2"
           />
-          <g class="landmark" aria-hidden="true">
-            <g id="landmark-irrigation" display="none">
+          <g id="country-wild" aria-hidden="true"></g>
+          <g aria-hidden="true">
+            <use href="#land-tuft" x="74" y="371" width="13" height="9" />
+            <use href="#land-tuft" x="150" y="374" width="11" height="8" />
+            <use href="#land-tuft" x="236" y="369" width="13" height="9" />
+            <use href="#land-tuft" x="318" y="375" width="11" height="8" />
+            <use href="#land-tuft" x="402" y="370" width="13" height="9" />
+            <use href="#land-tuft" x="470" y="374" width="11" height="8" />
+            <circle class="land-flower" cx="112" cy="376" r="1.300" />
+            <circle class="land-flower" cx="196" cy="373" r="1.100" />
+            <circle class="land-flower" cx="282" cy="378" r="1.300" />
+            <circle class="land-flower" cx="366" cy="374" r="1.100" />
+            <circle class="land-flower" cx="438" cy="379" r="1.300" />
+          </g>
+          <g aria-hidden="true">
+            <g class="weather-water">
               <path
-                d="M67 144h355M120 140v12m90-12v12m90-12v12"
+                d="M-1000 300c300-8 700-4 1037-1 48-14 92 10 137 3s92-8 137 0 92 2 133-4c200-4 500 4 1076 2v100H-1000Z"
+              />
+              <use
+                href="#land-river-shape"
                 fill="none"
                 stroke="var(--river)"
-                stroke-width="4"
+                stroke-width="9"
+              />
+              <path
+                class="river-glint"
+                d="M70 318h34m34 12h44M250 316h48m42 18h40M86 350h52m80 8h60m70-8h52M428 322h34"
+              />
+            </g>
+            <g class="weather-rain">
+              <use
+                class="storm-cloud"
+                href="#land-cloud"
+                x="30"
+                y="6"
+                width="130"
+                height="47"
+              />
+              <use
+                class="storm-cloud"
+                href="#land-cloud"
+                x="180"
+                y="0"
+                width="150"
+                height="54"
+              />
+              <use
+                class="storm-cloud"
+                href="#land-cloud"
+                x="340"
+                y="10"
+                width="140"
+                height="50"
+              />
+              <rect
+                fill="url(#rain)"
+                x="-1000"
+                y="-1000"
+                width="2520"
+                height="1400"
+              />
+            </g>
+          </g>
+          <g aria-hidden="true">
+            <g id="landmark-irrigation" display="none">
+              <g class="irrigation-water" id="irrigation-channels">
+                <path d="M56 155H453" />
+              </g>
+              <path
+                class="river-glint"
+                d="M92 155h26m44 0h22m52 0h26m48 0h20"
+              />
+              <rect class="house-door" x="72" y="148" width="3" height="11" />
+              <rect class="house-door" x="82" y="148" width="3" height="11" />
+              <rect
+                class="roof-solid"
+                x="70"
+                y="146"
+                width="17"
+                height="3"
+                rx="1"
               />
             </g>
             <g id="landmark-granary" display="none">
-              <rect x="370" y="99" width="37" height="40" rx="4" />
-              <path d="m366 100 23-16 23 16Z" />
-              <path d="M389 104v35" />
+              <path class="house-side" d="M390 96 410 93v28l-20 3Z" />
+              <path class="house-walls" d="M370 98 380 86l10 12v26h-20Z" />
+              <path class="house-roof" d="M380 85 400 82 411 94 390 98Z" />
+              <path
+                class="roof-line"
+                d="M368 99 380 85l11 14"
+                stroke-width="1.800"
+              />
+              <rect
+                class="house-door"
+                x="375"
+                y="107"
+                width="10"
+                height="17"
+                rx="1"
+              />
+              <path
+                class="roof-line"
+                d="M380 107v17"
+                stroke="var(--house)"
+                stroke-width="0.800"
+              />
+              <path class="house-walls" d="M411 95h17v28h-17Z" />
+              <path class="shade" d="M420 95h8v28h-8Z" />
+              <path
+                class="roof-line"
+                d="M411 103h17m-17 9h17"
+                stroke-width="0.800"
+              />
+              <path class="house-roof" d="M408 96 419.500 82 431 96Z" />
+              <path class="shade" d="M419.500 82 431 96H419.500Z" />
             </g>
             <g id="landmark-tradeRoutes" display="none">
-              <path d="M482 171v160" stroke="var(--roof)" stroke-width="8" />
-              <path d="m482 177 13 9-13 9Z" fill="var(--gold)" />
+              <path
+                class="road"
+                d="M340 132c62-4 130-1 147 38 17 36 3 110 5 150 2 30 6 50 6 80h28c-2-40-8-70-12-100-6-60 2-110-17-140-17-30-97-37-157-28Z"
+              />
+              <path
+                class="road-rut"
+                d="M346 131c60-3 130 1 146 37 15 34 6 100 9 144 2 30 8 60 11 88"
+              />
+              <g transform="translate(490 232)">
+                <path class="wagon-canvas" d="M4 14C2 3 8 0 15 0s13 3 11 14Z" />
+                <path class="shade" d="M15 0c7 0 13 3 11 14H15Z" />
+                <rect
+                  class="roof-solid"
+                  x="2"
+                  y="14"
+                  width="26"
+                  height="6"
+                  rx="1"
+                />
+                <circle class="wheel" cx="8" cy="22" r="4" />
+                <circle class="wheel" cx="22" cy="22" r="4" />
+              </g>
             </g>
             <g id="landmark-landSurvey" display="none">
-              <path
-                d="M39 162v-15h15m413 15v-15h-15M39 342v15h15m413-15v15h-15"
-                fill="none"
-                stroke-dasharray="4 3"
-              />
+              <path class="survey-line" d="M81 150H455L490 366H52Z" />
+              <use href="#land-stake" x="81" y="150" />
+              <use href="#land-stake" x="455" y="150" />
+              <use href="#land-stake" x="52" y="366" />
+              <use href="#land-stake" x="490" y="366" />
             </g>
             <g id="landmark-highYieldSeeds" display="none">
-              <circle cx="112" cy="121" r="12" fill="var(--gold)" />
-              <path
-                d="m106 127 12-12m-10-1 5 6m-1-10 5 6"
-                stroke="var(--panel)"
-              />
+              <use href="#land-sheaf" x="104" y="122" />
+              <use href="#land-sheaf" x="93" y="126" />
+              <use href="#land-sack" x="119" y="139" />
             </g>
             <g id="landmark-fertilizerWorks" display="none">
-              <rect x="424" y="113" width="24" height="25" rx="3" />
-              <path d="M429 114v-14h9v14" />
-              <path d="M430 129h11" />
+              <circle class="works-smoke" cx="480" cy="74" r="4" />
+              <circle class="works-smoke" cx="485" cy="66" r="5.500" />
+              <circle class="works-smoke" cx="493" cy="57" r="7" />
+              <rect class="roof-solid" x="475" y="78" width="7" height="30" />
+              <rect class="house-side" x="470" y="102" width="30" height="24" />
+              <rect
+                class="house-walls"
+                x="442"
+                y="102"
+                width="28"
+                height="24"
+              />
+              <path
+                class="house-roof"
+                d="m440 103 15-9 15 9Zm30 0 15-9 16 9Z"
+              />
+              <rect class="house-door" x="451" y="112" width="9" height="14" />
+              <rect class="house-window" x="476" y="108" width="5" height="6" />
+              <rect class="house-window" x="488" y="108" width="5" height="6" />
+              <use href="#land-sack" x="430" y="114" />
             </g>
           </g>
         </svg>
@@ -1959,7 +2603,8 @@
           </div>
           <div>
             <svg class="swatch prepared" viewBox="0 0 40 26" aria-hidden="true">
-              <rect class="prepared-field" width="40" height="26" rx="4" /></svg
+              <rect class="prepared-field" width="40" height="26" rx="4" />
+              <rect width="40" height="26" rx="4" fill="url(#soil-rows)" /></svg
             >Prepared<strong id="land-prepared"></strong>
           </div>
           <div>
