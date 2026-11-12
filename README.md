@@ -3,6 +3,8 @@
 Manage an agriculture-based country year by year: grow the population while
 surviving food shortfalls, random Events, and changing export prices.
 
+![Grow or Die in Year 7: the header, the previous Year's report, the illustrated country and the production plan](docs/images/screenshot.png)
+
 ## Install and run
 
 Use Git and Node.js **24.13.0 or later within major version 24**, with npm.
